@@ -162,5 +162,5 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 - Faire les captures dans le scratchpad, jamais dans le dépôt.
 
 ### Git
-- Dépôt **propre au projet** (racine `immobilier-abidjan-net/`), branche unique `main`, pas encore de remote GitLab (à ajouter au lot 3.1).
+- Dépôt **propre au projet** (racine `immobilier-abidjan-net/`), branche unique `main`, remote `origin` = `git@github.com:ekassi-wgy/immobilier-abidjan-net.git` (GitHub, SSH : clé `~/.ssh/id_ed25519` protégée par phrase de passe, à charger dans l'agent avec `ssh-add --apple-use-keychain`).
 - Ne jamais committer : `.env`, `vendor/`, `public/uploads/`, `storage/`, captures d'écran.

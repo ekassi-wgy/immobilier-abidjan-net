@@ -7,7 +7,7 @@
   $(function () {
     // Select2 en français, habillé par cmsadmin.css
     if ($.fn.select2) {
-      $('[data-select2]').each(function () {
+      $('[data-im-select]').each(function () {
         var $el = $(this);
         $el.select2({
           width: '100%',
@@ -37,6 +37,22 @@
       $input.attr('type', visible ? 'password' : 'text');
       $(this).attr('aria-pressed', String(!visible))
         .find('.mdi').toggleClass('mdi-eye-outline', visible).toggleClass('mdi-eye-off-outline', !visible);
+    });
+
+    // Raccourci « / » : focus sur la recherche globale
+    $(document).on('keydown', function (ev) {
+      if (ev.key !== '/' || ev.ctrlKey || ev.metaKey || ev.altKey) {
+        return;
+      }
+      var tag = (ev.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || ev.target.isContentEditable) {
+        return;
+      }
+      var search = document.getElementById('im-global-search');
+      if (search && search.offsetParent !== null) {
+        ev.preventDefault();
+        search.focus();
+      }
     });
 
     // Fermeture automatique des messages flash de succès

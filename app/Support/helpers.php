@@ -79,11 +79,11 @@ function format_price(int|float|null $amount, string $currency = 'FCFA'): string
         return 'Prix sur demande';
     }
 
-    return number_format((float) $amount, 0, ',', "\u{202F}") . "\u{00A0}" . $currency;
+    return number_format((float) $amount, 0, ',', "\u{00A0}") . "\u{00A0}" . $currency;
 }
 
 /** Formatage d'un nombre entier : 12 480. */
 function format_number(int|float $value): string
 {
-    return number_format((float) $value, 0, ',', "\u{202F}");
+    return number_format((float) $value, 0, ',', "\u{00A0}");
 }

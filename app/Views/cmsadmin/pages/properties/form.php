@@ -94,7 +94,7 @@ $sections = [
           </div>
           <div class="col-md-6">
             <label class="form-label" for="p-category">Catégorie</label>
-            <select class="form-select<?= $invalid('category_id') ?>" id="p-category" name="category_id" required data-select2 data-placeholder="Choisir une catégorie"<?= $describedBy('category_id') ?>>
+            <select class="form-select<?= $invalid('category_id') ?>" id="p-category" name="category_id" required data-im-select data-placeholder="Choisir une catégorie"<?= $describedBy('category_id') ?>>
               <option value=""></option>
               <?php foreach ($categories as $group => $items): ?>
               <optgroup label="<?= e($group) ?>">
@@ -169,7 +169,7 @@ $sections = [
           </div>
           <div class="col-md-4">
             <label class="form-label" for="p-commune">Commune</label>
-            <select class="form-select<?= $invalid('commune_id') ?>" id="p-commune" name="commune_id" required data-select2 data-placeholder="Choisir"<?= $describedBy('commune_id') ?>>
+            <select class="form-select<?= $invalid('commune_id') ?>" id="p-commune" name="commune_id" required data-im-select data-placeholder="Choisir"<?= $describedBy('commune_id') ?>>
               <option value=""></option>
               <?php foreach ($communes as $id => $label): ?>
               <option value="<?= e($id) ?>"<?= (string) $value('commune_id') === (string) $id ? ' selected' : '' ?>><?= e($label) ?></option>
@@ -179,7 +179,7 @@ $sections = [
           </div>
           <div class="col-md-4">
             <label class="form-label" for="p-district">Quartier</label>
-            <select class="form-select" id="p-district" name="district_id" data-select2 data-placeholder="Choisir">
+            <select class="form-select" id="p-district" name="district_id" data-im-select data-placeholder="Choisir">
               <option value=""></option>
               <?php foreach ($districts as $id => $label): ?>
               <option value="<?= e($id) ?>"<?= (string) $value('district_id') === (string) $id ? ' selected' : '' ?>><?= e($label) ?></option>
@@ -381,7 +381,7 @@ $sections = [
           <dl class="im-meta-list">
             <div><dt>Statut</dt><dd><?= $isEdit ? cmsadmin_partial('status-badge', ['status' => $property['status']]) : '<span class="im-muted">Nouvelle annonce</span>' ?></dd></div>
             <?php if ($isEdit): ?>
-            <div><dt>Dernière mise à jour</dt><dd><?= e($property['updated']) ?></dd></div>
+            <div><dt>Modifiée</dt><dd><?= e($property['updated']) ?></dd></div>
             <?php endif; ?>
           </dl>
           <?php if ($isAgency): ?>

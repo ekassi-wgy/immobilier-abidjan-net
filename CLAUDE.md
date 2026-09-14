@@ -62,8 +62,13 @@ docs/
 /Applications/MAMP/bin/php/composer install
 php bin/build-css.php            # compile public/assets/scss → css (scssphp) — à créer au lot 1.1
 php -l <fichier>                 # vérif syntaxe avant commit
-php -S localhost:8000 -t public  # serveur rapide de dev (alternative à MAMP)
+
+# Prévisualisation du back-office SANS base de données (données fictives de bin/fixtures/)
+PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php
+#   /cmsadmin  ·  /cmsadmin?role=agency  ·  /cmsadmin/annonces  ·  /cmsadmin/annonces/nouvelle
+#   /cmsadmin/annonces/IAN-24531/modifier?erreurs=1  ·  /cmsadmin/connexion  ·  /cmsadmin/erreur-500
 ```
+`bin/dev-server.php` est provisoire : il sera remplacé par le front controller `public/index.php` (lot 1.1). Le serveur PHP intégré doit tourner avec plusieurs workers, sinon Chrome bloque sur les requêtes parallèles.
 MAMP : Apache port 8888, MySQL 8 (port 8889). Le `DocumentRoot` MAMP pointe actuellement sur un autre projet → utiliser un vhost `immobilier.abidjan.local` vers `public/`, ou le serveur PHP intégré.
 `.env` (jamais commité) : `APP_ENV`, `APP_URL`, `DB_*`, `SMTP_*`. Fournir `.env.example`.
 
@@ -105,7 +110,7 @@ $ink:         #1B2540; $muted: #5E6B85; $white: #FFFFFF;
 Couleurs définies **une seule fois** en variables SCSS + custom properties CSS ; aucune couleur en dur dans les composants. Le rouge reste rare (badges, erreurs).
 
 ### Typographie
-Une sans-serif géométrique à forte personnalité, auto-hébergée (proposition : **Plus Jakarta Sans** — à confirmer), 2–3 graisses. Titres serrés (`letter-spacing: -0.02em`), corps 16 px min, chiffres tabulaires pour prix et surfaces. Pas d'Inter, Roboto, Poppins ou Open Sans par défaut.
+Une sans-serif géométrique à forte personnalité, auto-hébergée : **Plus Jakarta Sans** (validée, variable woff2 dans `public/assets/fonts/`), 2–3 graisses. Titres serrés (`letter-spacing: -0.02em`), corps 16 px min, chiffres tabulaires pour prix et surfaces. Pas d'Inter, Roboto, Poppins ou Open Sans par défaut.
 
 ### Principes qui évitent l'effet template / IA
 - Bootstrap = moteur invisible : **aucune** classe visuelle Bootstrap laissée telle quelle (`.btn-primary`, `.card`, `.navbar` par défaut, `.badge`, `.shadow`…). Composants maison préfixés **`im-`** (`.im-btn`, `.im-card-property`, `.im-hero`…).
@@ -120,6 +125,15 @@ Plein écran sobre (≈ 88vh desktop, 70vh mobile) : **slides photo en fondu len
 
 ### Back-office `cmsadmin`
 Même palette et même typographie que le front, UI calme et dense, lisible. StarAdmin 2 fournit la **structure** (layout, sidebar, tables, formulaires) ; l'**habillage** est réécrit via une feuille d'override. Menu latéral construit selon le rôle connecté.
+
+- **Ne jamais modifier** `public/cmsadmin/assets/css/style.css` (template compilé/minifié) : tout passe par `css/cmsadmin.css`, qui ne contient des couleurs que dans `:root`.
+- Vues : `app/Views/cmsadmin/layouts/` (`app`, `auth`), `partials/` (navbar, sidebar, page-header, status-badge, pagination, empty-state, flash), `pages/<module>/`. Modèles de référence à copier : `pages/properties/index.php` (liste), `pages/properties/form.php` (formulaire), `pages/dashboard/index.php`.
+- Menu : `config/cmsadmin-menu.php` (entrées, rôles autorisés, compteurs). Masquer une entrée n'est pas un contrôle d'accès.
+- Helpers disponibles : `e()`, `url()`, `cmsadmin_url()`, `cmsadmin_asset()` (versionné), `render_view()`, `cmsadmin_partial()`, `format_price()`, `format_number()` (`app/Support/helpers.php`).
+- Plugins chargés à la demande via `$plugins` (`'select2'`, `'chart'`). Select2 : attribut **`data-im-select`** (jamais `data-select2`, qui entre en conflit avec la bibliothèque).
+- Listes : pagination et filtres **côté serveur** (pas de DataTables : volumes importants). Dates : `<input type="date">` natif (pas de datepicker jQuery).
+- jQuery est toléré **uniquement** dans `cmsadmin` (dépendance du template), jamais côté public.
+- Licences tierces : `public/cmsadmin/assets/THIRD-PARTY-LICENSES.md` (à tenir à jour).
 
 ---
 

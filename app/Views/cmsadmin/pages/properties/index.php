@@ -43,7 +43,7 @@ $hasFilters = array_filter(array_diff_key($filters, ['statut' => true])) !== [];
     </div>
     <div class="im-filters__field">
       <label class="visually-hidden" for="f-categorie">Catégorie</label>
-      <select class="form-select" id="f-categorie" name="categorie" data-select2 data-placeholder="Toutes catégories">
+      <select class="form-select" id="f-categorie" name="categorie" data-im-select data-placeholder="Toutes catégories">
         <option value=""></option>
         <?php foreach ($categories as $id => $label): ?>
         <option value="<?= e($id) ?>"<?= (string) ($filters['categorie'] ?? '') === (string) $id ? ' selected' : '' ?>><?= e($label) ?></option>
@@ -52,7 +52,7 @@ $hasFilters = array_filter(array_diff_key($filters, ['statut' => true])) !== [];
     </div>
     <div class="im-filters__field">
       <label class="visually-hidden" for="f-commune">Commune</label>
-      <select class="form-select" id="f-commune" name="commune" data-select2 data-placeholder="Toutes communes">
+      <select class="form-select" id="f-commune" name="commune" data-im-select data-placeholder="Toutes communes">
         <option value=""></option>
         <?php foreach ($communes as $id => $label): ?>
         <option value="<?= e($id) ?>"<?= (string) ($filters['commune'] ?? '') === (string) $id ? ' selected' : '' ?>><?= e($label) ?></option>
@@ -62,7 +62,7 @@ $hasFilters = array_filter(array_diff_key($filters, ['statut' => true])) !== [];
     <?php if ($isStaff): ?>
     <div class="im-filters__field">
       <label class="visually-hidden" for="f-agence">Agence</label>
-      <select class="form-select" id="f-agence" name="agence" data-select2 data-placeholder="Toutes agences">
+      <select class="form-select" id="f-agence" name="agence" data-im-select data-placeholder="Toutes agences">
         <option value=""></option>
         <?php foreach ($agencies as $id => $label): ?>
         <option value="<?= e($id) ?>"<?= (string) ($filters['agence'] ?? '') === (string) $id ? ' selected' : '' ?>><?= e($label) ?></option>
@@ -95,7 +95,6 @@ $hasFilters = array_filter(array_diff_key($filters, ['statut' => true])) !== [];
           <th scope="col" class="text-end">Prix</th>
           <?php if ($isStaff): ?><th scope="col">Agence</th><?php endif; ?>
           <th scope="col">Statut</th>
-          <th scope="col">Mise à jour</th>
           <th scope="col"><span class="visually-hidden">Actions</span></th>
         </tr>
       </thead>
@@ -123,8 +122,10 @@ $hasFilters = array_filter(array_diff_key($filters, ['statut' => true])) !== [];
             <span class="im-cell-sub"><?= e($property['transaction']) ?><?= !empty($property['period']) ? ' · ' . e($property['period']) : '' ?></span>
           </td>
           <?php if ($isStaff): ?><td><?= e($property['agency']) ?></td><?php endif; ?>
-          <td><?= cmsadmin_partial('status-badge', ['status' => $property['status']]) ?></td>
-          <td class="im-muted"><?= e($property['updated']) ?></td>
+          <td>
+            <?= cmsadmin_partial('status-badge', ['status' => $property['status']]) ?>
+            <span class="im-cell-sub mt-1">Modifiée <?= e($property['updated']) ?></span>
+          </td>
           <td class="text-end">
             <div class="dropdown">
               <button class="im-icon-btn im-icon-btn--sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Actions pour <?= e($ref) ?>">

@@ -142,6 +142,6 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 ## Méthode de travail
 
 - Lire la section concernée du cahier des charges + `docs/PLAN.md` avant chaque lot ; mettre à jour le statut du lot à la fin.
-- Travail par lots : branche `feature/<lot>` → commits atomiques en français → vérifications (`php -l`, scénario par rôle, contrôle mobile 375 px) → merge sur `main`.
+- Travail par lots **directement sur `main`** (pas de branches de fonctionnalité) : vérifications (`php -l`, scénario par rôle, contrôle mobile 375 px, rendu sur http://localhost:8888) → commits atomiques en français.
 - Toute évolution du schéma BDD passe par une migration numérotée dans `database/migrations/` + mise à jour de `schema.sql`.
 - En cas de doute sur le périmètre, une décision métier ou un choix graphique structurant : **demander avant de coder**.

@@ -1,0 +1,244 @@
+// =============================================================================
+// Hero de l'accueil : diaporama photo en fondu, zoom lent, recherche flottante
+// Comportement : public/assets/js/hero.js
+// =============================================================================
+
+@keyframes im-hero-zoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+@keyframes im-hero-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes im-hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.im-hero {
+  --im-hero-interval: 7000ms;
+  --im-hero-fade: 1400ms;
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 600px;
+  height: 88vh;
+  height: 88svh;
+  max-height: 940px;
+  overflow: hidden;
+  background: $im-navy-deep;
+  color: $im-white;
+
+  @include im-down(md) {
+    min-height: 560px;
+    height: 76svh;
+  }
+
+  // Diapositives -----------------------------------------------------------------
+  &__slides {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  &__slide {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    transition: opacity var(--im-hero-fade) $im-ease-inout;
+
+    &.is-active { z-index: 1; opacity: 1; }
+    &.is-leaving { z-index: 0; opacity: 1; }
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: var(--im-hero-origin, 50% 50%);
+  }
+
+  &__slide.is-active &__image,
+  &__slide.is-leaving &__image {
+    animation: im-hero-zoom calc(var(--im-hero-interval) + var(--im-hero-fade)) linear both;
+  }
+
+  &.is-paused &__image { animation-play-state: paused; }
+
+  // Voile de lisibilité : haut (en-tête) + bas-gauche (texte)
+  &__shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgba($im-navy-deep, .5) 0%, rgba($im-navy-deep, 0) 24%),
+      linear-gradient(0deg, rgba($im-navy-deep, .82) 0%, rgba($im-navy-deep, .35) 38%, rgba($im-navy-deep, 0) 68%),
+      linear-gradient(90deg, rgba($im-navy-deep, .3) 0%, rgba($im-navy-deep, 0) 58%);
+  }
+
+  // Contenu -----------------------------------------------------------------------
+  &__inner {
+    display: grid;
+    align-content: end;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    padding-top: calc(var(--im-header-height) + 2rem);
+    padding-bottom: im-fluid(6.5rem, 8.5rem);
+
+    @include im-up(lg) {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+  }
+
+  &__content {
+    max-width: 62rem;
+
+    > * { animation: im-hero-rise 900ms $im-ease both; }
+    > :nth-child(2) { animation-delay: 120ms; }
+    > :nth-child(3) { animation-delay: 240ms; }
+  }
+
+  &__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: 1.25rem;
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba($im-white, .82);
+
+    .im-icon { width: 1.125rem; height: 1.125rem; color: $im-white; }
+  }
+
+  &__title {
+    color: $im-white;
+    text-wrap: balance;
+  }
+
+  &__title-soft {
+    display: block;
+    font-weight: $im-weight-regular;
+    color: rgba($im-white, .78);
+  }
+
+  &__text {
+    max-width: 36rem;
+    margin-top: 1.25rem;
+    @include im-type("lead");
+    color: rgba($im-white, .82);
+  }
+
+  // Commandes du diaporama ------------------------------------------------------------
+  &__controls {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    align-items: flex-start;
+
+    @include im-up(lg) { align-items: flex-end; text-align: right; }
+    @include im-down(md) { display: none; }
+  }
+
+  &__caption {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    min-height: 1.5rem;
+    font-size: .875rem;
+    color: rgba($im-white, .82);
+    transition: opacity $im-duration $im-ease;
+
+    .im-icon { width: 1rem; height: 1rem; }
+
+    &.is-changing { opacity: 0; }
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__counter {
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .04em;
+    color: rgba($im-white, .7);
+
+    strong { color: $im-white; font-weight: $im-weight-semibold; }
+  }
+
+  &__progress {
+    display: flex;
+    gap: .375rem;
+  }
+
+  &__step {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      height: 2px;
+      margin-top: -1px;
+      border-radius: 2px;
+    }
+
+    &::before { background: rgba($im-white, .32); }
+    &::after { background: $im-white; transform: scaleX(0); transform-origin: left; }
+
+    &.is-done::after { transform: scaleX(1); }
+    &.is-active::after { animation: im-hero-progress var(--im-hero-interval) linear both; }
+
+    &:focus-visible { outline: 2px solid $im-white; outline-offset: 2px; border-radius: 3px; }
+  }
+
+  &.is-paused &__step.is-active::after { animation-play-state: paused; }
+
+  &__toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba($im-white, .35);
+    border-radius: 50%;
+    background: transparent;
+    color: $im-white;
+    transition: background-color $im-duration-fast $im-ease, border-color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1rem; height: 1rem; }
+
+    @include im-hover { background: rgba($im-white, .12); border-color: $im-white; }
+  }
+
+  @include im-reduced-motion {
+    &__image { animation: none !important; }
+    &__step.is-active::after { animation: none; transform: scaleX(1); }
+  }
+}
+
+// Recherche flottante, à cheval sur le bas du hero -----------------------------------------
+.im-hero-search {
+  position: relative;
+  z-index: 2;
+  margin-top: im-fluid(-4.5rem, -4.25rem);
+}

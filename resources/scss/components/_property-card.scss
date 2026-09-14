@@ -1,0 +1,268 @@
+// =============================================================================
+// Carte annonce
+// .im-card        : grille (accueil, résultats)
+// .im-card--row   : liste horizontale (résultats en vue liste)
+// =============================================================================
+
+.im-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: $im-ink;
+
+  // Média -----------------------------------------------------------------------
+  &__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    border-radius: $im-radius;
+    background: $im-mist;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 900ms $im-ease;
+  }
+
+  &__badges {
+    position: absolute;
+    top: .85rem;
+    left: .85rem;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+
+  &__fav {
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    z-index: 3;
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba($im-white, .92);
+    color: $im-ink;
+    cursor: pointer;
+    transition: transform $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.25rem; height: 1.25rem; }
+
+    @include im-hover { transform: scale(1.06); }
+
+    &[aria-pressed="true"] { color: $im-red; }
+    &[aria-pressed="true"] .im-icon { fill: $im-red; }
+  }
+
+  &__count {
+    position: absolute;
+    right: .85rem;
+    bottom: .85rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .5rem;
+    border-radius: $im-radius-xs;
+    background: rgba($im-navy-deep, .62);
+    color: $im-white;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    font-variant-numeric: tabular-nums;
+
+    .im-icon { width: .875rem; height: .875rem; }
+  }
+
+  // Contenu ------------------------------------------------------------------------
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding-top: 1.1rem;
+  }
+
+  &__eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .35rem;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: $im-muted;
+
+    span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  }
+
+  &__price {
+    font-size: 1.3125rem;
+    font-weight: $im-weight-bold;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+    color: $im-navy;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__currency,
+  &__period {
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: 0;
+    color: $im-muted;
+  }
+
+  &__title {
+    display: -webkit-box;
+    margin-top: .3rem;
+    overflow: hidden;
+    font-size: 1rem;
+    font-weight: $im-weight-semibold;
+    line-height: 1.4;
+    letter-spacing: -.01em;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  // Lien étiré sur toute la carte
+  &__link {
+    color: inherit;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    &:focus-visible { outline: 0; }
+    &:focus-visible::after { border-radius: $im-radius; box-shadow: $im-ring; }
+  }
+
+  &__location {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: .35rem;
+    font-size: .875rem;
+    color: $im-muted;
+
+    .im-icon { width: 1rem; height: 1rem; }
+  }
+
+  &__specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem 1.1rem;
+    margin: .8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: .875rem;
+    font-weight: $im-weight-medium;
+    color: $im-ink;
+
+    li { display: inline-flex; align-items: center; gap: .35rem; }
+    .im-icon { width: 1.125rem; height: 1.125rem; color: $im-subtle; }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  &__specs + &__footer { margin-top: 1rem; border-top: 1px solid $im-line-soft; }
+
+  &__agency {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-width: 0;
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    color: $im-muted;
+
+    span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .im-icon { width: 1rem; height: 1rem; color: $im-blue; }
+  }
+
+  &__actions {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: .35rem;
+  }
+
+  &__action {
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid $im-line;
+    border-radius: 50%;
+    color: $im-ink;
+    transition: border-color $im-duration-fast $im-ease, background-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.125rem; height: 1.125rem; }
+
+    @include im-hover { border-color: $im-navy; background: $im-navy; color: $im-white; }
+
+    &--whatsapp { @include im-hover { border-color: $im-whatsapp; background: $im-whatsapp; } }
+  }
+
+  // Survol ------------------------------------------------------------------------------
+  @include im-hover {
+    .im-card__image { transform: scale(1.04); }
+    .im-card__title { color: $im-blue; }
+  }
+
+  // Variante liste ------------------------------------------------------------------------
+  &--row {
+    padding: .75rem;
+    border: 1px solid $im-line;
+    border-radius: $im-radius-lg;
+    background: $im-white;
+    transition: border-color $im-duration $im-ease, box-shadow $im-duration $im-ease;
+
+    @include im-up(md) {
+      display: grid;
+      grid-template-columns: minmax(240px, 38%) 1fr;
+      gap: 1.5rem;
+    }
+
+    .im-card__media { border-radius: $im-radius-sm; }
+    .im-card__body { padding: 1rem .5rem .25rem; @include im-up(md) { padding: .75rem .75rem .5rem 0; } }
+    .im-card__title { font-size: 1.125rem; }
+    .im-card__description {
+      display: -webkit-box;
+      margin-top: .6rem;
+      overflow: hidden;
+      font-size: .9375rem;
+      color: $im-muted;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    @include im-hover { border-color: darken($im-line, 6%); box-shadow: $im-shadow; }
+  }
+}
+
+.im-grid-cards {
+  display: grid;
+  gap: 2.5rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+
+  @include im-up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include im-up(lg) { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3rem 2rem; }
+}

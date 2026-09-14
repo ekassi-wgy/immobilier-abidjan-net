@@ -1,0 +1,67 @@
+// =============================================================================
+// Fonctions & mixins
+// =============================================================================
+
+// Taille fluide entre deux valeurs en rem (viewport 360 px → 1440 px)
+@function im-fluid($min, $max, $vw-min: 360, $vw-max: 1440) {
+  @if $min == $max {
+    @return $min;
+  }
+  $min-px: divide($min, 1rem) * 16;
+  $max-px: divide($max, 1rem) * 16;
+  $slope: divide($max-px - $min-px, $vw-max - $vw-min);
+  $intercept-rem: divide($min-px - $slope * $vw-min, 16);
+  @return clamp(#{$min}, #{divide(round($intercept-rem * 1000), 1000)}rem + #{divide(round($slope * 100 * 1000), 1000)}vw, #{$max});
+}
+
+// Style typographique issu de l'échelle
+@mixin im-type($name) {
+  $spec: map-get($im-type-scale, $name);
+  font-size: im-fluid(nth($spec, 1), nth($spec, 2));
+  line-height: nth($spec, 3);
+  letter-spacing: nth($spec, 4);
+}
+
+@mixin im-focus-ring {
+  outline: 2px solid $im-blue-bright;
+  outline-offset: 2px;
+}
+
+@mixin im-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@mixin im-reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+@mixin im-hover {
+  @media (hover: hover) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+// Points de rupture alignés sur Bootstrap
+@mixin im-up($bp) {
+  @include media-breakpoint-up($bp) {
+    @content;
+  }
+}
+
+@mixin im-down($bp) {
+  @include media-breakpoint-down($bp) {
+    @content;
+  }
+}

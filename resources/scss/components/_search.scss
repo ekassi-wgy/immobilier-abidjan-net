@@ -1,0 +1,123 @@
+// =============================================================================
+// Module de recherche rapide (accueil)
+// =============================================================================
+
+.im-search {
+  padding: 1.25rem 1.25rem 1rem;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+  box-shadow: $im-shadow-lg;
+  color: $im-ink;
+
+  @include im-up(lg) { padding: 1.5rem 1.5rem 1.1rem; }
+
+  &__tabs {
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid $im-line;
+  }
+
+  &__fields {
+    display: grid;
+    gap: .75rem;
+
+    @include im-up(lg) {
+      grid-template-columns: 1fr 1.35fr 1fr auto;
+      gap: 0;
+      border: 1px solid $im-line;
+      border-radius: $im-radius;
+    }
+  }
+
+  &__field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: .65rem 1rem;
+    border: 1px solid $im-line;
+    border-radius: $im-radius-sm;
+    transition: background-color $im-duration-fast $im-ease;
+
+    @include im-up(lg) {
+      padding: .7rem 1.25rem;
+      border: 0;
+      border-radius: 0;
+
+      & + & {
+        &::before {
+          content: "";
+          position: absolute;
+          top: 22%;
+          bottom: 22%;
+          left: 0;
+          width: 1px;
+          background: $im-line;
+        }
+      }
+
+      &:first-child { border-radius: $im-radius 0 0 $im-radius; }
+    }
+
+    &:focus-within { background: $im-snow; }
+  }
+
+  &__label {
+    margin-bottom: .15rem;
+    font-size: .6875rem;
+    font-weight: $im-weight-bold;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: $im-muted;
+  }
+
+  &__input {
+    width: 100%;
+    min-height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $im-ink;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: $im-weight-semibold;
+    text-overflow: ellipsis;
+    appearance: none;
+
+    &::placeholder { color: $im-subtle; font-weight: $im-weight-medium; opacity: 1; }
+    &:focus { outline: 0; }
+  }
+
+  select.im-search__input {
+    padding-right: 1.5rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%235E6B85'%3E%3Cpath d='M212.24,100.24l-80,80a6,6,0,0,1-8.48,0l-80-80a6,6,0,0,1,8.48-8.48L128,167.51l75.76-75.75a6,6,0,0,1,8.48,8.48Z'/%3E%3C/svg%3E") right center / 1rem no-repeat;
+    cursor: pointer;
+  }
+
+  &__submit {
+    @include im-up(lg) {
+      margin: .45rem;
+      min-width: 170px;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.5rem;
+    margin-top: .95rem;
+    font-size: .875rem;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      color: $im-muted;
+      font-weight: $im-weight-medium;
+
+      .im-icon { width: 1.125rem; height: 1.125rem; }
+
+      @include im-hover { color: $im-navy; }
+    }
+  }
+}

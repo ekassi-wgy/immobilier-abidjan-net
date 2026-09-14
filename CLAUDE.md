@@ -29,7 +29,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 
 - **PHP 8.2+ natif**, MVC maison (Router, Controllers, Models, Views, Services, Middlewares), autoload **Composer PSR-4**, style **PSR-12**, `declare(strict_types=1);`.
 - **MySQL/MariaDB via PDO** uniquement, requêtes préparées **systématiques**, `utf8mb4`, `ERRMODE_EXCEPTION`, `EMULATE_PREPARES=false`.
-- Dépendances Composer **minimales et justifiées** : `phpmailer/phpmailer`, `scssphp/scssphp` (compilation Sass en PHP — pas de Node sur le poste). Pas de framework.
+- Dépendances Composer **minimales et justifiées** : en dev `scssphp/scssphp` (compilation Sass en PHP — pas de Node sur le poste) et `twbs/bootstrap` (sources SCSS) ; `phpmailer/phpmailer` à venir. Pas de framework. Composer : `php /Applications/MAMP/bin/php/composer …`, `composer.lock` commité, `vendor/` ignoré.
 - Front : HTML5 sémantique, **Bootstrap 5.3 comme socle technique uniquement** (grille, reboot, utilitaires, modal/offcanvas/collapse) compilé en SCSS avec les seuls modules utiles, JavaScript **vanilla** (Alpine.js toléré si justifié). Pas de jQuery côté public.
 - Carte : **Leaflet + OpenStreetMap + markercluster**. Slider/galerie/lightbox : librairies légères **hébergées localement**.
 - Images : **GD** (Imagick non disponible) — redimensionnement multi-tailles + WebP, stockage `public/uploads/{pays}/{annonce}/`.
@@ -44,11 +44,13 @@ Légende : ✅ existe · ⬜ à créer (lot indiqué dans `docs/PLAN.md`).
 app/
   Support/helpers.php ✅ e(), url(), cmsadmin_url(), cmsadmin_asset(), render_view()… (provisoire, intégré au socle au lot 1.1)
   Views/cmsadmin/     ✅ layouts/ (app, auth) · partials/ (head, navbar, sidebar, footer, scripts, flash, page-header, status-badge, pagination, empty-state) · pages/ (dashboard, properties, auth, errors)
-  Views/front/        ⬜ layouts/, partials/, pages/
+  Views/front/        ✅ layouts/app · partials/ (header, footer, hero, search, property-card) · pages/ (home-mockup, styleguide)
   Controllers/        ⬜ Front (Home, Search, Property, Agency, Page, Lead…) + Cmsadmin/ (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
   Models/ Services/ Middlewares/  ⬜ (SiteResolver, Auth, Role, Csrf, RateLimit)
 bin/
-  preview/            ✅ PROVISOIRE : routeur de prévisualisation cmsadmin + données fictives (supprimé au lot 1.1)
+  preview/            ✅ PROVISOIRE : prévisualisation front (front.php) et cmsadmin (cmsadmin.php) + données fictives (supprimé au lot 1.1)
+  build-css.php       ✅ compile resources/scss → public/assets/css/app.css
+  build-icons.php     ✅ génère le sprite d’icônes
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
   cmsadmin-menu.php   ✅ menu du back-office par rôle
@@ -56,9 +58,12 @@ config/
 public/               DOCUMENT ROOT en production
   index.php, .htaccess  ✅ (index.php PROVISOIRE : prévisualisation, localhost uniquement)
   assets/fonts/       ✅ Plus Jakarta Sans (woff2 variable + OFL)
-  assets/scss|css|js|img/  ⬜ front public
+  assets/css/app.css  ✅ CSS compilé (commité) — ne jamais éditer à la main
+  assets/js/          ✅ site.js (en-tête, menu mobile, favoris, recherche) · hero.js (diaporama)
+  assets/img/         ✅ icons.svg (sprite Phosphor) · brand/ (logos) · placeholder/ (photos PROVISOIRES, voir CREDITS.md)
   cmsadmin/assets/    ✅ back-office (StarAdmin 2 nettoyé + cmsadmin.css, cmsadmin.js, dashboard.js)
   uploads/            ⬜ (git-ignoré)
+resources/scss/       ✅ app.scss · abstracts/_tokens.scss (SOURCE UNIQUE des couleurs, typo, espacements) · abstracts/_mixins.scss · vendor/_bootstrap.scss · base/ · layout/ · components/ · pages/
 lang/                 ⬜ fr.php, en.php — aucune chaîne d'interface en dur dans les vues
 database/             ✅ schema.sql (référence v1, 37 tables) · seed.sql (référentiels CI) · migrations/ (évolutions 0002+) — voir docs/database.md
 storage/              ⬜ cache/, logs/ (git-ignorés)
@@ -70,7 +75,8 @@ docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
 ```bash
 # `php` dans le PATH = Homebrew PHP 8.4 (CLI) ; MAMP sert le site en PHP 8.3.14 → rester compatible 8.2+
 /Applications/MAMP/bin/php/composer install
-php bin/build-css.php            # compile public/assets/scss → css (scssphp) — à créer au lot 1.1
+php bin/build-css.php            # compile resources/scss → public/assets/css/app.css (minifié) · --dev : lisible
+php bin/build-icons.php          # régénère public/assets/img/icons.svg (liste des icônes dans le script)
 php -l <fichier>                 # vérif syntaxe avant commit
 ```
 
@@ -78,7 +84,8 @@ php -l <fichier>                 # vérif syntaxe avant commit
 Le `DocumentRoot` MAMP pointe sur la racine du projet : le `.htaccess` racine bloque les dossiers internes (`app/`, `bin/`, `config/`, `docs/`, fichiers cachés…) et sert tout depuis `public/`, qui est le `DocumentRoot` en production. `public/.htaccess` envoie les URL non statiques vers `public/index.php`.
 
 Prévisualisation du back-office **sans base de données** (données fictives `bin/preview/fixtures.php`), servie par `public/index.php` **uniquement sur localhost / *.local** :
-- http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` · `/cmsadmin/erreur-500`
+- Site public : http://localhost:8888/ (maquette d’accueil : hero + recherche + biens à la une) · http://localhost:8888/styleguide (**charte graphique de référence**)
+- Back-office : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` · `/cmsadmin/erreur-500`
 - Rôle simulé : `?role=super_admin|country_admin|agency` (mémorisé par cookie).
 - `public/index.php` et `bin/preview/` sont provisoires : remplacés par le vrai routeur au lot 1.1.
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
@@ -123,7 +130,7 @@ $ink:         #1B2540; $muted: #5E6B85; $white: #FFFFFF;
 Couleurs définies **une seule fois** en variables SCSS + custom properties CSS ; aucune couleur en dur dans les composants. Le rouge reste rare (badges, erreurs).
 
 ### Typographie
-Une sans-serif géométrique à forte personnalité, auto-hébergée : **Plus Jakarta Sans** (validée, variable woff2 dans `public/assets/fonts/`), 2–3 graisses. Titres serrés (`letter-spacing: -0.02em`), corps 16 px min, chiffres tabulaires pour prix et surfaces. Pas d'Inter, Roboto, Poppins ou Open Sans par défaut.
+**Plus Jakarta Sans** (validée, variable woff2 auto-hébergée dans `public/assets/fonts/`). Échelle fluide définie dans `_tokens.scss` et exposée en classes : `.im-display` (40→76 px), `.im-h1` (32→52), `.im-h2` (26→38), `.im-h3`, `.im-h4`, `.im-lead`, `.im-small`, `.im-eyebrow`. Titres serrés (−2 à −4,5 %), corps 16 px, chiffres tabulaires (`.im-num`) pour prix et surfaces. Pas d'Inter, Roboto, Poppins ou Open Sans.
 
 ### Principes qui évitent l'effet template / IA
 - Bootstrap = moteur invisible : **aucune** classe visuelle Bootstrap laissée telle quelle (`.btn-primary`, `.card`, `.navbar` par défaut, `.badge`, `.shadow`…). Composants maison préfixés **`im-`** (`.im-btn`, `.im-card-property`, `.im-hero`…).
@@ -131,10 +138,13 @@ Une sans-serif géométrique à forte personnalité, auto-hébergée : **Plus Ja
 - **Refusés** : dégradés violets/néon, glassmorphism généralisé, blobs, orbes lumineux, icônes « sparkles ✨ », emojis, cartes toutes identiques avec pastille d'icône + titre + 2 lignes, ombres lourdes, arrondis excessifs partout, textes marketing creux (« Découvrez l'excellence… »), animations gratuites.
 - **Recherchés** : grille rigoureuse avec respirations généreuses, asymétries maîtrisées, contrastes d'échelle typographique, filets fins (1 px `$line`), rayons sobres (8–14 px), ombres très diffuses et rares, micro-interactions discrètes (150–250 ms, `ease-out`), respect de `prefers-reduced-motion`.
 - Densité d'information à la Laforêt sur les cartes annonce (type, prix, ville/quartier, surface • pièces • chambres, CTA Message/WhatsApp/Appeler) mais présentation plus aérée et hiérarchisée.
-- Icônes : **un seul jeu**, trait fin cohérent (SVG sprite local). Accessibilité AA (contrastes, focus visibles, `aria-*`, cibles tactiles ≥ 44 px).
+- Icônes : **un seul jeu** côté public, **Phosphor Icons « light »** en sprite local (`<?= icon('nom') ?>`, liste sur /styleguide ; en ajouter via `bin/build-icons.php`). Le back-office garde Material Design Icons. Accessibilité AA (contrastes, focus visibles, `aria-*`, cibles tactiles ≥ 44 px).
+- **Avant de créer un composant, vérifier /styleguide** : réutiliser `im-btn`, `im-badge`, `im-chip`, `im-field`/`im-control`, `im-tabs`, `im-card`, `im-search`, `im-section-head`… ; tout nouveau composant est ajouté à la charte. Couleurs et tailles uniquement via les variables de `_tokens.scss` (jamais de valeur en dur).
+- **Photos** : `public/assets/img/placeholder/` = photos libres **provisoires** pour les maquettes (crédits dans `CREDITS.md`), jamais pour de vraies annonces ; les légendes de lieu ne sont affichées que pour des photos réellement prises à l’endroit indiqué.
 
 ### Hero de l'accueil (slide)
 Plein écran sobre (≈ 88vh desktop, 70vh mobile) : **slides photo en fondu lent** (crossfade + léger zoom Ken Burns ≤ 1,06), voile navy très subtil pour la lisibilité, titre éditorial court + compteur d'annonces réelles, **module de recherche flottant** (onglets Acheter / Louer / Location meublée · type de bien · ville/commune · budget → Rechercher). Indicateurs de slide minimalistes (fines barres de progression + n°/total), légende discrète du lieu photographié. Pause au survol/focus, image 1 servie en priorité (LCP), les suivantes en lazy. Aucune flèche ni point Bootstrap par défaut.
+**Réalisé (lot 0.3)** : `app/Views/front/partials/hero.php` + `components/_hero.scss` + `assets/js/hero.js` — titre en deux graisses (« Votre prochaine adresse » / « à Abidjan. »), bouton pause (WCAG 2.2.2), flèches clavier, `prefers-reduced-motion`, images WebP 1920 (desktop) / 960×1200 (mobile). Les diapositives viendront de la table `banners` (placement `home_hero`).
 
 ### Back-office `cmsadmin`
 Même palette et même typographie que le front, UI calme et dense, lisible. StarAdmin 2 fournit la **structure** (layout, sidebar, tables, formulaires) ; l'**habillage** est réécrit via une feuille d'override. Menu latéral construit selon le rôle connecté.

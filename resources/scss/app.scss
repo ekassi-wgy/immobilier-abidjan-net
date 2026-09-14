@@ -1,0 +1,23 @@
+// =============================================================================
+// immobilier.abidjan.net — feuille de style du site public
+// Compilation : php bin/build-css.php  →  public/assets/css/app.css
+// Charte : http://localhost:8888/styleguide
+// =============================================================================
+
+/*! immobilier.abidjan.net · Bootstrap v5.3 (MIT, github.com/twbs/bootstrap) · Plus Jakarta Sans (SIL OFL 1.1) · Phosphor Icons (MIT) */
+
+@import "abstracts/tokens";
+@import "vendor/bootstrap";
+@import "abstracts/mixins";
+
+@import "base/base";
+
+@import "layout/header";
+@import "layout/footer";
+
+@import "components/ui";
+@import "components/search";
+@import "components/hero";
+@import "components/property-card";
+
+@import "pages/styleguide";

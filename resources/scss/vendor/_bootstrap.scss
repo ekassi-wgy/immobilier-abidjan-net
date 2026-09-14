@@ -1,0 +1,82 @@
+// =============================================================================
+// Bootstrap 5.3 — socle technique uniquement (grille, reboot, utilitaires, JS de base)
+// Aucun composant visuel Bootstrap n'est importé : boutons, cartes, formulaires,
+// navbar, badges… sont des composants maison préfixés « im- ».
+// =============================================================================
+
+@import "functions";
+
+// Surcharges des variables --------------------------------------------------
+$enable-dark-mode:        false;
+$enable-shadows:          false;
+$enable-gradients:        false;
+$enable-negative-margins: false;
+$enable-rfs:              false;
+$enable-smooth-scroll:    false;
+
+$primary:   $im-blue;
+$secondary: $im-muted;
+$success:   $im-success;
+$danger:    $im-red;
+$light:     $im-snow;
+$dark:      $im-navy-deep;
+
+$body-bg:    $im-white;
+$body-color: $im-ink;
+$body-secondary-color: $im-muted;
+$border-color: $im-line;
+
+$font-family-sans-serif: $im-font;
+$font-size-base: 1rem;
+$line-height-base: 1.6;
+$headings-font-weight: $im-weight-bold;
+$headings-color: $im-ink;
+
+$code-color: $im-navy;
+$link-color: $im-blue;
+$link-hover-color: $im-navy;
+$link-decoration: none;
+$link-hover-decoration: none;
+
+$border-radius:    $im-radius-sm;
+$border-radius-sm: $im-radius-xs;
+$border-radius-lg: $im-radius;
+
+$focus-ring-color: rgba($im-blue-bright, .28);
+
+$grid-gutter-width: 1.5rem;
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1180px,
+  xxl: $im-container-max,
+);
+
+$offcanvas-horizontal-width: min(92vw, 380px);
+$offcanvas-bg-color: $im-white;
+$offcanvas-color: $im-ink;
+$offcanvas-border-width: 0;
+$modal-content-border-width: 0;
+$modal-content-border-radius: $im-radius-lg;
+$backdrop-bg: $im-navy-deep;
+$backdrop-opacity: .55;
+
+$transition-collapse: height $im-duration $im-ease;
+
+@import "variables";
+@import "variables-dark";
+@import "maps";
+@import "mixins";
+@import "utilities";
+
+// Modules retenus
+@import "root";
+@import "reboot";
+@import "containers";
+@import "grid";
+@import "transitions";
+@import "modal";
+@import "offcanvas";
+@import "helpers";
+@import "utilities/api";

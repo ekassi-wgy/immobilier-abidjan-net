@@ -1,0 +1,54 @@
+// =============================================================================
+// Pied de page (version maquette — enrichi au lot 1.8 : liens SEO par ville et type)
+// =============================================================================
+
+.im-footer {
+  padding-block: im-fluid(3.5rem, 5rem) 2rem;
+  background: $im-navy-deep;
+  color: rgba($im-white, .72);
+  font-size: .9375rem;
+
+  &__top {
+    display: grid;
+    gap: 2.5rem;
+
+    @include im-up(lg) { grid-template-columns: 1.3fr repeat(3, 1fr); gap: 3rem; }
+  }
+
+  &__brand img { width: 170px; height: auto; }
+
+  &__pitch { max-width: 22rem; margin-top: 1.25rem; }
+
+  &__title {
+    margin-bottom: 1rem;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: $im-white;
+  }
+
+  &__links {
+    display: grid;
+    gap: .6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    a { color: inherit; @include im-hover { color: $im-white; } }
+  }
+
+  &__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba($im-white, .12);
+    font-size: .8125rem;
+    color: rgba($im-white, .55);
+
+    a { color: inherit; @include im-hover { color: $im-white; } }
+  }
+}

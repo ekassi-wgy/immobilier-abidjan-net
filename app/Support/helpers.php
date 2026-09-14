@@ -87,3 +87,43 @@ function format_number(int|float $value): string
 {
     return number_format((float) $value, 0, ',', "\u{00A0}");
 }
+
+/** URL d'une ressource du site public (public/assets), versionnée par date de modification. */
+function asset(string $path): string
+{
+    $relative = 'assets/' . ltrim($path, '/');
+    $file = APP_ROOT . '/public/' . $relative;
+    $version = is_file($file) ? '?v=' . filemtime($file) : '';
+
+    return url($relative) . $version;
+}
+
+/** Icône du sprite Phosphor (public/assets/img/icons.svg). Décorative par défaut. */
+function icon(string $name, string $class = '', ?string $label = null): string
+{
+    static $sprite = null;
+    $sprite ??= asset('img/icons.svg');
+
+    $accessibility = $label === null
+        ? ' aria-hidden="true" focusable="false"'
+        : ' role="img" aria-label="' . e($label) . '"';
+
+    return sprintf(
+        '<svg class="im-icon%s"%s><use href="%s#i-%s"></use></svg>',
+        $class !== '' ? ' ' . e($class) : '',
+        $accessibility,
+        e($sprite),
+        e($name)
+    );
+}
+
+/** Libellé de période de prix : « / mois », « / nuit »… */
+function price_period_label(string $period): string
+{
+    return [
+        'month' => '/ mois',
+        'week' => '/ semaine',
+        'night' => '/ nuit',
+        'year' => '/ an',
+    ][$period] ?? '';
+}

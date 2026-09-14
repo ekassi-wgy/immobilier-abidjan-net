@@ -1,0 +1,109 @@
+// =============================================================================
+// Jetons de design — source unique de vérité du site public
+// (le back-office cmsadmin reprend les mêmes valeurs dans cmsadmin.css)
+// =============================================================================
+
+// Couleurs — palette laforet.com --------------------------------------------
+$im-navy:        #143D8A;
+$im-navy-deep:   #0B2358;
+$im-blue:        #2650DB;
+$im-blue-hover:  #1D40B8;
+$im-blue-bright: #106AFF;
+$im-blue-tint:   #E0EEFF;
+$im-mist:        #E8EFF6;
+$im-snow:        #F6F9FC;
+$im-line:        #E5E7EB;
+$im-line-soft:   #EEF1F5;
+$im-red:         #E02020;
+$im-ink:         #1B2540;
+$im-muted:       #5E6B85;
+$im-subtle:      #8A94A8;
+$im-white:       #FFFFFF;
+
+// Sémantique
+$im-success:      #1B7A4B;
+$im-success-tint: #E4F4EB;
+$im-whatsapp:     #1DA851;
+
+$im-colors: (
+  "navy": $im-navy,
+  "navy-deep": $im-navy-deep,
+  "blue": $im-blue,
+  "blue-hover": $im-blue-hover,
+  "blue-bright": $im-blue-bright,
+  "blue-tint": $im-blue-tint,
+  "mist": $im-mist,
+  "snow": $im-snow,
+  "line": $im-line,
+  "line-soft": $im-line-soft,
+  "red": $im-red,
+  "ink": $im-ink,
+  "muted": $im-muted,
+  "subtle": $im-subtle,
+  "white": $im-white,
+  "success": $im-success,
+  "success-tint": $im-success-tint,
+  "whatsapp": $im-whatsapp,
+);
+
+// Typographie ---------------------------------------------------------------
+$im-font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+// Échelle fluide : [taille min, taille max, interlignage, approche]
+$im-type-scale: (
+  "display": (2.5rem,   4.75rem, 1.02, -0.045em),
+  "h1":      (2rem,     3.25rem, 1.08, -0.035em),
+  "h2":      (1.625rem, 2.375rem, 1.12, -0.03em),
+  "h3":      (1.25rem,  1.5rem,  1.25, -0.02em),
+  "h4":      (1.0625rem,1.125rem, 1.35, -0.01em),
+  "lead":    (1.0625rem,1.25rem, 1.55, -0.005em),
+  "body":    (1rem,     1rem,    1.6,  0),
+  "small":   (.875rem,  .875rem, 1.5,  0),
+  "micro":   (.75rem,   .75rem,  1.4,  .06em),
+);
+
+$im-weight-regular:  400;
+$im-weight-medium:   500;
+$im-weight-semibold: 600;
+$im-weight-bold:     700;
+$im-weight-heavy:    800;
+
+// Espacements (base 4 px) ------------------------------------------------------
+$im-space: (
+  "1": .25rem,
+  "2": .5rem,
+  "3": .75rem,
+  "4": 1rem,
+  "5": 1.25rem,
+  "6": 1.5rem,
+  "8": 2rem,
+  "10": 2.5rem,
+  "12": 3rem,
+  "16": 4rem,
+  "20": 5rem,
+  "24": 6rem,
+);
+
+// Formes, profondeur, mouvement -------------------------------------------------
+$im-radius-xs: 6px;
+$im-radius-sm: 8px;
+$im-radius:    12px;
+$im-radius-lg: 16px;
+$im-radius-xl: 24px;
+
+$im-shadow-sm:  0 1px 2px rgba($im-navy-deep, .06);
+$im-shadow:     0 12px 32px -14px rgba($im-navy-deep, .22), 0 2px 6px rgba($im-navy-deep, .05);
+$im-shadow-lg:  0 30px 70px -30px rgba($im-navy-deep, .38), 0 6px 18px rgba($im-navy-deep, .08);
+$im-ring:       0 0 0 3px rgba($im-blue-bright, .28);
+
+$im-ease:       cubic-bezier(.2, .7, .2, 1);
+$im-ease-inout: cubic-bezier(.65, 0, .35, 1);
+$im-duration-fast: 150ms;
+$im-duration:      250ms;
+$im-duration-slow: 600ms;
+
+// Gabarits -------------------------------------------------------------------
+$im-container-max: 1280px;
+$im-gutter:        clamp(1rem, 4vw, 2.5rem);
+$im-header-height: 84px;
+$im-header-height-mobile: 68px;

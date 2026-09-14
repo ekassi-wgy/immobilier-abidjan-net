@@ -34,10 +34,6 @@ $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $route = rtrim($path, '/');
 
 switch (true) {
-    case $route === '':
-        header('Location: ' . cmsadmin_url(), true, 302);
-        break;
-
     case $route === '/cmsadmin':
         $page('dashboard/index', $fixtures['dashboard']($role), [
             'title' => 'Tableau de bord',

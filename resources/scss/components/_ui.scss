@@ -1,0 +1,380 @@
+// =============================================================================
+// Éléments d'interface : icônes, liens, boutons, badges, puces, champs
+// =============================================================================
+
+// Icônes (sprite Phosphor light) ---------------------------------------------
+.im-icon {
+  display: inline-block;
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -.25em;
+  fill: currentColor;
+
+  &--sm { width: 1rem; height: 1rem; }
+  &--md { width: 1.25rem; height: 1.25rem; }
+  &--lg { width: 1.5rem; height: 1.5rem; }
+  &--xl { width: 2rem; height: 2rem; }
+}
+
+// Liens -------------------------------------------------------------------------
+.im-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-weight: $im-weight-semibold;
+  color: $im-navy;
+  white-space: nowrap;
+
+  .im-icon { transition: transform $im-duration $im-ease; }
+
+  @include im-hover {
+    color: $im-blue;
+    .im-icon--arrow { transform: translateX(3px); }
+  }
+}
+
+.im-link-underline {
+  color: inherit;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  transition: background-size $im-duration $im-ease;
+
+  @include im-hover { background-size: 0 1px; background-position: 100% 100%; }
+}
+
+// Boutons -------------------------------------------------------------------------
+.im-btn {
+  --im-btn-bg: #{$im-blue};
+  --im-btn-bg-hover: #{$im-blue-hover};
+  --im-btn-color: #{$im-white};
+  --im-btn-border: transparent;
+  --im-btn-border-hover: transparent;
+  --im-btn-color-hover: var(--im-btn-color);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-height: 48px;
+  padding: .75rem 1.35rem;
+  border: 1px solid var(--im-btn-border);
+  border-radius: $im-radius-sm;
+  background: var(--im-btn-bg);
+  color: var(--im-btn-color);
+  font: inherit;
+  font-size: .9375rem;
+  font-weight: $im-weight-semibold;
+  line-height: 1.2;
+  letter-spacing: -.005em;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color $im-duration-fast $im-ease, border-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease, box-shadow $im-duration-fast $im-ease, transform $im-duration-fast $im-ease;
+
+  @include im-hover {
+    background: var(--im-btn-bg-hover);
+    border-color: var(--im-btn-border-hover);
+    color: var(--im-btn-color-hover);
+  }
+
+  &:active { transform: translateY(1px); }
+  &:focus-visible { outline: 0; box-shadow: $im-ring; }
+  &:disabled, &.is-disabled { opacity: .45; pointer-events: none; }
+
+  // Variantes
+  &--dark {
+    --im-btn-bg: #{$im-navy};
+    --im-btn-bg-hover: #{$im-navy-deep};
+  }
+
+  &--light {
+    --im-btn-bg: #{$im-white};
+    --im-btn-bg-hover: #{$im-snow};
+    --im-btn-color: #{$im-navy};
+  }
+
+  &--outline {
+    --im-btn-bg: transparent;
+    --im-btn-bg-hover: #{$im-snow};
+    --im-btn-color: #{$im-ink};
+    --im-btn-border: #{$im-line};
+    --im-btn-border-hover: #{darken($im-line, 8%)};
+  }
+
+  &--outline-light {
+    --im-btn-bg: transparent;
+    --im-btn-bg-hover: #{rgba($im-white, .12)};
+    --im-btn-color: #{$im-white};
+    --im-btn-border: #{rgba($im-white, .45)};
+    --im-btn-border-hover: #{$im-white};
+  }
+
+  &--ghost {
+    --im-btn-bg: transparent;
+    --im-btn-bg-hover: #{$im-snow};
+    --im-btn-color: #{$im-ink};
+  }
+
+  &--whatsapp {
+    --im-btn-bg: #{$im-whatsapp};
+    --im-btn-bg-hover: #{darken($im-whatsapp, 6%)};
+  }
+
+  // Tailles
+  &--sm { min-height: 38px; padding: .5rem .9rem; font-size: .875rem; }
+  &--lg { min-height: 56px; padding: .9rem 1.75rem; font-size: 1rem; border-radius: $im-radius; }
+  &--block { display: flex; width: 100%; }
+
+  // Bouton icône seule
+  &--icon {
+    width: 48px;
+    padding: 0;
+
+    &.im-btn--sm { width: 38px; }
+  }
+}
+
+// Badges --------------------------------------------------------------------------
+.im-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  height: 24px;
+  padding: 0 .55rem;
+  border-radius: $im-radius-xs;
+  background: $im-blue-tint;
+  color: $im-navy;
+  font-size: .6875rem;
+  font-weight: $im-weight-bold;
+  letter-spacing: .06em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  .im-icon { width: .875rem; height: .875rem; }
+
+  &--new { background: $im-red; color: $im-white; }
+  &--featured { background: $im-navy; color: $im-white; }
+  &--light { background: $im-white; color: $im-navy; }
+  &--success { background: $im-success-tint; color: $im-success; }
+  &--neutral { background: $im-line-soft; color: $im-muted; }
+
+  // Libellé discret (casse normale) : « Agence vérifiée »
+  &--soft {
+    height: auto;
+    padding: 0;
+    background: none;
+    color: $im-navy;
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: 0;
+    text-transform: none;
+
+    .im-icon { width: 1rem; height: 1rem; color: $im-blue; }
+  }
+}
+
+// Puces de filtre ---------------------------------------------------------------------
+.im-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 40px;
+  padding: .45rem .9rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-sm;
+  background: $im-white;
+  color: $im-ink;
+  font: inherit;
+  font-size: .875rem;
+  font-weight: $im-weight-medium;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color $im-duration-fast $im-ease, background-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+  .im-icon { width: 1rem; height: 1rem; color: $im-muted; }
+
+  @include im-hover { border-color: darken($im-line, 12%); }
+
+  &.is-active, &[aria-pressed="true"] {
+    border-color: $im-navy;
+    background: $im-navy;
+    color: $im-white;
+
+    .im-icon { color: currentColor; }
+  }
+
+  &__count {
+    min-width: 1.25rem;
+    padding: 0 .35rem;
+    border-radius: 4px;
+    background: $im-blue-tint;
+    color: $im-navy;
+    font-size: .75rem;
+    font-weight: $im-weight-bold;
+    line-height: 1.25rem;
+    text-align: center;
+  }
+}
+
+// Champs ------------------------------------------------------------------------------
+.im-field {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+
+  &__label {
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    color: $im-ink;
+  }
+
+  &__help {
+    font-size: .8125rem;
+    color: $im-muted;
+  }
+
+  &__error {
+    font-size: .8125rem;
+    font-weight: $im-weight-medium;
+    color: $im-red;
+  }
+}
+
+.im-control {
+  width: 100%;
+  min-height: 52px;
+  padding: .8rem 1rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-sm;
+  background-color: $im-white;
+  color: $im-ink;
+  font: inherit;
+  font-size: 1rem; // 16 px : évite le zoom automatique sur iOS
+  font-weight: $im-weight-medium;
+  line-height: 1.3;
+  appearance: none;
+  transition: border-color $im-duration-fast $im-ease, box-shadow $im-duration-fast $im-ease;
+
+  &::placeholder { color: $im-subtle; font-weight: $im-weight-regular; opacity: 1; }
+
+  @include im-hover { border-color: darken($im-line, 10%); }
+
+  &:focus {
+    outline: 0;
+    border-color: $im-blue-bright;
+    box-shadow: $im-ring;
+  }
+
+  &.is-invalid { border-color: $im-red; }
+
+  &[disabled] { background-color: $im-snow; color: $im-subtle; }
+}
+
+select.im-control {
+  padding-right: 2.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%238A94A8'%3E%3Cpath d='M212.24,100.24l-80,80a6,6,0,0,1-8.48,0l-80-80a6,6,0,0,1,8.48-8.48L128,167.51l75.76-75.75a6,6,0,0,1,8.48,8.48Z'/%3E%3C/svg%3E");
+  background-position: right 1rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  cursor: pointer;
+}
+
+textarea.im-control { min-height: 140px; resize: vertical; }
+
+// Champ avec icône en tête
+.im-control-icon {
+  position: relative;
+
+  > .im-icon {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: $im-subtle;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  > .im-control { padding-left: 2.85rem; }
+}
+
+// Case à cocher
+.im-check {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  font-size: .9375rem;
+  cursor: pointer;
+
+  input { position: absolute; opacity: 0; pointer-events: none; }
+
+  &__box {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid darken($im-line, 18%);
+    border-radius: 5px;
+    background: $im-white;
+    color: $im-white;
+    transition: background-color $im-duration-fast $im-ease, border-color $im-duration-fast $im-ease;
+
+    .im-icon { width: 14px; height: 14px; opacity: 0; transform: scale(.6); transition: opacity $im-duration-fast $im-ease, transform $im-duration-fast $im-ease; }
+  }
+
+  input:checked + &__box { border-color: $im-navy; background: $im-navy; }
+  input:checked + &__box .im-icon { opacity: 1; transform: none; }
+  input:focus-visible + &__box { box-shadow: $im-ring; }
+}
+
+// Onglets soulignés -----------------------------------------------------------------
+.im-tabs {
+  display: flex;
+  gap: 1.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+
+  &__tab {
+    position: relative;
+    padding: 0 0 .85rem;
+    border: 0;
+    background: none;
+    color: $im-muted;
+    font: inherit;
+    font-size: .9375rem;
+    font-weight: $im-weight-semibold;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color $im-duration-fast $im-ease;
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      border-radius: 2px 2px 0 0;
+      background: $im-navy;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform $im-duration $im-ease;
+    }
+
+    @include im-hover { color: $im-ink; }
+
+    &[aria-selected="true"] {
+      color: $im-navy;
+
+      &::after { transform: scaleX(1); }
+    }
+  }
+}

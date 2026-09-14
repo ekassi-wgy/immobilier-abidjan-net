@@ -1,0 +1,220 @@
+// =============================================================================
+// En-tête du site
+// .im-header--overlay : transparent au-dessus du hero, devient opaque au défilement (.is-scrolled)
+// =============================================================================
+
+.im-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1030;
+  height: var(--im-header-height);
+  background: rgba($im-white, 1);
+  border-bottom: 1px solid $im-line;
+  color: $im-ink;
+  transition: background-color $im-duration $im-ease, border-color $im-duration $im-ease, color $im-duration $im-ease, box-shadow $im-duration $im-ease;
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 100%;
+  }
+
+  &__brand {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 150px;
+    height: 34px;
+
+    @include im-up(lg) { width: 170px; height: 38px; }
+
+    img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: left center;
+      transition: opacity $im-duration $im-ease;
+    }
+  }
+
+  &__logo-light { opacity: 0; }
+
+  &__nav {
+    display: none;
+    margin-left: 1rem;
+
+    @include im-up(lg) { display: block; }
+
+    ul {
+      display: flex;
+      gap: .25rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  }
+
+  &__link {
+    position: relative;
+    display: block;
+    padding: .55rem .8rem;
+    color: inherit;
+    font-size: .9375rem;
+    font-weight: $im-weight-medium;
+    white-space: nowrap;
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: .8rem;
+      bottom: .2rem;
+      left: .8rem;
+      height: 1.5px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform $im-duration $im-ease;
+    }
+
+    @include im-hover {
+      color: inherit;
+      &::after { transform: scaleX(1); }
+    }
+
+    &[aria-current="page"]::after { transform: scaleX(1); }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-left: auto;
+  }
+
+  &__icon-btn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: $im-radius-sm;
+    background: transparent;
+    color: inherit;
+    transition: background-color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.5rem; height: 1.5rem; }
+
+    @include im-hover { background: rgba($im-ink, .06); color: inherit; }
+  }
+
+  &__badge {
+    position: absolute;
+    top: 6px;
+    right: 4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: $im-red;
+    color: $im-white;
+    font-size: .6875rem;
+    font-weight: $im-weight-bold;
+    line-height: 18px;
+    text-align: center;
+
+    &:empty, &[data-count="0"] { display: none; }
+  }
+
+  // Spécificité renforcée : .im-btn et .im-header__icon-btn définissent aussi display
+  & &__cta { display: none; @include im-up(md) { display: inline-flex; } }
+  & &__burger { @include im-up(lg) { display: none; } }
+
+  // Variante superposée au hero
+  &--overlay:not(.is-scrolled) {
+    background: transparent;
+    border-color: rgba($im-white, .16);
+    color: $im-white;
+
+    .im-header__logo-light { opacity: 1; }
+    .im-header__logo-dark { opacity: 0; }
+    .im-header__icon-btn:hover { background: rgba($im-white, .12); }
+
+    .im-header__cta {
+      --im-btn-bg: #{$im-white};
+      --im-btn-bg-hover: #{$im-snow};
+      --im-btn-color: #{$im-navy};
+    }
+  }
+
+  &.is-scrolled { box-shadow: 0 1px 0 $im-line, 0 8px 24px -20px rgba($im-navy-deep, .4); border-color: transparent; }
+}
+
+// Pages sans hero : le contenu commence sous l'en-tête
+.im-has-header { padding-top: var(--im-header-height); }
+
+// Menu mobile ---------------------------------------------------------------------
+.im-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  background: $im-white;
+  color: $im-ink;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity $im-duration $im-ease, transform $im-duration $im-ease, visibility 0s linear $im-duration;
+
+  &.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--im-header-height);
+    border-bottom: 1px solid $im-line;
+  }
+
+  &__body {
+    flex: 1;
+    padding-block: 1.5rem 2rem;
+    overflow-y: auto;
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      border-bottom: 1px solid $im-line-soft;
+      color: $im-ink;
+      font-size: 1.375rem;
+      font-weight: $im-weight-semibold;
+      letter-spacing: -.02em;
+
+      .im-icon { color: $im-subtle; }
+    }
+  }
+
+  &__footer {
+    display: grid;
+    gap: .75rem;
+    padding-block: 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+    border-top: 1px solid $im-line;
+  }
+}

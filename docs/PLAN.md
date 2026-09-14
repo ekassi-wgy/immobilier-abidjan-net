@@ -6,7 +6,7 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 |---|---|---|---|---|---|
 | **0. Cadrage** | 0.1 | Analyse cahier des charges, captures laforet.com, logo, template admin | `CLAUDE.md`, `docs/cahier-des-charges.md`, `docs/PLAN.md` | 0,5 j | ✅ |
 | | 0.2 | Schéma BDD complet (multisite, géo, catégories arborescentes, EAV, workflow, logs) | `database/schema.sql` (37 tables, testé MySQL 8.0.40), `database/seed.sql` (CI : 13 communes d'Abidjan, 72 quartiers, 28 catégories, 25 critères, 14 équipements), `docs/database.md` | 1 j | ✅ |
-| | 0.3 | Design system : palette, typo, grille, composants `im-` ; maquette hero + carte annonce | `public/assets/scss/` tokens + page styleguide interne | 1 j | ⬜ |
+| | 0.3 | Design system : palette, typo, grille, composants `im-` ; maquette hero + carte annonce | `resources/scss/` (tokens, Bootstrap 5.3 en socle, composants), `bin/build-css.php`, sprite Phosphor, /styleguide, maquette d'accueil sur http://localhost:8888/ | 1 j | ✅ |
 | | 0.4 | Intégration & nettoyage StarAdmin 2 → `cmsadmin` (squelette rethémé, vues PHP, menu par rôle, prévisualisation sans BDD) | `public/cmsadmin/assets/` (56 Mo → 2,1 Mo, zéro ressource externe), `app/Views/cmsadmin/`, `bin/preview/` (MAMP : http://localhost:8888/cmsadmin) | 0,5 j | ✅ |
 | **1. MVP Côte d'Ivoire** | 1.1 | Socle : front controller, routeur, PDO, `.env`, autoload PSR-4, helpers (`e()`, CSRF, flash), i18n `lang/`, build SCSS (scssphp), gestion d'erreurs | Application qui démarre, page 404/500 | 1 j | ⬜ |
 | | 1.2 | Multisite : middleware `SiteResolver` (HTTP_HOST → site → pays, devise, langue) | Tables `countries`, `sites` actives, config par site | 0,5 j | ⬜ |
@@ -37,7 +37,7 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 |---|---|---|
 | Logo fichiers finaux | 0.3 / 1.8 | ✅ reçu (`docs/brand/`) |
 | Validation de la police proposée | 0.3 | ✅ Plus Jakarta Sans |
-| Photos d'Abidjan pour le hero (droits d'usage) | 1.8 | ⬜ |
+| Photos d'Abidjan pour le hero (droits d'usage) — photos libres provisoires en place | 1.8 | ⬜ |
 | Taux de commission, durée de vie d'une annonce | 1.6 / 1.12 | ⬜ |
 | Accès SMTP | 1.6 / 1.11 | ⬜ |
 | Dépôt Git distant | 3.1 | ✅ GitHub `ekassi-wgy/immobilier-abidjan-net` |

@@ -1,0 +1,28 @@
+{
+    "name": "weblogy/immobilier-abidjan-net",
+    "description": "Plateforme d'annonces immobilières multisite — immobilier.abidjan.net",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2",
+        "ext-gd": "*",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "ext-pdo": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0"
+        },
+        "sort-packages": true
+    },
+    "require-dev": {
+        "scssphp/scssphp": "^2.1",
+        "twbs/bootstrap": "~5.3.3"
+    }
+}

@@ -1,0 +1,19 @@
+# Dépendances
+/vendor/
+
+# Environnement (jamais commité)
+.env
+.env.*
+!.env.example
+
+# Contenus générés / uploadés
+/public/uploads/
+/storage/cache/
+/storage/logs/
+*.log
+
+# Système & éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -40,5 +40,8 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 | Photos d'Abidjan pour le hero (droits d'usage) | 1.8 | ⬜ |
 | Taux de commission, durée de vie d'une annonce | 1.6 / 1.12 | ⬜ |
 | Accès SMTP | 1.6 / 1.11 | ⬜ |
-| Accès Plesk, DNS du sous-domaine, dépôt GitLab | 3.1 | ⬜ |
+| Dépôt Git distant | 3.1 | ✅ GitHub `ekassi-wgy/immobilier-abidjan-net` |
+| Accès Plesk, DNS du sous-domaine, moteur BDD de production (MySQL 8 ou MariaDB) | 3.1 | ⬜ |
 | Textes légaux (mentions, CGU, confidentialité) | 1.11 | ⬜ |
+| Modification d'une annonce publiée : retrait du site pendant revalidation, ou révision en parallèle | 1.6 | ⬜ |
+| Relecture du référentiel des quartiers | 1.4 | ⬜ |

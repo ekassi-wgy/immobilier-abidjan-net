@@ -10,6 +10,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 |---|---|
 | `docs/cahier-des-charges.md` | **Périmètre fonctionnel. Fait foi.** Ne rien ajouter hors périmètre sans demander. |
 | `docs/PLAN.md` | Plan de projet par phases/lots + état d'avancement (à tenir à jour). |
+| `docs/database.md` | Schéma de BDD : tables, relations, choix de conception, conventions, migrations. **À relire avant toute requête ou migration.** |
 | `docs/brand/` | Logo complet + symbole (maison dans un cercle). |
 | Captures laforet.com (hors dépôt) | `/Users/emmanuelkassi/Documents/WP-WEBLOGY/WebSite/Immobilier Abidjan.net/*.png` — accueil, liste, fiche, connexion, inscription. **Inspiration ergonomique uniquement.** |
 | Template admin source | `/Users/emmanuelkassi/Documents/KP/Templates/staradmin-2-free/dist` (base de `cmsadmin`). |
@@ -59,9 +60,9 @@ public/               DOCUMENT ROOT en production
   cmsadmin/assets/    ✅ back-office (StarAdmin 2 nettoyé + cmsadmin.css, cmsadmin.js, dashboard.js)
   uploads/            ⬜ (git-ignoré)
 lang/                 ⬜ fr.php, en.php — aucune chaîne d'interface en dur dans les vues
-database/             ⬜ migrations/, seeders/, schema.sql, seed.sql
+database/             ✅ schema.sql (référence v1, 37 tables) · seed.sql (référentiels CI) · migrations/ (évolutions 0002+) — voir docs/database.md
 storage/              ⬜ cache/, logs/ (git-ignorés)
-docs/                 ✅ cahier-des-charges.md, PLAN.md, brand/
+docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
 ```
 
 ## Commandes
@@ -81,6 +82,7 @@ Prévisualisation du back-office **sans base de données** (données fictives `b
 - Rôle simulé : `?role=super_admin|country_admin|agency` (mémorisé par cookie).
 - `public/index.php` et `bin/preview/` sont provisoires : remplacés par le vrai routeur au lot 1.1.
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
+Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.1:8889`). Réinstallation : commandes dans `docs/database.md`. Client : `/Applications/MAMP/Library/bin/mysql80/bin/mysql` (en zsh, passer la commande dans un tableau, pas dans une chaîne).
 `.env` (jamais commité) : `APP_ENV`, `APP_URL`, `DB_*`, `SMTP_*`. Fournir `.env.example`.
 
 ## Sécurité — checklist à chaque lot
@@ -152,7 +154,8 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 
 - Lire la section concernée du cahier des charges + `docs/PLAN.md` avant chaque lot ; mettre à jour le statut du lot à la fin.
 - Travail par lots **directement sur `main`** (pas de branches de fonctionnalité) : vérifications (`php -l`, scénario par rôle, contrôle mobile 375 px, rendu sur http://localhost:8888) → commits atomiques en français.
-- Toute évolution du schéma BDD passe par une migration numérotée dans `database/migrations/` + mise à jour de `schema.sql`.
+- Toute évolution du schéma BDD passe par une migration numérotée dans `database/migrations/` (à partir de `0002_…`) + mise à jour de `schema.sql` et de `docs/database.md`.
+- Données : requêtes préparées PDO ; ne **jamais** joindre `property_private_details` dans une requête du site public ; toujours filtrer par `country_id` du site courant ; dates en UTC.
 - En cas de doute sur le périmètre, une décision métier ou un choix graphique structurant : **demander avant de coder**.
 
 ### Vérification visuelle (Chrome headless)

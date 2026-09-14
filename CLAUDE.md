@@ -34,31 +34,40 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 - Images : **GD** (Imagick non disponible) — redimensionnement multi-tailles + WebP, stockage `public/uploads/{pays}/{annonce}/`.
 - **Zéro CDN / zéro ressource externe** (polices, JS, CSS, icônes : tout est auto-hébergé), sauf tuiles OSM et services explicitement validés.
 
-## Arborescence cible
+## Arborescence
+
+Légende : ✅ existe · ⬜ à créer (lot indiqué dans `docs/PLAN.md`).
 
 ```
+.htaccess             ✅ dev MAMP uniquement : bloque les dossiers internes, sert tout depuis public/
 app/
-  Controllers/        Front (Home, Search, Property, Agency, Page, Lead…)
-  Controllers/Cmsadmin/   Back-office (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
-  Models/  Services/  Middlewares/ (SiteResolver, Auth, Role, Csrf, RateLimit)
-  Views/
-    front/            layouts/, partials/, pages/
-    cmsadmin/         layouts/ (head, navbar, sidebar, footer), pages par module
-config/               config.php, database.php, countries.php
-public/               DOCUMENT ROOT — index.php (front controller unique), .htaccess
-  assets/             scss/ (sources), css/ (compilé), js/, fonts/, img/
-  cmsadmin/assets/    assets du back-office (issus de StarAdmin 2, nettoyés)
-  uploads/            (git-ignoré)
-lang/                 fr.php, en.php — aucune chaîne d'interface en dur dans les vues
-database/             migrations/, seeders/, schema.sql, seed.sql
-storage/              cache/, logs/ (git-ignorés)
-docs/
+  Support/helpers.php ✅ e(), url(), cmsadmin_url(), cmsadmin_asset(), render_view()… (provisoire, intégré au socle au lot 1.1)
+  Views/cmsadmin/     ✅ layouts/ (app, auth) · partials/ (head, navbar, sidebar, footer, scripts, flash, page-header, status-badge, pagination, empty-state) · pages/ (dashboard, properties, auth, errors)
+  Views/front/        ⬜ layouts/, partials/, pages/
+  Controllers/        ⬜ Front (Home, Search, Property, Agency, Page, Lead…) + Cmsadmin/ (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
+  Models/ Services/ Middlewares/  ⬜ (SiteResolver, Auth, Role, Csrf, RateLimit)
+bin/
+  preview/            ✅ PROVISOIRE : routeur de prévisualisation cmsadmin + données fictives (supprimé au lot 1.1)
+  dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
+config/
+  cmsadmin-menu.php   ✅ menu du back-office par rôle
+  config.php, database.php, countries.php  ⬜
+public/               DOCUMENT ROOT en production
+  index.php, .htaccess  ✅ (index.php PROVISOIRE : prévisualisation, localhost uniquement)
+  assets/fonts/       ✅ Plus Jakarta Sans (woff2 variable + OFL)
+  assets/scss|css|js|img/  ⬜ front public
+  cmsadmin/assets/    ✅ back-office (StarAdmin 2 nettoyé + cmsadmin.css, cmsadmin.js, dashboard.js)
+  uploads/            ⬜ (git-ignoré)
+lang/                 ⬜ fr.php, en.php — aucune chaîne d'interface en dur dans les vues
+database/             ⬜ migrations/, seeders/, schema.sql, seed.sql
+storage/              ⬜ cache/, logs/ (git-ignorés)
+docs/                 ✅ cahier-des-charges.md, PLAN.md, brand/
 ```
 
 ## Commandes
 
 ```bash
-# PHP / Composer MAMP (PHP 8.4 CLI dispo)
+# `php` dans le PATH = Homebrew PHP 8.4 (CLI) ; MAMP sert le site en PHP 8.3.14 → rester compatible 8.2+
 /Applications/MAMP/bin/php/composer install
 php bin/build-css.php            # compile public/assets/scss → css (scssphp) — à créer au lot 1.1
 php -l <fichier>                 # vérif syntaxe avant commit
@@ -145,3 +154,13 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 - Travail par lots **directement sur `main`** (pas de branches de fonctionnalité) : vérifications (`php -l`, scénario par rôle, contrôle mobile 375 px, rendu sur http://localhost:8888) → commits atomiques en français.
 - Toute évolution du schéma BDD passe par une migration numérotée dans `database/migrations/` + mise à jour de `schema.sql`.
 - En cas de doute sur le périmètre, une décision métier ou un choix graphique structurant : **demander avant de coder**.
+
+### Vérification visuelle (Chrome headless)
+- Capture : `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --user-data-dir=<dossier temporaire> --window-size=1440,1500 --virtual-time-budget=3000 --screenshot=<fichier.png> <url>`, encadré par `perl -e 'alarm 40; exec @ARGV'` (Chrome peut ne pas rendre la main).
+- Mobile : Chrome headless impose une largeur de fenêtre minimale (~500 px) → pour tester 390 px, capturer une page HTML locale contenant des `<iframe width="390">` pointant vers les URL.
+- Erreurs JS : `--enable-logging=stderr --v=0 --dump-dom <url>` puis filtrer `CONSOLE`.
+- Faire les captures dans le scratchpad, jamais dans le dépôt.
+
+### Git
+- Dépôt **propre au projet** (racine `immobilier-abidjan-net/`), branche unique `main`, pas encore de remote GitLab (à ajouter au lot 3.1).
+- Ne jamais committer : `.env`, `vendor/`, `public/uploads/`, `storage/`, captures d'écran.

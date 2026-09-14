@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Données fictives pour la prévisualisation du back-office (bin/dev-server.php).
+ * Données fictives pour la prévisualisation du back-office (bin/preview/cmsadmin.php).
  * Noms d'agences et de personnes inventés.
  */
 

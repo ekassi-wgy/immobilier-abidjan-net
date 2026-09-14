@@ -7,11 +7,11 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 | **0. Cadrage** | 0.1 | Analyse cahier des charges, captures laforet.com, logo, template admin | `CLAUDE.md`, `docs/cahier-des-charges.md`, `docs/PLAN.md` | 0,5 j | ✅ |
 | | 0.2 | Schéma BDD complet (multisite, géo, catégories arborescentes, EAV, workflow, logs) | `database/schema.sql`, `database/seed.sql` (CI : Abidjan, communes, quartiers, catégories) | 1 j | ⬜ |
 | | 0.3 | Design system : palette, typo, grille, composants `im-` ; maquette hero + carte annonce | `public/assets/scss/` tokens + page styleguide interne | 1 j | ⬜ |
-| | 0.4 | Intégration & nettoyage StarAdmin 2 → `cmsadmin` (squelette rethémé, vues PHP, menu par rôle, prévisualisation sans BDD) | `public/cmsadmin/assets/` (56 Mo → 2,1 Mo, zéro ressource externe), `app/Views/cmsadmin/`, `bin/dev-server.php` | 0,5 j | ✅ |
+| | 0.4 | Intégration & nettoyage StarAdmin 2 → `cmsadmin` (squelette rethémé, vues PHP, menu par rôle, prévisualisation sans BDD) | `public/cmsadmin/assets/` (56 Mo → 2,1 Mo, zéro ressource externe), `app/Views/cmsadmin/`, `bin/preview/` (MAMP : http://localhost:8888/cmsadmin) | 0,5 j | ✅ |
 | **1. MVP Côte d'Ivoire** | 1.1 | Socle : front controller, routeur, PDO, `.env`, autoload PSR-4, helpers (`e()`, CSRF, flash), i18n `lang/`, build SCSS (scssphp), gestion d'erreurs | Application qui démarre, page 404/500 | 1 j | ⬜ |
 | | 1.2 | Multisite : middleware `SiteResolver` (HTTP_HOST → site → pays, devise, langue) | Tables `countries`, `sites` actives, config par site | 0,5 j | ⬜ |
 | | 1.3 | Authentification `cmsadmin` : connexion unique (admin / agence), rôles & permissions, limitation tentatives, mot de passe oublié | Login rethémé, middlewares Auth/Role | 1 j | ⬜ |
-| | 1.4 | Back-office Super Admin — référentiels : pays/sites, villes/communes/quartiers, catégories, attributs dynamiques, équipements | CRUD + tables DataTables + journal d'activité | 1,5 j | ⬜ |
+| | 1.4 | Back-office Super Admin — référentiels : pays/sites, villes/communes/quartiers, catégories, attributs dynamiques, équipements | CRUD + listes paginées côté serveur + journal d'activité | 1,5 j | ⬜ |
 | | 1.5 | Gestion des agences partenaires & utilisateurs internes (RCCM, logo, zones, activation) + demandes « Devenir partenaire » | CRUD agences, comptes agence, admins pays | 1 j | ⬜ |
 | | 1.6 | Module annonces : formulaire dynamique selon catégorie, galerie (upload multiple, tri, WebP), vidéo/360°/PDF, carte GPS, workflow de validation, mise en avant, expiration | CRUD annonces, notifications email + back-office | 2 j | ⬜ |
 | | 1.7 | Back-office Agence : dashboard perso, mes annonces par statut, profil agence, leads reçus | Espace agence cloisonné (tests de permissions) | 1 j | ⬜ |

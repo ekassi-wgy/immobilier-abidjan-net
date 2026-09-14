@@ -1,0 +1,25 @@
+# Racine publique du site (DocumentRoot en production sur Plesk)
+
+Options -Indexes -MultiViews
+DirectorySlash Off
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Fichiers cachés (.env, .git…) : accès interdit
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Fichier existant : servi tel quel (CSS, JS, images, polices)
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Tout le reste passe par le front controller
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# En-têtes de sécurité de base
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

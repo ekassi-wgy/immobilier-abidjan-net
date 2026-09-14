@@ -62,14 +62,16 @@ docs/
 /Applications/MAMP/bin/php/composer install
 php bin/build-css.php            # compile public/assets/scss → css (scssphp) — à créer au lot 1.1
 php -l <fichier>                 # vérif syntaxe avant commit
-
-# Prévisualisation du back-office SANS base de données (données fictives de bin/fixtures/)
-PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php
-#   /cmsadmin  ·  /cmsadmin?role=agency  ·  /cmsadmin/annonces  ·  /cmsadmin/annonces/nouvelle
-#   /cmsadmin/annonces/IAN-24531/modifier?erreurs=1  ·  /cmsadmin/connexion  ·  /cmsadmin/erreur-500
 ```
-`bin/dev-server.php` est provisoire : il sera remplacé par le front controller `public/index.php` (lot 1.1). Le serveur PHP intégré doit tourner avec plusieurs workers, sinon Chrome bloque sur les requêtes parallèles.
-MAMP : Apache port 8888, MySQL 8 (port 8889). Le `DocumentRoot` MAMP pointe actuellement sur un autre projet → utiliser un vhost `immobilier.abidjan.local` vers `public/`, ou le serveur PHP intégré.
+
+**Environnement local : MAMP → http://localhost:8888/** (Apache 2.4, PHP 8.3.14, MySQL 8 sur le port 8889).
+Le `DocumentRoot` MAMP pointe sur la racine du projet : le `.htaccess` racine bloque les dossiers internes (`app/`, `bin/`, `config/`, `docs/`, fichiers cachés…) et sert tout depuis `public/`, qui est le `DocumentRoot` en production. `public/.htaccess` envoie les URL non statiques vers `public/index.php`.
+
+Prévisualisation du back-office **sans base de données** (données fictives `bin/preview/fixtures.php`), servie par `public/index.php` **uniquement sur localhost / *.local** :
+- http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` · `/cmsadmin/erreur-500`
+- Rôle simulé : `?role=super_admin|country_admin|agency` (mémorisé par cookie).
+- `public/index.php` et `bin/preview/` sont provisoires : remplacés par le vrai routeur au lot 1.1.
+- Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
 `.env` (jamais commité) : `APP_ENV`, `APP_URL`, `DB_*`, `SMTP_*`. Fournir `.env.example`.
 
 ## Sécurité — checklist à chaque lot

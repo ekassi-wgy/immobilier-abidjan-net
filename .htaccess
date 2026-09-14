@@ -1,0 +1,18 @@
+# Développement local (MAMP : DocumentRoot = racine du projet)
+# En production, le DocumentRoot est public/ : ce fichier n'est alors pas exposé.
+
+Options -Indexes
+DirectorySlash Off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Dossiers et fichiers internes : jamais accessibles par le web
+    RewriteRule ^(app|bin|config|database|docs|lang|storage|vendor)(/|$) - [F,L]
+    RewriteRule (^|/)\. - [F,L]
+    RewriteRule ^(composer\.(json|lock)|CLAUDE\.md|README\.md)$ - [F,L]
+
+    # Tout le reste est servi depuis public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

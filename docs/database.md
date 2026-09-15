@@ -82,6 +82,15 @@ erDiagram
 - **Codes immuables** après création : `property_categories.code`, `property_attributes.code`, `property_attribute_options.code` (dès qu’une valeur l’utilise), `features.code`, `countries.iso2`, `sites.code`. Le `storage`/`column_name` d’un critère est fixé à la création ; son `input_type` est verrouillé dès qu’une valeur existe.
 - **Suppression** : uniquement si l’élément n’est pas utilisé (annonces, agences, zones, demandes de partenariat, sous-niveaux) ; sinon désactivation (`is_active = 0`). Une option retirée d’un critère est supprimée si inutilisée, désactivée sinon. `property_features` étant en `ON DELETE CASCADE`, un équipement utilisé n’est jamais supprimé.
 
+## Annonces et révisions (lot 1.6, migration 0002)
+
+- **Statuts** : `properties.status` = `pending`, `published`, `rejected` (motif obligatoire, contrainte `chk_properties_rejection`), `unpublished`, `archived`, `expired` ; `availability` (disponible, réservé, vendu, loué) est indépendante. Chaque changement est historisé dans `property_status_history` (`user_id` NULL = action automatique du CRON).
+- **Révisions** : `property_revisions` (`data` JSON = `fields`, `attributes`, `features`, `images`) enregistre une modification proposée par une agence sur une annonce **publiée** ; la version en ligne n'est pas touchée. Une seule révision `pending` par annonce (la suivante complète la même ligne) ; `approved` applique les données, `rejected` conserve la version en ligne, `superseded` = l'équipe a modifié directement entre-temps.
+- **Photos** : `property_images.path` = chemin **sans suffixe de taille** (`uploads/ci/annonces/12/ab34…`), décliné en `-1600.webp`, `-800.webp`, `-400.webp`. `revision_id` non nul = photo proposée par une révision en attente : **les requêtes publiques filtrent `revision_id IS NULL`**. `sort_order` 0 = photo de couverture.
+- **Critères** : `storage = 'column'` → colonnes indexées de `properties` (`living_area`, `land_area`, `rooms`, `bedrooms`, `bathrooms`) ; sinon `property_attribute_values` (une ligne par option cochée pour un multi-choix, unicité par `option_scope`).
+- **Expiration** : `expires_at` = publication + `listing.lifetime_days` ; `expiry_reminder_sent_at` évite les relances répétées. `bin/expire-listings.php` (CRON quotidien) passe les annonces échues en `expired` et prévient l'agence.
+- **Référence publique** : `reference` = `listing.reference_prefix` + `-` + (10000 + id), attribuée juste après l'insertion.
+
 ## Comptes et agences (lot 1.5)
 
 - Compte créé par un administrateur : `password_hash` aléatoire inutilisable + `must_change_password = 1` ; l’accès s’active par le lien d’invitation (`password_resets`, 72 h). « Invitation en attente » = `must_change_password = 1` et `last_login_at` NULL.

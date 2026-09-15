@@ -82,6 +82,14 @@ erDiagram
 - **Codes immuables** après création : `property_categories.code`, `property_attributes.code`, `property_attribute_options.code` (dès qu’une valeur l’utilise), `features.code`, `countries.iso2`, `sites.code`. Le `storage`/`column_name` d’un critère est fixé à la création ; son `input_type` est verrouillé dès qu’une valeur existe.
 - **Suppression** : uniquement si l’élément n’est pas utilisé (annonces, agences, zones, demandes de partenariat, sous-niveaux) ; sinon désactivation (`is_active = 0`). Une option retirée d’un critère est supprimée si inutilisée, désactivée sinon. `property_features` étant en `ON DELETE CASCADE`, un équipement utilisé n’est jamais supprimé.
 
+## Comptes et agences (lot 1.5)
+
+- Compte créé par un administrateur : `password_hash` aléatoire inutilisable + `must_change_password = 1` ; l’accès s’active par le lien d’invitation (`password_resets`, 72 h). « Invitation en attente » = `must_change_password = 1` et `last_login_at` NULL.
+- Suppression d’un compte : `deleted_at` + `is_active = 0` + email remplacé par `supprime-{id}-{timestamp}@invalid.local` (libère l’unicité de `uq_users_email`), jetons supprimés.
+- Suppression d’une agence : logique (`deleted_at`, `status = 'closed'`) et uniquement sans annonce ; ses comptes sont supprimés logiquement. `verified_at` renseigné à la première vérification, remis à NULL si la vérification est retirée ; `is_featured` forcé à 0 hors statut `active`.
+- `partner_requests` : `approved` uniquement via la création de l’agence (`agency_id`, `handled_by_user_id`, `handled_at`) ; `internal_notes` jamais visibles de l’agence.
+- Logos : `agencies.logo_path` = chemin relatif à `public/` (`uploads/{iso2}/agences/{id}/logo-{aléatoire}.webp`).
+
 ## Conventions
 
 - Tables au pluriel en `snake_case`, clés étrangères `<entité>_id`, index `idx_<table>_<usage>`, uniques `uq_…`, contraintes `chk_…`, clés étrangères `fk_…`.

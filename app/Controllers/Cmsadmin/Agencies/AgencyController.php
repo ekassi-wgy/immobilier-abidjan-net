@@ -12,7 +12,6 @@ use App\Services\AgencyRepository;
 use App\Support\Paginator;
 use App\Support\Str;
 use App\Support\Validator;
-use Throwable;
 
 /**
  * Agences partenaires du pays du site (Super Admin et Admin Pays).
@@ -23,9 +22,9 @@ use Throwable;
 final class AgencyController extends Controller
 {
     use AccountSupport;
+    use LogoSupport;
 
     private const PER_PAGE = 25;
-    private const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
     public function index(Request $request): Response
     {
@@ -110,7 +109,7 @@ final class AgencyController extends Controller
             [$owner, $ownerErrors] = $this->validateOwner($request);
             $errors += $ownerErrors;
         }
-        $logoError = $this->app->images()->check($request->file('logo'), self::LOGO_MAX_BYTES);
+        $logoError = $this->checkLogo($request);
         if ($logoError !== null && $logoError !== 'none') {
             $errors['logo'] = __($logoError, ['max' => '2 Mo']);
         }
@@ -150,7 +149,7 @@ final class AgencyController extends Controller
     {
         $agency = $this->find((int) $id);
         [$data, $zones, $errors] = $this->validate($request, (int) $agency['country_id'], $agency);
-        $logoError = $this->app->images()->check($request->file('logo'), self::LOGO_MAX_BYTES);
+        $logoError = $this->checkLogo($request);
         if ($logoError !== null && $logoError !== 'none') {
             $errors['logo'] = __($logoError, ['max' => '2 Mo']);
         }
@@ -164,9 +163,8 @@ final class AgencyController extends Controller
 
         if ($logoError === null) {
             $this->storeLogo($request, (int) $agency['id'], $agency['logo_path']);
-        } elseif ($request->input('remove_logo') === '1' && $agency['logo_path'] !== null) {
-            $this->app->images()->delete($agency['logo_path']);
-            $repo->updateLogo((int) $agency['id'], null);
+        } elseif ($request->input('remove_logo') === '1') {
+            $this->removeLogo((int) $agency['id'], $agency['logo_path']);
         }
 
         $this->log($request, 'agency.updated', 'agency', (int) $agency['id'], $data['name'], $this->diff($before, $data + ['zones' => implode(',', $zones)]));
@@ -323,21 +321,6 @@ final class AgencyController extends Controller
             'last_name' => $v->string('last_name'),
             'email' => mb_strtolower($v->string('email')),
         ], $errors];
-    }
-
-    private function storeLogo(Request $request, int $agencyId, ?string $previous): void
-    {
-        $images = $this->app->images();
-        try {
-            $path = $images->storeWebp((array) $request->file('logo'), strtolower((string) site()?->country->iso2) . '/agences/' . $agencyId, 'logo', 480, 480, 88);
-        } catch (Throwable $exception) {
-            $this->app->logger()->exception($exception, ['agency_id' => $agencyId]);
-            $this->flash('error', __('upload.failed'));
-
-            return;
-        }
-        $this->app->agencies()->updateLogo($agencyId, $path);
-        $images->delete($previous);
     }
 
     /** @return array{0: string, 1: string} Prénom, nom (« Awa Koné Traoré » → « Awa », « Koné Traoré ») */

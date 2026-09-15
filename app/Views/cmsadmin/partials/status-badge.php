@@ -4,14 +4,7 @@
  *
  * @var string $status pending|published|rejected|unpublished|archived|expired
  */
-$labels = [
-    'pending' => 'En attente',
-    'published' => 'Publiée',
-    'rejected' => 'Rejetée',
-    'unpublished' => 'Dépubliée',
-    'archived' => 'Archivée',
-    'expired' => 'Expirée',
-];
-$status = array_key_exists($status, $labels) ? $status : 'unpublished';
+$statuses = ['pending', 'published', 'rejected', 'unpublished', 'archived', 'expired'];
+$status = in_array($status, $statuses, true) ? $status : 'unpublished';
 ?>
-<span class="im-status im-status--<?= e($status) ?>"><?= e($labels[$status]) ?></span>
+<span class="im-status im-status--<?= e($status) ?>"><?= e(__('properties.status.' . $status)) ?></span>

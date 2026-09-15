@@ -16,6 +16,7 @@ use App\Services\Mailer;
 use App\Services\Notifier;
 use App\Services\PasswordHasher;
 use App\Services\ImageUploader;
+use App\Services\LeadRepository;
 use App\Services\PartnerRequestRepository;
 use App\Services\PasswordReset;
 use App\Services\PendingUploads;
@@ -24,6 +25,7 @@ use App\Services\PropertyRepository;
 use App\Services\PropertyWorkflow;
 use App\Services\RateLimiter;
 use App\Services\Settings;
+use App\Services\StatsRepository;
 use App\Services\SiteRepository;
 use App\Services\UserRepository;
 use Closure;
@@ -184,6 +186,16 @@ final class App
     public function partnerRequests(): PartnerRequestRepository
     {
         return $this->service(PartnerRequestRepository::class, fn () => new PartnerRequestRepository($this->db()));
+    }
+
+    public function leads(): LeadRepository
+    {
+        return $this->service(LeadRepository::class, fn () => new LeadRepository($this->db()));
+    }
+
+    public function stats(): StatsRepository
+    {
+        return $this->service(StatsRepository::class, fn () => new StatsRepository($this->db()));
     }
 
     public function images(): ImageUploader

@@ -10,7 +10,7 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 | | 0.4 | Intégration & nettoyage StarAdmin 2 → `cmsadmin` (squelette rethémé, vues PHP, menu par rôle, prévisualisation sans BDD) | `public/cmsadmin/assets/` (56 Mo → 2,1 Mo, zéro ressource externe), `app/Views/cmsadmin/`, `bin/preview/` (MAMP : http://localhost:8888/cmsadmin) | 0,5 j | ✅ |
 | **1. MVP Côte d'Ivoire** | 1.1 | Socle : front controller, routeur, PDO, `.env`, autoload PSR-4, helpers (`e()`, CSRF, flash), i18n `lang/`, build SCSS (scssphp), gestion d'erreurs | `app/Core/` (routeur, PDO, session, CSRF, vues, i18n, erreurs + journal), `routes/`, `lang/fr.php`·`en.php`, `.env.example`, pages 404/419/500/503 front et cmsadmin ; maquettes conservées derrière `APP_ENV=local` (option A) | 1 j | ✅ |
 | | 1.2 | Multisite : middleware `SiteResolver` (HTTP_HOST → site → pays, devise, langue) | `SiteResolver` global (hôte → site → pays, langue ; 404 hôte inconnu, 503 maintenance, 301 alias, noindex hors production), `Models/Site`·`Country`, `Services/SiteRepository` (cache fichier) et `Settings`, helpers `site()`, `settings()`, `absolute_url()`, devise du pays dans `format_price()`, `bin/cache-clear.php` | 0,5 j | ✅ |
-| | 1.3 | Authentification `cmsadmin` : connexion unique (admin / agence), rôles & permissions, limitation tentatives, mot de passe oublié | Login rethémé, middlewares Auth/Role | 1 j | ⬜ |
+| | 1.3 | Authentification `cmsadmin` : connexion unique (admin / agence), rôles & permissions, limitation tentatives, mot de passe oublié | Connexion, déconnexion, « Rester connecté » (jetons sélecteur/validateur), blocage des tentatives (email + IP), mot de passe oublié (lien unique par email, pilote log en local), changement forcé du mot de passe provisoire, Mon compte ; middlewares `Authenticate`, `RedirectIfAuthenticated`, `RequireRole` ; restriction au pays du site ; `activity_logs` ; PHPMailer ; `bin/create-user.php` | 1 j | ✅ |
 | | 1.4 | Back-office Super Admin — référentiels : pays/sites, villes/communes/quartiers, catégories, attributs dynamiques, équipements | CRUD + listes paginées côté serveur + journal d'activité | 1,5 j | ⬜ |
 | | 1.5 | Gestion des agences partenaires & utilisateurs internes (RCCM, logo, zones, activation) + demandes « Devenir partenaire » | CRUD agences, comptes agence, admins pays | 1 j | ⬜ |
 | | 1.6 | Module annonces : formulaire dynamique selon catégorie, galerie (upload multiple, tri, WebP), vidéo/360°/PDF, carte GPS, workflow de validation, mise en avant, expiration | CRUD annonces, notifications email + back-office | 2 j | ⬜ |
@@ -39,7 +39,7 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 | Validation de la police proposée | 0.3 | ✅ Plus Jakarta Sans |
 | Photos d'Abidjan pour le hero (droits d'usage) — photos libres provisoires en place | 1.8 | ⬜ |
 | Taux de commission, durée de vie d'une annonce | 1.6 / 1.12 | ⬜ |
-| Accès SMTP | 1.6 / 1.11 | ⬜ |
+| Accès SMTP (en attendant : emails enregistrés dans `storage/mail/`) | 1.6 / 1.11 | ⬜ |
 | Dépôt Git distant | 3.1 | ✅ GitHub `ekassi-wgy/immobilier-abidjan-net` |
 | Accès Plesk, DNS du sous-domaine, moteur BDD de production (MySQL 8 ou MariaDB) | 3.1 | ⬜ |
 | Textes légaux (mentions, CGU, confidentialité) | 1.11 | ⬜ |

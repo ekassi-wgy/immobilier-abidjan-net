@@ -29,7 +29,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 
 - **PHP 8.2+ natif**, MVC maison (Router, Controllers, Models, Views, Services, Middlewares), autoload **Composer PSR-4**, style **PSR-12**, `declare(strict_types=1);`.
 - **MySQL/MariaDB via PDO** uniquement, requêtes préparées **systématiques**, `utf8mb4`, `ERRMODE_EXCEPTION`, `EMULATE_PREPARES=false`.
-- Dépendances Composer **minimales et justifiées** : en dev `scssphp/scssphp` (compilation Sass en PHP — pas de Node sur le poste) et `twbs/bootstrap` (sources SCSS) ; `phpmailer/phpmailer` à venir. Pas de framework. Composer : `php /Applications/MAMP/bin/php/composer …`, `composer.lock` commité, `vendor/` ignoré.
+- Dépendances Composer **minimales et justifiées** : `phpmailer/phpmailer` (emails, lot 1.3) ; en dev `scssphp/scssphp` (compilation Sass en PHP — pas de Node sur le poste) et `twbs/bootstrap` (sources SCSS). Pas de framework. Composer : `php /Applications/MAMP/bin/php/composer …`, `composer.lock` commité, `vendor/` ignoré.
 - Front : HTML5 sémantique, **Bootstrap 5.3 comme socle technique uniquement** (grille, reboot, utilitaires, modal/offcanvas/collapse) compilé en SCSS avec les seuls modules utiles, JavaScript **vanilla** (Alpine.js toléré si justifié). Pas de jQuery côté public.
 - Carte : **Leaflet + OpenStreetMap + markercluster**. Slider/galerie/lightbox : librairies légères **hébergées localement**.
 - Images : **GD** (Imagick non disponible) — redimensionnement multi-tailles + WebP, stockage `public/uploads/{pays}/{annonce}/`.
@@ -46,22 +46,26 @@ app/
   bootstrap.php       ✅ amorçage commun (autoload, .env, erreurs, UTC) → retourne App\Core\App
   Core/               ✅ App (noyau + services), Router, Request, Response, Config, Env, Database (PDO), Cache (fichiers), Session, Csrf, View, Translator, Logger, ErrorHandler, Middleware, Exceptions/HttpException
   Support/helpers.php ✅ e(), __(), config(), env(), site(), settings(), url(), absolute_url(), route(), asset(), icon(), csrf_field(), csrf_token(), render_view(), cmsadmin_*(), format_*() (autoload Composer « files »)
-  Views/cmsadmin/     ✅ layouts/ (app, auth) · partials/ (head, navbar, sidebar, footer, scripts, flash, page-header, status-badge, pagination, empty-state) · pages/ (dashboard, properties, auth, errors)
+  Views/cmsadmin/     ✅ layouts/ (app, auth) · partials/ (head, navbar, sidebar, footer, scripts, flash, page-header, status-badge, pagination, empty-state) · pages/ (dashboard, properties, auth, account, errors) · partials auth-aside, password-field
   Views/front/        ✅ layouts/app · partials/ (header, footer, hero, search, property-card) · pages/ (home-mockup, styleguide, errors/error)
   Views/errors/debug.php ✅ détail d’exception (app.debug uniquement, jamais en production)
-  Controllers/        ✅ Controller (base) · Front/HomeController (503 « en préparation » jusqu’au lot 1.8) · Preview/ (PROVISOIRE, maquettes)
+  Views/emails/       ✅ layout (HTML en ligne) · password-reset (+ .text)
+  Controllers/        ✅ Controller (base) · Front/HomeController (503 « en préparation » jusqu’au lot 1.8) · Cmsadmin/ (Controller de base, Auth, Password, Account) · Preview/ (PROVISOIRE, maquettes)
                       ⬜ Front (Search, Property, Agency, Page, Lead…) + Cmsadmin/ (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
-  Middlewares/        ✅ SiteResolver, VerifyCsrfToken (globaux) · ⬜ Auth, Role, RateLimit
-  Models/             ✅ Site, Country (objets du site courant) · ⬜ modèles métier
-  Services/           ✅ SiteRepository (sites, domaines, pays, paramètres + cache), Settings · ⬜
+  Middlewares/        ✅ SiteResolver, VerifyCsrfToken (globaux) · Authenticate, RedirectIfAuthenticated, RequireRole
+  Models/             ✅ Site, Country, User · ⬜ modèles métier
+  Services/           ✅ SiteRepository, Settings · Auth, UserRepository, PasswordHasher, PasswordReset, LoginThrottle, RateLimiter, ActivityLogger, Mailer, IpAddress · ⬜
 bin/
   preview/            ✅ PROVISOIRE : données fictives (fixtures.php, front-fixtures.php) des contrôleurs Preview/, retirées module par module
   build-css.php       ✅ compile resources/scss → public/assets/css/app.css
   build-icons.php     ✅ génère le sprite d’icônes
+  create-user.php     ✅ crée un Super Admin / Admin Pays (mot de passe provisoire affiché une fois)
   cache-clear.php     ✅ vide storage/cache (après déploiement ou modification directe en base)
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
-  app.php             ✅ environnement, debug, URL, langue, prévisualisation, session, journaux
+  app.php             ✅ environnement, debug, URL, langue, prévisualisation, session, cache, journaux
+  auth.php            ✅ inactivité, « Rester connecté », lien de réinitialisation, longueur des mots de passe
+  mail.php            ✅ pilote log (storage/mail/*.eml) | smtp, expéditeur
   database.php        ✅ connexion MySQL/MariaDB
   cmsadmin-menu.php   ✅ menu du back-office par rôle
   countries.php       ⬜
@@ -77,7 +81,7 @@ public/               DOCUMENT ROOT en production
 resources/scss/       ✅ app.scss · abstracts/_tokens.scss (SOURCE UNIQUE des couleurs, typo, espacements) · abstracts/_mixins.scss · vendor/_bootstrap.scss · base/ · layout/ · components/ · pages/
 lang/                 ✅ fr.php (référence et repli), en.php — aucune chaîne d'interface en dur dans les nouvelles vues
 database/             ✅ schema.sql (référence v1, 37 tables) · seed.sql (référentiels CI) · migrations/ (évolutions 0002+) — voir docs/database.md
-storage/              ✅ logs/app-AAAA-MM-JJ.log · cache/ (sites.php…) — créés automatiquement, git-ignorés
+storage/              ✅ logs/app-AAAA-MM-JJ.log · cache/ (sites.php, ratelimit_…) · mail/ (emails en pilote log) — créés automatiquement, git-ignorés
 docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
 ```
 
@@ -88,6 +92,8 @@ docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
 /Applications/MAMP/bin/php/composer install
 php bin/build-css.php            # compile resources/scss → public/assets/css/app.css (minifié) · --dev : lisible
 php bin/build-icons.php          # régénère public/assets/img/icons.svg (liste des icônes dans le script)
+php bin/create-user.php --role=super_admin --email=… --first-name=… --last-name=…   # compte interne (Admin Pays : --role=country_admin --country=CI)
+php bin/cache-clear.php          # vide storage/cache
 php -l <fichier>                 # vérif syntaxe avant commit
 ```
 
@@ -96,12 +102,13 @@ Le `DocumentRoot` MAMP pointe sur la racine du projet : le `.htaccess` racine bl
 
 Prévisualisation avec **données fictives** (contrôleurs `app/Controllers/Preview/` + `bin/preview/`) ; seul le site courant (nom, pays, devise) vient de la base locale, nécessaire depuis le lot 1.2, routes déclarées **uniquement si `APP_ENV=local` et `APP_PREVIEW=true`** (ailleurs : accueil en 503, maquettes en 404) :
 - Site public : http://localhost:8888/ (maquette d’accueil : hero + recherche + biens à la une) · http://localhost:8888/styleguide (**charte graphique de référence**)
-- Back-office : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` (POST : jeton CSRF vérifié, échec simulé) · `/cmsadmin/erreur-500`
-- Rôle simulé : `?role=super_admin|country_admin|agency` (mémorisé par cookie).
-- Chaque écran fictif est supprimé quand son module réel est livré (connexion → 1.3, annonces → 1.6, tableau de bord → 1.12, accueil → 1.8).
+- Back-office (**connexion réelle obligatoire** depuis le lot 1.3 : créer d’abord un compte avec `bin/create-user.php`) : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/erreur-500`
+- Rôle affiché = celui du compte connecté ; un Super Admin peut prévisualiser un autre rôle avec `?role=country_admin|agency|super_admin` (cookie, écrans fictifs uniquement — sans effet sur les droits réels).
+- Emails en local : `MAIL_MAILER=log` → fichiers `storage/mail/*.eml` (lien de réinitialisation inclus).
+- Chaque écran fictif est supprimé quand son module réel est livré (annonces → 1.6, tableau de bord → 1.12, accueil → 1.8).
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
 Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.1:8889`). Réinstallation : commandes dans `docs/database.md`. Client : `/Applications/MAMP/Library/bin/mysql80/bin/mysql` (en zsh, passer la commande dans un tableau, pas dans une chaîne).
-`.env` (jamais commité, modèle `.env.example`) : `APP_ENV` (local|staging|production), `APP_DEBUG`, `APP_URL`, `APP_BASE_PATH`, `APP_LOCALE`, `APP_PREVIEW`, `DB_*`, `CACHE_SITES_TTL` (vide en local = pas de cache ; 600 en production), `SESSION_*`, `SMTP_*`, `MAIL_*`. Une variable définie par le serveur (Plesk) prime sur `.env`.
+`.env` (jamais commité, modèle `.env.example`) : `APP_ENV` (local|staging|production), `APP_DEBUG`, `APP_URL`, `APP_BASE_PATH`, `APP_LOCALE`, `APP_PREVIEW`, `DB_*`, `CACHE_SITES_TTL` (vide en local = pas de cache ; 600 en production), `SESSION_*`, `AUTH_IDLE_TIMEOUT`, `AUTH_REMEMBER_DAYS`, `MAIL_MAILER` (log|smtp), `SMTP_*`, `MAIL_FROM_*`. Une variable définie par le serveur (Plesk) prime sur `.env`.
 
 ### Socle applicatif (lot 1.1) — conventions
 
@@ -112,6 +119,8 @@ Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.
 - **Session** : ouverte seulement si nécessaire (jeton CSRF, flash, connexion) ou si le navigateur en a déjà une ; les pages publiques sans formulaire restent sans cookie (cachables).
 - **BDD** : `$db->select/selectOne/scalar/execute/insert/transaction` — requêtes préparées, session SQL en UTC. Connexion ouverte à la première requête.
 - **Multisite (lot 1.2)** : `SiteResolver` (global, avant le routage) cherche l’hôte sans port dans `site_domains` → `site()` (`App\Models\Site`, avec `->country` : devise, indicatif, fuseau). Hôte inconnu ou site `disabled` → 404 ; `maintenance` → 503 côté public, /cmsadmin accessible ; domaines `local` acceptés seulement si `APP_ENV=local` ; alias de production non principal → 301 vers le domaine principal ; domaines hors production → `noindex`. Langue de l’interface = `sites.default_locale`. Requêtes publiques : **toujours** `WHERE country_id = :country` avec `site()->country->id`. Paramètres : `settings('listing.lifetime_days', 90)` (global surchargé par site ; NULL en base = défaut). `format_price()` prend la devise du pays. URL absolues : `absolute_url()` (jamais `$_SERVER['HTTP_HOST']`). Après écriture dans `sites`, `site_domains`, `countries` ou `settings` : `app()->sites()->flush()`.
+- **Authentification (lot 1.3)** : routes du back-office dans le groupe `Authenticate` (écrans hors session : `RedirectIfAuthenticated`) ; rôles par route avec `'RequireRole:super_admin'`, `'RequireRole:staff'` (Super Admin + Admin Pays) ou `'RequireRole:agency'` (responsable + agent) **et** contrôle de propriété dans l’action (`$user->canAccessCountry()`, `agency_id`). Contrôleurs du back-office : étendre `App\Controllers\Cmsadmin\Controller` (`$this->user($request)`, `render()` = layout avec menu, `renderAuth()` = écran hors session). Rôles en base `super_admin|country_admin|agency_owner|agency_agent` ; rôle du menu `User::menuRole()` = `super_admin|country_admin|agency`. Un compte Admin Pays ou agence ne peut se connecter que sur le site de son pays. Mots de passe : Argon2id (bcrypt à défaut), 12 caractères minimum, provisoire → changement forcé. Blocage : `settings` `security.login_max_attempts` / `security.login_lockout_minutes` (+ plafond par IP). « Rester connecté » : sélecteur/validateur haché, rotation à chaque usage, révocation totale en cas de réutilisation. Changement ou réinitialisation du mot de passe → autres sessions et jetons révoqués. Journal : `app()->activity()->log('entite.action', $userId, $countryId, 'entite', $id, …, request: $request)` pour **toute** écriture du back-office.
+- **Emails** : `app()->mailer()->send($to, $sujet, $html, $texte)` ; vues dans `app/Views/emails/` (styles en ligne, version texte obligatoire). Rendu HTML : `$view->page('emails/layout', 'emails/…', $data, ['site' => site(), 'preheader' => …])`.
 - **Traductions** : `__('errors.404.title', ['name' => …])` ; toute clé ajoutée dans `lang/fr.php` l’est aussi dans `lang/en.php`. Les vues maquettes existantes seront traduites quand leur module réel sera réalisé.
 - En-têtes de sécurité posés par `App` (nosniff, `X-Frame-Options: SAMEORIGIN`, Referrer-Policy, Permissions-Policy, HSTS en HTTPS, `X-Robots-Tag: noindex` sur /cmsadmin).
 

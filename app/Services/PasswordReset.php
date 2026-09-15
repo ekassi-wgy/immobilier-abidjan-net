@@ -33,6 +33,7 @@ final class PasswordReset
         private readonly ActivityLogger $activity,
         private readonly Logger $logger,
         private readonly int $expiresMinutes,
+        private readonly int $inviteExpiresHours = 72,
     ) {
     }
 
@@ -52,14 +53,7 @@ final class PasswordReset
             return;
         }
 
-        $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-        $this->db->transaction(function (Database $db) use ($user, $token): void {
-            $db->execute('DELETE FROM password_resets WHERE user_id = :id AND used_at IS NULL', ['id' => $user->id]);
-            $db->execute(
-                'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (:id, :hash, UTC_TIMESTAMP() + INTERVAL :minutes MINUTE)',
-                ['id' => $user->id, 'hash' => hash('sha256', $token), 'minutes' => $this->expiresMinutes]
-            );
-        });
+        $token = $this->issueToken($user->id, $this->expiresMinutes);
 
         $link = absolute_url(route('cmsadmin.password.reset', ['token' => $token]));
         $data = ['user' => $user, 'site' => $site, 'link' => $link, 'minutes' => $this->expiresMinutes, 'ip' => $request->ip()];
@@ -78,6 +72,34 @@ final class PasswordReset
         }
     }
 
+    /**
+     * Invitation d'un compte créé par un administrateur : lien pour choisir son mot de passe (valable plusieurs jours).
+     *
+     * @throws Throwable si l'email ne peut pas être envoyé (l'appelant informe l'administrateur)
+     */
+    public function invite(Request $request, Site $site, User $user, string $inviterName, ?string $agencyName = null): void
+    {
+        $token = $this->issueToken($user->id, $this->inviteExpiresHours * 60);
+        $data = [
+            'user' => $user,
+            'site' => $site,
+            'link' => absolute_url(route('cmsadmin.password.reset', ['token' => $token])),
+            'loginUrl' => absolute_url(route('cmsadmin.login')),
+            'hours' => $this->inviteExpiresHours,
+            'inviter' => $inviterName,
+            'agencyName' => $agencyName,
+        ];
+
+        $this->mailer->send(
+            $user->email,
+            __('users.invite.email_subject', ['site' => $site->name]),
+            $this->view->page('emails/layout', 'emails/invitation', $data, ['site' => $site, 'preheader' => __('users.invite.email_preheader', ['hours' => $this->inviteExpiresHours])]),
+            $this->view->render('emails/invitation.text', $data),
+            $user->fullName()
+        );
+        $this->activity->log('user.invited', $this->currentUserId($request), $user->countryId, 'user', $user->id, $user->email, request: $request);
+    }
+
     /** Compte associé à un jeton valide (non utilisé, non expiré), null sinon. */
     public function findUser(string $token): ?User
     {
@@ -92,6 +114,28 @@ final class PasswordReset
         $user = $userId !== null ? $this->users->findById((int) $userId) : null;
 
         return $user !== null && $user->canLogin() ? $user : null;
+    }
+
+    /** Crée un jeton à usage unique (les liens précédents non utilisés du compte sont annulés). */
+    private function issueToken(int $userId, int $minutes): string
+    {
+        $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+        $this->db->transaction(function (Database $db) use ($userId, $token, $minutes): void {
+            $db->execute('DELETE FROM password_resets WHERE user_id = :id AND used_at IS NULL', ['id' => $userId]);
+            $db->execute(
+                'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (:id, :hash, UTC_TIMESTAMP() + INTERVAL :minutes MINUTE)',
+                ['id' => $userId, 'hash' => hash('sha256', $token), 'minutes' => $minutes]
+            );
+        });
+
+        return $token;
+    }
+
+    private function currentUserId(Request $request): ?int
+    {
+        $user = $request->attribute('user');
+
+        return $user instanceof User ? $user->id : null;
     }
 
     /** Enregistre le nouveau mot de passe et consomme le jeton. Retourne l'utilisateur, ou null si le jeton n'est plus valide. */

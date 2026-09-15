@@ -35,10 +35,31 @@ abstract class Controller extends BaseController
     protected function render(Request $request, string $view, array $data = [], array $layoutData = [], int $status = 200): Response
     {
         $shared = $this->shared($request);
-        $layoutData += ['counters' => [], 'flash' => []];
+        $layoutData += ['counters' => $this->counters($request), 'flash' => []];
         $layoutData['flash'] = [...$this->app->session()->flashes(), ...$layoutData['flash']];
 
         return $this->page('cmsadmin/layouts/app', 'cmsadmin/pages/' . $view, $data + $shared, $layoutData + $shared, $status);
+    }
+
+    /**
+     * Compteurs affichés dans le menu (pastilles). Les annonces en attente et contacts arriveront avec leurs modules.
+     *
+     * @return array<string, int>
+     */
+    protected function counters(Request $request): array
+    {
+        $user = $this->user($request);
+        $site = site();
+        if (!$user->isStaff() || $site === null) {
+            return [];
+        }
+
+        return [
+            'partner_requests' => (int) $this->app->db()->scalar(
+                "SELECT COUNT(*) FROM partner_requests WHERE country_id = :country AND status = 'new'",
+                ['country' => $site->country->id]
+            ),
+        ];
     }
 
     /**

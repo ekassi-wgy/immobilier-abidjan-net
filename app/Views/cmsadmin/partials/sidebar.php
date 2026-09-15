@@ -42,7 +42,8 @@ $visible = array_values(array_filter($visible, static function (array $entry, in
       <?php
       $active = $isActive($entry['key']);
       $children = array_values(array_filter($entry['children'] ?? [], $canSee));
-      $badge = $badgeOf($entry);
+      // Pastille du parent : son propre compteur, sinon le total de ses sous-entrées
+      $badge = isset($entry['badge']) ? $badgeOf($entry) : array_sum(array_map($badgeOf, $children));
       $collapseId = 'menu-' . str_replace('.', '-', $entry['key']);
       ?>
       <li class="nav-item<?= $active ? ' active' : '' ?>">
@@ -65,6 +66,7 @@ $visible = array_values(array_filter($visible, static function (array $entry, in
             <li class="nav-item">
               <a class="nav-link<?= $childActive ? ' active' : '' ?>" href="<?= e(cmsadmin_url($child['url'])) ?>"<?= $childActive ? ' aria-current="page"' : '' ?>>
                 <?= e($labelOf($child)) ?>
+                <?php if (($childBadge = $badgeOf($child)) > 0): ?><span class="im-count im-count--sub"><?= e(format_number($childBadge)) ?></span><?php endif; ?>
               </a>
             </li>
             <?php endforeach; ?>

@@ -113,6 +113,23 @@
       }
     });
 
+    // Formulaire utilisateur : le pays n'est demandé que pour un Admin Pays
+    $(document).on('change', '[data-toggle-country]', function () {
+      var field = document.querySelector('[data-country-field]');
+      if (field) {
+        field.hidden = this.value === 'super_admin';
+      }
+    });
+
+    // Création d'agence : les champs du responsable ne sont utiles que si l'interrupteur est activé
+    var ownerSwitch = document.querySelector('input[type=checkbox][name="create_owner"]');
+    if (ownerSwitch) {
+      var ownerFields = ownerSwitch.closest('section').querySelector('.row');
+      var syncOwner = function () { ownerFields.hidden = !ownerSwitch.checked; };
+      ownerSwitch.addEventListener('change', syncOwner);
+      syncOwner();
+    }
+
     // Fermeture automatique des messages flash de succès
     setTimeout(function () {
       $('.im-flash--success').fadeOut(300);

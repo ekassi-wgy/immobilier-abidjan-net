@@ -1,0 +1,20 @@
+# Fichiers envoyés par les utilisateurs : servis tels quels, jamais exécutés.
+Options -Indexes -ExecCGI
+DirectoryIndex disabled
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .phar .php3 .php4 .php5 .php7 .php8 .pht .cgi .pl .py
+RemoveType .php .phtml .phar
+
+<FilesMatch "(?i)\.(php[0-9]?|phtml|phar|pht|cgi|pl|py|sh|html?|svg|js)$">
+    Require all denied
+</FilesMatch>
+
+# Seules les images du site sont attendues
+<IfModule mod_headers.c>
+    <FilesMatch "(?i)\.(webp|jpe?g|png|avif|pdf)$">
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>

@@ -9,6 +9,10 @@ declare(strict_types=1);
  */
 
 use App\Controllers\Cmsadmin\AccountController;
+use App\Controllers\Cmsadmin\Agencies\AgencyAccountController;
+use App\Controllers\Cmsadmin\Agencies\AgencyController;
+use App\Controllers\Cmsadmin\Agencies\PartnerRequestController;
+use App\Controllers\Cmsadmin\Agencies\StaffUserController;
 use App\Controllers\Cmsadmin\AuthController;
 use App\Controllers\Cmsadmin\Catalog\AttributeController;
 use App\Controllers\Cmsadmin\Catalog\CategoryController;
@@ -57,6 +61,42 @@ return static function (Router $router, App $app): void {
                     $router->post("/{$segment}/{id:\\d+}/activation", [$controller, 'toggle'], "{$name}.toggle");
                     $router->post("/{$segment}/{id:\\d+}/supprimer", [$controller, 'destroy'], "{$name}.destroy");
                 }
+            });
+
+            // Agences partenaires, leurs comptes et demandes de partenariat : Super Admin et Admin Pays (pays du site)
+            $router->group(['middleware' => [RequireRole::class . ':staff']], static function (Router $router): void {
+                $router->group(['prefix' => '/agences', 'as' => 'agencies.'], static function (Router $router): void {
+                    $router->get('/', [AgencyController::class, 'index'], 'index');
+                    $router->get('/ajouter', [AgencyController::class, 'create'], 'create');
+                    $router->post('/', [AgencyController::class, 'store'], 'store');
+                    $router->get('/{id:\\d+}/modifier', [AgencyController::class, 'edit'], 'edit');
+                    $router->post('/{id:\\d+}', [AgencyController::class, 'update'], 'update');
+                    $router->post('/{id:\\d+}/supprimer', [AgencyController::class, 'destroy'], 'destroy');
+
+                    $router->get('/{agency:\\d+}/comptes/ajouter', [AgencyAccountController::class, 'create'], 'accounts.create');
+                    $router->post('/{agency:\\d+}/comptes', [AgencyAccountController::class, 'store'], 'accounts.store');
+                    $router->get('/{agency:\\d+}/comptes/{id:\\d+}/modifier', [AgencyAccountController::class, 'edit'], 'accounts.edit');
+                    $router->post('/{agency:\\d+}/comptes/{id:\\d+}', [AgencyAccountController::class, 'update'], 'accounts.update');
+                    $router->post('/{agency:\\d+}/comptes/{id:\\d+}/activation', [AgencyAccountController::class, 'toggle'], 'accounts.toggle');
+                    $router->post('/{agency:\\d+}/comptes/{id:\\d+}/invitation', [AgencyAccountController::class, 'invite'], 'accounts.invite');
+                    $router->post('/{agency:\\d+}/comptes/{id:\\d+}/supprimer', [AgencyAccountController::class, 'destroy'], 'accounts.destroy');
+                });
+
+                $router->get('/demandes-partenariat', [PartnerRequestController::class, 'index'], 'partners.index');
+                $router->get('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'show'], 'partners.show');
+                $router->post('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'update'], 'partners.update');
+            });
+
+            // Utilisateurs internes (Super Admin)
+            $router->group(['prefix' => '/utilisateurs', 'as' => 'users.', 'middleware' => [RequireRole::class . ':super_admin']], static function (Router $router): void {
+                $router->get('/', [StaffUserController::class, 'index'], 'index');
+                $router->get('/ajouter', [StaffUserController::class, 'create'], 'create');
+                $router->post('/', [StaffUserController::class, 'store'], 'store');
+                $router->get('/{id:\\d+}/modifier', [StaffUserController::class, 'edit'], 'edit');
+                $router->post('/{id:\\d+}', [StaffUserController::class, 'update'], 'update');
+                $router->post('/{id:\\d+}/activation', [StaffUserController::class, 'toggle'], 'toggle');
+                $router->post('/{id:\\d+}/invitation', [StaffUserController::class, 'invite'], 'invite');
+                $router->post('/{id:\\d+}/supprimer', [StaffUserController::class, 'destroy'], 'destroy');
             });
 
             // Catalogue : catégories, critères dynamiques, équipements (Super Admin)

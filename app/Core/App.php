@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Models\Site;
 use App\Services\ActivityLogger;
+use App\Services\AgencyRepository;
 use App\Services\Auth;
 use App\Services\CatalogRepository;
 use App\Services\CountryRepository;
@@ -13,6 +14,8 @@ use App\Services\GeoRepository;
 use App\Services\LoginThrottle;
 use App\Services\Mailer;
 use App\Services\PasswordHasher;
+use App\Services\ImageUploader;
+use App\Services\PartnerRequestRepository;
 use App\Services\PasswordReset;
 use App\Services\RateLimiter;
 use App\Services\Settings;
@@ -168,6 +171,21 @@ final class App
         return $this->service(CatalogRepository::class, fn () => new CatalogRepository($this->db()));
     }
 
+    public function agencies(): AgencyRepository
+    {
+        return $this->service(AgencyRepository::class, fn () => new AgencyRepository($this->db()));
+    }
+
+    public function partnerRequests(): PartnerRequestRepository
+    {
+        return $this->service(PartnerRequestRepository::class, fn () => new PartnerRequestRepository($this->db()));
+    }
+
+    public function images(): ImageUploader
+    {
+        return $this->service(ImageUploader::class, fn () => new ImageUploader($this->root . '/public'));
+    }
+
     public function rateLimiter(): RateLimiter
     {
         return $this->service(RateLimiter::class, fn () => new RateLimiter($this->cache()));
@@ -202,6 +220,7 @@ final class App
             $this->activity(),
             $this->logger(),
             (int) $this->config->get('auth.reset_expires', 60),
+            (int) $this->config->get('auth.invite_expires', 72),
         ));
     }
 

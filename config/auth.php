@@ -14,6 +14,8 @@ return [
     'remember_cookie' => 'ian_remember',
     // Validité du lien « mot de passe oublié » (minutes)
     'reset_expires' => 60,
+    // Validité du lien d'invitation d'un nouveau compte (heures)
+    'invite_expires' => 72,
     // Demandes de lien autorisées par adresse IP sur 15 minutes (anti-abus d'envoi d'emails)
     'reset_ip_limit' => 5,
     // Échecs de connexion tolérés par adresse IP sur la fenêtre de blocage (toutes adresses email confondues)

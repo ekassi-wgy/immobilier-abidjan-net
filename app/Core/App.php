@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Core\Exceptions\HttpException;
+use App\Models\Site;
+use App\Services\Settings;
+use App\Services\SiteRepository;
 use Closure;
 use LogicException;
 use Throwable;
@@ -12,15 +14,16 @@ use Throwable;
 /**
  * Noyau de l'application : services partagés (créés à la demande) et traitement d'une requête.
  *
- * Cycle : requête → redirection des « / » finaux → routeur → middlewares → contrôleur → réponse
- *         (+ en-têtes de sécurité, page d'erreur si exception).
+ * Cycle : requête → redirection des « / » finaux → middlewares globaux (site courant, CSRF)
+ *         → routeur → middlewares de la route → contrôleur → réponse (+ en-têtes de sécurité, page d'erreur si exception).
  */
 final class App
 {
     private static ?self $instance = null;
 
-    /** Middlewares appliqués à toutes les routes, dans l'ordre. */
+    /** Middlewares appliqués à toute requête, avant le routage, dans l'ordre. */
     private const GLOBAL_MIDDLEWARE = [
+        \App\Middlewares\SiteResolver::class,
         \App\Middlewares\VerifyCsrfToken::class,
     ];
 
@@ -35,6 +38,10 @@ final class App
     private ?Translator $translator = null;
     private ?Logger $logger = null;
     private ?Request $request = null;
+    private ?Cache $cache = null;
+    private ?SiteRepository $sites = null;
+    private ?Site $site = null;
+    private ?Settings $settings = null;
 
     public function __construct(public readonly string $root)
     {
@@ -83,6 +90,36 @@ final class App
         return $this->logger ??= new Logger((string) $this->config->get('app.log.path', $this->root . '/storage/logs'));
     }
 
+    public function cache(): Cache
+    {
+        return $this->cache ??= new Cache((string) $this->config->get('app.cache.path', $this->root . '/storage/cache'));
+    }
+
+    public function sites(): SiteRepository
+    {
+        $ttl = $this->config->get('app.cache.sites_ttl');
+
+        return $this->sites ??= new SiteRepository($this->db(), $this->cache(), $ttl === null ? null : (int) $ttl);
+    }
+
+    /** Site courant (null avant résolution, en CLI ou si le domaine est inconnu). */
+    public function site(): ?Site
+    {
+        return $this->site;
+    }
+
+    public function setSite(Site $site): void
+    {
+        $this->site = $site;
+        $this->settings = null;
+    }
+
+    /** Paramètres effectifs : globaux, surchargés par ceux du site courant. */
+    public function settings(): Settings
+    {
+        return $this->settings ??= new Settings($this->sites()->settingsFor($this->site?->id));
+    }
+
     public function request(): ?Request
     {
         return $this->request;
@@ -105,6 +142,10 @@ final class App
     {
         $this->request = $request;
         $this->errors->setRequest($request);
+        // État propre à chaque requête (plusieurs requêtes peuvent être traitées par la même instance : tests)
+        $this->site = null;
+        $this->settings = null;
+        $this->translator()->setLocale((string) $this->config->get('app.locale', 'fr'));
 
         try {
             $response = $this->dispatch($request);
@@ -129,20 +170,35 @@ final class App
         // Session reprise uniquement si le navigateur en a déjà une (flash, jeton CSRF, connexion)
         $this->session()->resumeIfExists($request->cookie((string) $this->config->get('app.session.name')));
 
-        $route = $this->router->dispatch($request->method(), $path);
-        foreach ($route['params'] as $name => $value) {
-            $request = $request->withAttribute($name, $value);
-        }
-        $this->request = $request;
+        $core = function (Request $request): Response {
+            $route = $this->router->dispatch($request->method(), $request->path());
+            foreach ($route['params'] as $name => $value) {
+                $request = $request->withAttribute($name, $value);
+            }
 
-        $core = fn (Request $request): Response => $this->callHandler($route['handler'], $request, $route['params']);
-        $pipeline = array_reduce(
-            array_reverse([...self::GLOBAL_MIDDLEWARE, ...$route['middleware']]),
-            fn (Closure $next, string $middleware): Closure => fn (Request $request): Response => $this->callMiddleware($middleware, $request, $next),
-            $core
-        );
+            $handler = fn (Request $request): Response => $this->callHandler($route['handler'], $request, $route['params']);
+
+            return $this->pipeline($route['middleware'], $handler)($request);
+        };
+        $pipeline = $this->pipeline(self::GLOBAL_MIDDLEWARE, $core);
 
         return $pipeline($request);
+    }
+
+    /**
+     * Enchaîne des middlewares autour de $core (le premier de la liste s'exécute en premier).
+     *
+     * @param list<string>              $middleware
+     * @param Closure(Request): Response $core
+     * @return Closure(Request): Response
+     */
+    private function pipeline(array $middleware, Closure $core): Closure
+    {
+        return array_reduce(
+            array_reverse($middleware),
+            fn (Closure $next, string $definition): Closure => fn (Request $request): Response => $this->callMiddleware($definition, $request, $next),
+            $core
+        );
     }
 
     /** @param array<string, string> $params */
@@ -187,7 +243,8 @@ final class App
         if ($request->isSecure()) {
             $headers['Strict-Transport-Security'] = 'max-age=31536000';
         }
-        if ($request->isCmsadmin()) {
+        // Back-office, pré-production et postes locaux : jamais indexés
+        if ($request->isCmsadmin() || ($this->site !== null && !$this->site->isProductionHost())) {
             $headers['X-Robots-Tag'] = 'noindex, nofollow';
         }
         // Pages personnalisées (session ouverte) : jamais mises en cache par un proxy

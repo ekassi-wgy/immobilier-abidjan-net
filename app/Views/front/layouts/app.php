@@ -20,7 +20,7 @@ $noindex ??= false;
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title><?= e($title) ?> · immobilier.abidjan.net</title>
+  <title><?= e($title) ?> · <?= e(site()->name ?? config('app.name')) ?></title>
   <meta name="description" content="<?= e($description) ?>">
   <?php if ($noindex): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
   <meta name="theme-color" content="#0B2358">

@@ -9,6 +9,7 @@ declare(strict_types=1);
 use App\Core\App;
 use App\Core\Csrf;
 use App\Core\Env;
+use App\Models\Site;
 
 if (!defined('APP_ROOT')) {
     define('APP_ROOT', dirname(__DIR__, 2));
@@ -31,6 +32,18 @@ function env(string $key, mixed $default = null): mixed
 function config(string $key, mixed $default = null): mixed
 {
     return app()->config->get($key, $default);
+}
+
+/** Site courant résolu depuis le nom d'hôte (null en CLI ou avant résolution). */
+function site(): ?Site
+{
+    return app()->site();
+}
+
+/** Paramètre effectif du site courant (table settings) : settings('listing.lifetime_days', 90). */
+function settings(string $key, mixed $default = null): mixed
+{
+    return app()->settings()->get($key, $default);
 }
 
 // Traductions ----------------------------------------------------------------------
@@ -78,6 +91,22 @@ function url(string $path = ''): string
     $base = (string) config('app.base_path', '');
 
     return $base . '/' . ltrim($path, '/');
+}
+
+/**
+ * URL absolue sur le domaine courant (canoniques, Open Graph, emails, sitemap).
+ * Le nom d'hôte vient du site résolu (donc validé), jamais directement de l'en-tête Host.
+ */
+function absolute_url(string $path = ''): string
+{
+    $site = site();
+    $request = app()->request();
+
+    if ($site === null || $request === null) {
+        return rtrim((string) config('app.url'), '/') . url($path);
+    }
+
+    return ($request->isSecure() ? 'https://' : 'http://') . $site->host . url($path);
 }
 
 /**
@@ -159,14 +188,21 @@ function icon(string $name, string $class = '', ?string $label = null): string
 
 // Formatage ---------------------------------------------------------------------------
 
-/** Formatage d'un prix : 185 000 000 FCFA. */
-function format_price(int|float|null $amount, string $currency = 'FCFA'): string
+/**
+ * Formatage d'un prix : 185 000 000 FCFA.
+ * Par défaut, devise et nombre de décimales du pays du site courant.
+ */
+function format_price(int|float|string|null $amount, ?string $currency = null, ?int $decimals = null): string
 {
-    if ($amount === null) {
+    if ($amount === null || $amount === '') {
         return __('common.price_on_request');
     }
 
-    return number_format((float) $amount, 0, ',', "\u{00A0}") . "\u{00A0}" . $currency;
+    $country = site()?->country;
+    $currency ??= $country->currencySymbol ?? 'FCFA';
+    $decimals ??= $country->currencyDecimals ?? 0;
+
+    return number_format((float) $amount, $decimals, ',', "\u{00A0}") . "\u{00A0}" . $currency;
 }
 
 /** Formatage d'un nombre entier : 12 480. */

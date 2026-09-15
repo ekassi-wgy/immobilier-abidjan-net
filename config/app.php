@@ -28,6 +28,12 @@ return [
         'secure' => env('SESSION_SECURE', 'auto'),
     ],
 
+    'cache' => [
+        'path' => APP_ROOT . '/storage/cache',
+        // Sites, domaines, pays et paramètres : durée du cache en secondes (vide = pas de cache, pratique en local)
+        'sites_ttl' => env('CACHE_SITES_TTL', 600) === '' ? null : (int) env('CACHE_SITES_TTL', 600),
+    ],
+
     'log' => [
         'path' => APP_ROOT . '/storage/logs',
     ],

@@ -10,7 +10,7 @@ $plugins ??= [];
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#143D8A">
-  <title><?= e($title) ?> · cmsadmin · immobilier.abidjan.net</title>
+  <title><?= e($title) ?> · cmsadmin · <?= e(site()->name ?? config('app.name')) ?></title>
 
   <link rel="preload" href="<?= e(url('assets/fonts/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2')) ?>" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="<?= e(cmsadmin_asset('vendors/mdi/css/materialdesignicons.min.css')) ?>">

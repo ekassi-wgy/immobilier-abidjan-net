@@ -44,7 +44,7 @@ $columns = [
       <?php endforeach; ?>
     </div>
     <div class="im-footer__bottom">
-      <span>© <?= e(date('Y')) ?> immobilier.abidjan.net</span>
+      <span>© <?= e(date('Y')) ?> <?= e(site()->name ?? config('app.name')) ?></span>
       <span>
         <a href="<?= e(url('mentions-legales')) ?>">Mentions légales</a> ·
         <a href="<?= e(url('conditions-generales')) ?>">CGU</a> ·

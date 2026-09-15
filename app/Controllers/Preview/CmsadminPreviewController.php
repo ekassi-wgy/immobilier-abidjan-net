@@ -87,6 +87,17 @@ final class CmsadminPreviewController extends Controller
         $role = $this->role($request);
         $shared = $fixtures['shared']($role);
 
+        // Site courant réel (lot 1.2) à la place des données fictives
+        $site = site();
+        if ($site !== null) {
+            $shared['site'] = [
+                'name' => $site->name,
+                'country' => $site->country->localizedName(locale()),
+                'currency' => $site->country->currencySymbol,
+                'url' => url(),
+            ];
+        }
+
         $response = $this->page('cmsadmin/layouts/app', 'cmsadmin/pages/' . $view, $data($fixtures, $role) + $shared, $shared + $layoutData);
         if ($request->query('role') === $role) {
             setcookie('preview_role', $role, ['path' => '/', 'httponly' => true, 'samesite' => 'Lax']);

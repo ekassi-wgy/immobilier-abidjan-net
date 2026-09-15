@@ -39,7 +39,7 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 | Validation de la police proposée | 0.3 | ✅ Plus Jakarta Sans |
 | Photos d'Abidjan pour le hero (droits d'usage) — photos libres provisoires en place | 1.8 | ⬜ |
 | Taux de commission, durée de vie d'une annonce | 1.6 / 1.12 | ⬜ |
-| Accès SMTP (en attendant : emails enregistrés dans `storage/mail/`) | 1.6 / 1.11 | ⬜ |
+| Accès SMTP | 1.6 / 1.11 | ✅ Gmail (compte `abidjan.net@weblogy.com`), configuré dans `.env` |
 | Dépôt Git distant | 3.1 | ✅ GitHub `ekassi-wgy/immobilier-abidjan-net` |
 | Accès Plesk, DNS du sous-domaine, moteur BDD de production (MySQL 8 ou MariaDB) | 3.1 | ⬜ |
 | Textes légaux (mentions, CGU, confidentialité) | 1.11 | ⬜ |

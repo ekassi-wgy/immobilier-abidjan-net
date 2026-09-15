@@ -60,6 +60,7 @@ bin/
   build-css.php       ✅ compile resources/scss → public/assets/css/app.css
   build-icons.php     ✅ génère le sprite d’icônes
   create-user.php     ✅ crée un Super Admin / Admin Pays (mot de passe provisoire affiché une fois)
+  mail-test.php       ✅ envoie un email de test (vérification SMTP)
   cache-clear.php     ✅ vide storage/cache (après déploiement ou modification directe en base)
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
@@ -94,6 +95,7 @@ php bin/build-css.php            # compile resources/scss → public/assets/css/
 php bin/build-icons.php          # régénère public/assets/img/icons.svg (liste des icônes dans le script)
 php bin/create-user.php --role=super_admin --email=… --first-name=… --last-name=…   # compte interne (Admin Pays : --role=country_admin --country=CI)
 php bin/cache-clear.php          # vide storage/cache
+php bin/mail-test.php --to=…     # email de test avec la configuration courante
 php -l <fichier>                 # vérif syntaxe avant commit
 ```
 
@@ -104,7 +106,7 @@ Prévisualisation avec **données fictives** (contrôleurs `app/Controllers/Prev
 - Site public : http://localhost:8888/ (maquette d’accueil : hero + recherche + biens à la une) · http://localhost:8888/styleguide (**charte graphique de référence**)
 - Back-office (**connexion réelle obligatoire** depuis le lot 1.3 : créer d’abord un compte avec `bin/create-user.php`) : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/erreur-500`
 - Rôle affiché = celui du compte connecté ; un Super Admin peut prévisualiser un autre rôle avec `?role=country_admin|agency|super_admin` (cookie, écrans fictifs uniquement — sans effet sur les droits réels).
-- Emails en local : `MAIL_MAILER=log` → fichiers `storage/mail/*.eml` (lien de réinitialisation inclus).
+- Emails : SMTP Gmail configuré dans `.env` (`MAIL_MAILER=smtp`, jamais commité). Pour ne rien envoyer pendant des tests : `MAIL_MAILER=log` → fichiers `storage/mail/*.eml`. Test d’envoi : `php bin/mail-test.php --to=…`. Avec Gmail, l’expéditeur (`MAIL_FROM_ADDRESS`) doit être le compte authentifié ou un alias validé ; quota d’envoi journalier limité (à surveiller pour les alertes v2).
 - Chaque écran fictif est supprimé quand son module réel est livré (annonces → 1.6, tableau de bord → 1.12, accueil → 1.8).
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
 Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.1:8889`). Réinstallation : commandes dans `docs/database.md`. Client : `/Applications/MAMP/Library/bin/mysql80/bin/mysql` (en zsh, passer la commande dans un tableau, pas dans une chaîne).

@@ -41,22 +41,31 @@ Légende : ✅ existe · ⬜ à créer (lot indiqué dans `docs/PLAN.md`).
 
 ```
 .htaccess             ✅ dev MAMP uniquement : bloque les dossiers internes, sert tout depuis public/
+.env.example          ✅ modèle de configuration (copier en .env, jamais commité)
 app/
-  Support/helpers.php ✅ e(), url(), cmsadmin_url(), cmsadmin_asset(), render_view()… (provisoire, intégré au socle au lot 1.1)
+  bootstrap.php       ✅ amorçage commun (autoload, .env, erreurs, UTC) → retourne App\Core\App
+  Core/               ✅ App (noyau + services), Router, Request, Response, Config, Env, Database (PDO), Session, Csrf, View, Translator, Logger, ErrorHandler, Middleware, Exceptions/HttpException
+  Support/helpers.php ✅ e(), __(), config(), env(), url(), route(), asset(), icon(), csrf_field(), csrf_token(), render_view(), cmsadmin_*(), format_*() (autoload Composer « files »)
   Views/cmsadmin/     ✅ layouts/ (app, auth) · partials/ (head, navbar, sidebar, footer, scripts, flash, page-header, status-badge, pagination, empty-state) · pages/ (dashboard, properties, auth, errors)
-  Views/front/        ✅ layouts/app · partials/ (header, footer, hero, search, property-card) · pages/ (home-mockup, styleguide)
-  Controllers/        ⬜ Front (Home, Search, Property, Agency, Page, Lead…) + Cmsadmin/ (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
-  Models/ Services/ Middlewares/  ⬜ (SiteResolver, Auth, Role, Csrf, RateLimit)
+  Views/front/        ✅ layouts/app · partials/ (header, footer, hero, search, property-card) · pages/ (home-mockup, styleguide, errors/error)
+  Views/errors/debug.php ✅ détail d’exception (app.debug uniquement, jamais en production)
+  Controllers/        ✅ Controller (base) · Front/HomeController (503 « en préparation » jusqu’au lot 1.8) · Preview/ (PROVISOIRE, maquettes)
+                      ⬜ Front (Search, Property, Agency, Page, Lead…) + Cmsadmin/ (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
+  Middlewares/        ✅ VerifyCsrfToken (global) · ⬜ SiteResolver, Auth, Role, RateLimit
+  Models/ Services/   ⬜
 bin/
-  preview/            ✅ PROVISOIRE : prévisualisation front (front.php) et cmsadmin (cmsadmin.php) + données fictives (supprimé au lot 1.1)
+  preview/            ✅ PROVISOIRE : données fictives (fixtures.php, front-fixtures.php) des contrôleurs Preview/, retirées module par module
   build-css.php       ✅ compile resources/scss → public/assets/css/app.css
   build-icons.php     ✅ génère le sprite d’icônes
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
+  app.php             ✅ environnement, debug, URL, langue, prévisualisation, session, journaux
+  database.php        ✅ connexion MySQL/MariaDB
   cmsadmin-menu.php   ✅ menu du back-office par rôle
-  config.php, database.php, countries.php  ⬜
+  countries.php       ⬜
+routes/               ✅ web.php (site public) · cmsadmin.php (back-office)
 public/               DOCUMENT ROOT en production
-  index.php, .htaccess  ✅ (index.php PROVISOIRE : prévisualisation, localhost uniquement)
+  index.php, .htaccess  ✅ front controller (toutes les URL non statiques)
   assets/fonts/       ✅ Plus Jakarta Sans (woff2 variable + OFL)
   assets/css/app.css  ✅ CSS compilé (commité) — ne jamais éditer à la main
   assets/js/          ✅ site.js (en-tête, menu mobile, favoris, recherche) · hero.js (diaporama)
@@ -64,9 +73,9 @@ public/               DOCUMENT ROOT en production
   cmsadmin/assets/    ✅ back-office (StarAdmin 2 nettoyé + cmsadmin.css, cmsadmin.js, dashboard.js)
   uploads/            ⬜ (git-ignoré)
 resources/scss/       ✅ app.scss · abstracts/_tokens.scss (SOURCE UNIQUE des couleurs, typo, espacements) · abstracts/_mixins.scss · vendor/_bootstrap.scss · base/ · layout/ · components/ · pages/
-lang/                 ⬜ fr.php, en.php — aucune chaîne d'interface en dur dans les vues
+lang/                 ✅ fr.php (référence et repli), en.php — aucune chaîne d'interface en dur dans les nouvelles vues
 database/             ✅ schema.sql (référence v1, 37 tables) · seed.sql (référentiels CI) · migrations/ (évolutions 0002+) — voir docs/database.md
-storage/              ⬜ cache/, logs/ (git-ignorés)
+storage/              ✅ logs/app-AAAA-MM-JJ.log (créé automatiquement) · cache/ — git-ignorés
 docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
 ```
 
@@ -83,14 +92,25 @@ php -l <fichier>                 # vérif syntaxe avant commit
 **Environnement local : MAMP → http://localhost:8888/** (Apache 2.4, PHP 8.3.14, MySQL 8 sur le port 8889).
 Le `DocumentRoot` MAMP pointe sur la racine du projet : le `.htaccess` racine bloque les dossiers internes (`app/`, `bin/`, `config/`, `docs/`, fichiers cachés…) et sert tout depuis `public/`, qui est le `DocumentRoot` en production. `public/.htaccess` envoie les URL non statiques vers `public/index.php`.
 
-Prévisualisation du back-office **sans base de données** (données fictives `bin/preview/fixtures.php`), servie par `public/index.php` **uniquement sur localhost / *.local** :
+Prévisualisation **sans base de données** (contrôleurs `app/Controllers/Preview/` + données fictives `bin/preview/`), routes déclarées **uniquement si `APP_ENV=local` et `APP_PREVIEW=true`** (ailleurs : accueil en 503, maquettes en 404) :
 - Site public : http://localhost:8888/ (maquette d’accueil : hero + recherche + biens à la une) · http://localhost:8888/styleguide (**charte graphique de référence**)
-- Back-office : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` · `/cmsadmin/erreur-500`
+- Back-office : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` (POST : jeton CSRF vérifié, échec simulé) · `/cmsadmin/erreur-500`
 - Rôle simulé : `?role=super_admin|country_admin|agency` (mémorisé par cookie).
-- `public/index.php` et `bin/preview/` sont provisoires : remplacés par le vrai routeur au lot 1.1.
+- Chaque écran fictif est supprimé quand son module réel est livré (connexion → 1.3, annonces → 1.6, tableau de bord → 1.12, accueil → 1.8).
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
 Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.1:8889`). Réinstallation : commandes dans `docs/database.md`. Client : `/Applications/MAMP/Library/bin/mysql80/bin/mysql` (en zsh, passer la commande dans un tableau, pas dans une chaîne).
-`.env` (jamais commité) : `APP_ENV`, `APP_URL`, `DB_*`, `SMTP_*`. Fournir `.env.example`.
+`.env` (jamais commité, modèle `.env.example`) : `APP_ENV` (local|staging|production), `APP_DEBUG`, `APP_URL`, `APP_BASE_PATH`, `APP_LOCALE`, `APP_PREVIEW`, `DB_*`, `SESSION_*`, `SMTP_*`, `MAIL_*`. Une variable définie par le serveur (Plesk) prime sur `.env`.
+
+### Socle applicatif (lot 1.1) — conventions
+
+- **Route** : `routes/web.php` ou `routes/cmsadmin.php` → `$router->get('/annonces/{slug}-ref{id:\d+}', [PropertyController::class, 'show'], 'property.show')` ; groupes `['prefix', 'as', 'middleware']` ; URL via `route('property.show', [...])` (paramètres en trop → chaîne de requête). Les « / » finaux sont redirigés en 301.
+- **Contrôleur** : étend `App\Controllers\Controller`, action `(Request $request, string $slug…): Response` (paramètres de route nommés) ; `$this->page($layout, $view, $data, $layoutData)`, `redirectToRoute()`, `flash()`. Services : `$this->app->db()`, `session()`, `csrf()`, `translator()`, `logger()`, `config`.
+- **Middleware** : implémente `App\Core\Middleware` ; déclaration `Classe::class` ou `'Classe:arg1,arg2'`. `VerifyCsrfToken` est global : tout POST/PUT/PATCH/DELETE sans `csrf_field()` (ou en-tête `X-CSRF-Token`) → 419.
+- **Erreurs** : lever `HttpException(404|403|419|429|503…)` ; toute autre exception → journal `storage/logs/` + page 500 (détail seulement si `APP_DEBUG` hors production). AJAX (`Accept: application/json`) → réponse JSON.
+- **Session** : ouverte seulement si nécessaire (jeton CSRF, flash, connexion) ou si le navigateur en a déjà une ; les pages publiques sans formulaire restent sans cookie (cachables).
+- **BDD** : `$db->select/selectOne/scalar/execute/insert/transaction` — requêtes préparées, session SQL en UTC. Connexion ouverte à la première requête.
+- **Traductions** : `__('errors.404.title', ['name' => …])` ; toute clé ajoutée dans `lang/fr.php` l’est aussi dans `lang/en.php`. Les vues maquettes existantes seront traduites quand leur module réel sera réalisé.
+- En-têtes de sécurité posés par `App` (nosniff, `X-Frame-Options: SAMEORIGIN`, Referrer-Policy, Permissions-Policy, HSTS en HTTPS, `X-Robots-Tag: noindex` sur /cmsadmin).
 
 ## Sécurité — checklist à chaque lot
 
@@ -152,7 +172,7 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 - **Ne jamais modifier** `public/cmsadmin/assets/css/style.css` (template compilé/minifié) : tout passe par `css/cmsadmin.css`, qui ne contient des couleurs que dans `:root`.
 - Vues : `app/Views/cmsadmin/layouts/` (`app`, `auth`), `partials/` (navbar, sidebar, page-header, status-badge, pagination, empty-state, flash), `pages/<module>/`. Modèles de référence à copier : `pages/properties/index.php` (liste), `pages/properties/form.php` (formulaire), `pages/dashboard/index.php`.
 - Menu : `config/cmsadmin-menu.php` (entrées, rôles autorisés, compteurs). Masquer une entrée n'est pas un contrôle d'accès.
-- Helpers disponibles : `e()`, `url()`, `cmsadmin_url()`, `cmsadmin_asset()` (versionné), `render_view()`, `cmsadmin_partial()`, `format_price()`, `format_number()` (`app/Support/helpers.php`).
+- Helpers disponibles : `e()`, `__()`, `url()`, `route()`, `cmsadmin_url()`, `cmsadmin_asset()` (versionné), `render_view()`, `cmsadmin_partial()`, `csrf_field()`, `format_price()`, `format_number()` (`app/Support/helpers.php`).
 - Plugins chargés à la demande via `$plugins` (`'select2'`, `'chart'`). Select2 : attribut **`data-im-select`** (jamais `data-select2`, qui entre en conflit avec la bibliothèque).
 - Listes : pagination et filtres **côté serveur** (pas de DataTables : volumes importants). Dates : `<input type="date">` natif (pas de datepicker jQuery).
 - jQuery est toléré **uniquement** dans `cmsadmin` (dépendance du template), jamais côté public.
@@ -170,7 +190,7 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 
 ### Vérification visuelle (Chrome headless)
 - Capture : `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --user-data-dir=<dossier temporaire> --window-size=1440,1500 --virtual-time-budget=3000 --screenshot=<fichier.png> <url>`, encadré par `perl -e 'alarm 40; exec @ARGV'` (Chrome peut ne pas rendre la main).
-- Mobile : Chrome headless impose une largeur de fenêtre minimale (~500 px) → pour tester 390 px, capturer une page HTML locale contenant des `<iframe width="390">` pointant vers les URL.
+- Mobile : Chrome headless impose une largeur de fenêtre minimale (~500 px) → pour tester 390 px, capturer une page HTML contenant des `<iframe width="390">`. Depuis le lot 1.1, `X-Frame-Options: SAMEORIGIN` bloque l’iframe depuis `file://` : servir cette page et relayer les URL par un petit proxy PHP lancé dans le scratchpad (`php -S 127.0.0.1:8767 proxy.php`, qui ne recopie pas les en-têtes). Tuer ensuite les processus Chrome restants (`pgrep -f <user-data-dir> | xargs kill -9`) : le tableau de bord (Chart.js) peut empêcher Chrome de rendre la main.
 - Erreurs JS : `--enable-logging=stderr --v=0 --dump-dom <url>` puis filtrer `CONSOLE`.
 - Faire les captures dans le scratchpad, jamais dans le dépôt.
 

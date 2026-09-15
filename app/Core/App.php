@@ -7,6 +7,9 @@ namespace App\Core;
 use App\Models\Site;
 use App\Services\ActivityLogger;
 use App\Services\Auth;
+use App\Services\CatalogRepository;
+use App\Services\CountryRepository;
+use App\Services\GeoRepository;
 use App\Services\LoginThrottle;
 use App\Services\Mailer;
 use App\Services\PasswordHasher;
@@ -148,6 +151,21 @@ final class App
     public function mailer(): Mailer
     {
         return $this->service(Mailer::class, fn () => new Mailer((array) $this->config->get('mail')));
+    }
+
+    public function geo(): GeoRepository
+    {
+        return $this->service(GeoRepository::class, fn () => new GeoRepository($this->db()));
+    }
+
+    public function countries(): CountryRepository
+    {
+        return $this->service(CountryRepository::class, fn () => new CountryRepository($this->db()));
+    }
+
+    public function catalog(): CatalogRepository
+    {
+        return $this->service(CatalogRepository::class, fn () => new CatalogRepository($this->db()));
     }
 
     public function rateLimiter(): RateLimiter
@@ -303,6 +321,9 @@ final class App
     private function callMiddleware(string $definition, Request $request, Closure $next): Response
     {
         [$class, $arguments] = array_pad(explode(':', $definition, 2), 2, '');
+        if (!class_exists($class)) {
+            throw new LogicException("Middleware introuvable : {$class} (utiliser Classe::class . ':arguments').");
+        }
         $middleware = new $class($this);
         if (!$middleware instanceof Middleware) {
             throw new LogicException("{$class} n'implémente pas App\\Core\\Middleware.");

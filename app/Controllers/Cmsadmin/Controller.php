@@ -55,6 +55,62 @@ abstract class Controller extends BaseController
     }
 
     /**
+     * Journalise une action d'écriture du back-office (activity_logs).
+     *
+     * @param array{before?: array<string, mixed>, after?: array<string, mixed>}|null $changes
+     */
+    protected function log(Request $request, string $action, string $entityType, int|string|null $entityId, ?string $description = null, ?array $changes = null, ?int $countryId = null): void
+    {
+        $this->app->activity()->log(
+            $action,
+            $this->user($request)->id,
+            $countryId ?? site()?->country->id,
+            $entityType,
+            $entityId,
+            $description,
+            $changes,
+            $request
+        );
+    }
+
+    /**
+     * Différences entre deux états (seuls les champs modifiés), pour le journal.
+     *
+     * @param array<string, mixed> $before
+     * @param array<string, mixed> $after
+     * @return array{before: array<string, mixed>, after: array<string, mixed>}|null
+     */
+    protected function diff(array $before, array $after): ?array
+    {
+        $changes = ['before' => [], 'after' => []];
+        foreach ($after as $key => $value) {
+            if (array_key_exists($key, $before) && (string) $before[$key] === (string) $value) {
+                continue;
+            }
+            $changes['before'][$key] = $before[$key] ?? null;
+            $changes['after'][$key] = $value;
+        }
+
+        return $changes['after'] === [] ? null : $changes;
+    }
+
+    /** Retour à une liste en conservant ses filtres (paramètre « _back » / « retour » limité au back-office). */
+    protected function backTo(Request $request, string $default): Response
+    {
+        $back = $this->backPath($request);
+
+        return Response::redirect(url($back !== '' ? $back : $default), 303);
+    }
+
+    /** Chemin de retour validé (chemin interne à /cmsadmin, sinon chaîne vide). */
+    protected function backPath(Request $request): string
+    {
+        $back = (string) ($request->input('_back') ?? $request->query('retour') ?? '');
+
+        return preg_match('#^/cmsadmin/[A-Za-z0-9/_\-]*(\?[A-Za-z0-9=&%_.\-+]*)?$#', $back) === 1 && !str_contains($back, '//') ? $back : '';
+    }
+
+    /**
      * Données communes aux vues du layout principal (format attendu par navbar et sidebar).
      *
      * @return array{user: array<string, mixed>, site: array<string, string>, csrfToken: string}

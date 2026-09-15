@@ -55,6 +55,64 @@
       }
     });
 
+    // Slug proposé à partir du nom : <input data-slug-source="slug"> remplit le champ name="slug"
+    // tant que celui-ci est vide ou n'a pas été modifié à la main.
+    var slugify = function (value) {
+      return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+        .replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
+    };
+    $('[data-slug-source]').each(function () {
+      var $source = $(this);
+      var $target = $source.closest('form').find('[name="' + $source.data('slug-source') + '"]');
+      if (!$target.length) {
+        return;
+      }
+      var auto = $target.val() === '';
+      $target.on('input', function () { auto = $target.val() === ''; });
+      $source.on('input', function () {
+        if (auto) {
+          $target.val(slugify($source.val()));
+        }
+      });
+    });
+
+    // Lignes répétables (options d'un critère…) : <template data-repeat-template="id"> + <button data-repeat-add="id">
+    $(document).on('click', '[data-repeat-add]', function () {
+      var id = $(this).data('repeat-add');
+      var template = document.querySelector('template[data-repeat-template="' + id + '"]');
+      var list = document.querySelector('[data-repeat-list="' + id + '"]');
+      if (!template || !list) {
+        return;
+      }
+      var index = 'n' + Date.now();
+      var html = template.innerHTML.replace(/__INDEX__/g, index);
+      list.insertAdjacentHTML('beforeend', html);
+      var first = list.lastElementChild && list.lastElementChild.querySelector('input:not([type=hidden])');
+      if (first) {
+        first.focus();
+      }
+    });
+    $(document).on('click', '[data-repeat-remove]', function () {
+      $(this).closest('[data-repeat-item]').remove();
+    });
+
+    // Aperçu d'icône du sprite public : <select data-icon-preview="id-du-conteneur">
+    $(document).on('change', '[data-icon-preview]', function () {
+      var preview = document.getElementById($(this).data('icon-preview'));
+      if (!preview || !preview.dataset.sprite) {
+        return;
+      }
+      preview.innerHTML = this.value ? '<svg><use href="' + preview.dataset.sprite.replace(/"/g, '') + '#i-' + this.value.replace(/[^a-z0-9-]/g, '') + '"></use></svg>' : '';
+    });
+
+    // Affiche la section des options uniquement pour les types « liste » : <select data-toggle-options="id-section">
+    $(document).on('change', '[data-toggle-options]', function () {
+      var section = document.getElementById($(this).data('toggle-options'));
+      if (section) {
+        section.hidden = ['select', 'multiselect'].indexOf(this.value) === -1;
+      }
+    });
+
     // Fermeture automatique des messages flash de succès
     setTimeout(function () {
       $('.im-flash--success').fadeOut(300);

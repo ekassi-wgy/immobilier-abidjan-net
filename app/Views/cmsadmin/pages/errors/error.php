@@ -1,10 +1,10 @@
 <?php
 /**
- * Page d'erreur du back-office (403, 404, 405, 419, 429, 500, 503).
+ * Page d'erreur du back-office (401, 403, 404, 405, 419, 429, 500, 503).
  *
  * @var int $code
  */
-$key = in_array($code, [403, 404, 405, 419, 429, 500, 503], true) ? $code : 500;
+$key = in_array($code, [401, 403, 404, 405, 419, 429, 500, 503], true) ? $code : 500;
 ?>
 <main class="im-error">
   <a href="<?= e(cmsadmin_url()) ?>" class="im-error__logo">

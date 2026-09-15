@@ -1,10 +1,10 @@
 <?php
 /**
- * Page d'erreur du site public (403, 404, 405, 419, 429, 500, 503).
+ * Page d'erreur du site public (401, 403, 404, 405, 419, 429, 500, 503).
  *
  * @var int $code
  */
-$known = [403, 404, 405, 419, 429, 500, 503];
+$known = [401, 403, 404, 405, 419, 429, 500, 503];
 $key = in_array($code, $known, true) ? $code : 500;
 ?>
 <section class="im-error-page" aria-labelledby="erreur-titre">

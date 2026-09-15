@@ -120,6 +120,8 @@ body.im-cmsadmin {
 .im-link .mdi, .im-link-muted .mdi { font-size: 16px; transition: transform .2s var(--im-ease); }
 .im-link:hover .mdi-arrow-right { transform: translateX(3px); }
 .im-link--small { font-size: 12.5px; }
+.im-link--button { padding: 0; border: 0; background: none; color: var(--im-blue); cursor: pointer; }
+.im-link--button:hover { color: var(--im-blue-hover); text-decoration: underline; }
 .im-cmsadmin .im-link-muted { color: var(--im-muted); }
 .im-cmsadmin .im-link-muted:hover { color: var(--im-ink); }
 
@@ -689,6 +691,13 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 .im-meta-list { display: grid; gap: .6rem; margin: 1rem 0; }
 .im-meta-list > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: 13px; }
 .im-meta-list dt { font-weight: 500; color: var(--im-muted); }
+.im-account { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); max-width: 60rem; }
+@media (min-width: 992px) { .im-account { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; } }
+.im-account .im-meta-list { margin: 1rem 0 0; padding: 0; }
+.im-account .im-meta-list > div { flex-wrap: wrap; column-gap: 1rem; row-gap: .1rem; }
+.im-account .im-meta-list dt, .im-account .im-meta-list dd { margin: 0; padding: 0; }
+.im-account .im-meta-list dd { text-align: right; overflow-wrap: anywhere; }
+.im-account__help { margin: .35rem 0 1.25rem; color: var(--im-muted); font-size: 13px; }
 .im-meta-list dd { margin: 0; text-align: right; }
 .im-note { display: flex; gap: .5rem; margin: 0 0 1rem; padding: .75rem; border-radius: var(--im-radius-sm); background: var(--im-snow); color: var(--im-muted); font-size: 12.5px; line-height: 1.5; }
 .im-note .mdi { color: var(--im-navy); font-size: 16px; line-height: 1.2; }

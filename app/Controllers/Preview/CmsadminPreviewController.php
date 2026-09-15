@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controllers\Preview;
 
-use App\Controllers\Controller;
+use App\Controllers\Cmsadmin\Controller;
 use App\Core\Request;
 use App\Core\Response;
 
 /**
- * PROVISOIRE — écrans du back-office avec données fictives (bin/preview/fixtures.php), sans base de données.
- * Routes déclarées uniquement si app.preview (APP_ENV=local). Chaque écran disparaît quand son module réel est livré.
+ * PROVISOIRE — écrans du back-office avec données fictives (bin/preview/fixtures.php).
+ * Routes déclarées uniquement si app.preview (APP_ENV=local), derrière la vraie authentification (lot 1.3).
+ * Chaque écran disparaît quand son module réel est livré.
  *
- * Rôle simulé : ?role=super_admin|country_admin|agency (mémorisé par cookie).
+ * Le rôle affiché est celui du compte connecté. Un Super Admin peut prévisualiser les écrans d'un autre rôle
+ * avec ?role=country_admin|agency|super_admin (mémorisé par cookie) — prévisualisation locale uniquement.
  */
 final class CmsadminPreviewController extends Controller
 {
@@ -49,26 +51,6 @@ final class CmsadminPreviewController extends Controller
         ]);
     }
 
-    public function login(Request $request): Response
-    {
-        $failed = $request->query('erreur') !== null;
-
-        return $this->page('cmsadmin/layouts/auth', 'cmsadmin/pages/auth/login', [
-            'csrfToken' => csrf_token(),
-            'errorMessage' => $failed ? 'Identifiants incorrects.' : null,
-            'email' => $failed ? 'agence@exemple.ci' : '',
-        ], [
-            'title' => 'Connexion',
-            'variant' => 'split',
-        ]);
-    }
-
-    /** Aucune authentification réelle avant le lot 1.3 : le jeton CSRF est vérifié, puis échec simulé. */
-    public function loginSubmit(Request $request): Response
-    {
-        return $this->redirectToRoute('cmsadmin.login', ['erreur' => 1], 303);
-    }
-
     public function serverError(Request $request): Response
     {
         return $this->page('cmsadmin/layouts/auth', 'cmsadmin/pages/errors/error', ['code' => 500], [
@@ -85,22 +67,15 @@ final class CmsadminPreviewController extends Controller
     {
         $fixtures = require $this->app->root . '/bin/preview/fixtures.php';
         $role = $this->role($request);
-        $shared = $fixtures['shared']($role);
+        // Compteurs du menu : encore fictifs
+        $layoutData['counters'] = $fixtures['shared']($role)['counters'];
 
-        // Site courant réel (lot 1.2) à la place des données fictives
-        $site = site();
-        if ($site !== null) {
-            $shared['site'] = [
-                'name' => $site->name,
-                'country' => $site->country->localizedName(locale()),
-                'currency' => $site->country->currencySymbol,
-                'url' => url(),
-            ];
-        }
+        $shared = $this->shared($request);
+        $shared['user']['role'] = $role;
 
-        $response = $this->page('cmsadmin/layouts/app', 'cmsadmin/pages/' . $view, $data($fixtures, $role) + $shared, $shared + $layoutData);
-        if ($request->query('role') === $role) {
-            setcookie('preview_role', $role, ['path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+        $response = $this->render($request, $view, $data($fixtures, $role) + ['user' => $shared['user']], ['user' => $shared['user']] + $layoutData);
+        if ($request->query('role') === $role && $this->user($request)->isSuperAdmin()) {
+            setcookie('preview_role', $role, ['path' => '/cmsadmin', 'httponly' => true, 'samesite' => 'Lax']);
         }
 
         return $response;
@@ -108,6 +83,11 @@ final class CmsadminPreviewController extends Controller
 
     private function role(Request $request): string
     {
+        $user = $this->user($request);
+        if (!$user->isSuperAdmin()) {
+            return $user->menuRole();
+        }
+
         foreach ([$request->query('role'), $request->cookie('preview_role')] as $candidate) {
             if (in_array($candidate, self::ROLES, true)) {
                 return $candidate;

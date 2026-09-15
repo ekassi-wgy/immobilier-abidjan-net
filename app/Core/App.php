@@ -5,8 +5,16 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Models\Site;
+use App\Services\ActivityLogger;
+use App\Services\Auth;
+use App\Services\LoginThrottle;
+use App\Services\Mailer;
+use App\Services\PasswordHasher;
+use App\Services\PasswordReset;
+use App\Services\RateLimiter;
 use App\Services\Settings;
 use App\Services\SiteRepository;
+use App\Services\UserRepository;
 use Closure;
 use LogicException;
 use Throwable;
@@ -42,6 +50,8 @@ final class App
     private ?SiteRepository $sites = null;
     private ?Site $site = null;
     private ?Settings $settings = null;
+    /** @var array<string, object> Services du back-office créés à la demande */
+    private array $services = [];
 
     public function __construct(public readonly string $root)
     {
@@ -120,6 +130,74 @@ final class App
         return $this->settings ??= new Settings($this->sites()->settingsFor($this->site?->id));
     }
 
+    public function users(): UserRepository
+    {
+        return $this->service(UserRepository::class, fn () => new UserRepository($this->db()));
+    }
+
+    public function hasher(): PasswordHasher
+    {
+        return $this->service(PasswordHasher::class, fn () => new PasswordHasher((int) $this->config->get('auth.password_min_length', 12)));
+    }
+
+    public function activity(): ActivityLogger
+    {
+        return $this->service(ActivityLogger::class, fn () => new ActivityLogger($this->db(), $this->logger()));
+    }
+
+    public function mailer(): Mailer
+    {
+        return $this->service(Mailer::class, fn () => new Mailer((array) $this->config->get('mail')));
+    }
+
+    public function rateLimiter(): RateLimiter
+    {
+        return $this->service(RateLimiter::class, fn () => new RateLimiter($this->cache()));
+    }
+
+    public function auth(): Auth
+    {
+        return $this->service(Auth::class, fn () => new Auth(
+            $this->db(),
+            $this->session(),
+            $this->users(),
+            $this->hasher(),
+            new LoginThrottle(
+                $this->db(),
+                (int) $this->settings()->get('security.login_max_attempts', 5),
+                (int) $this->settings()->get('security.login_lockout_minutes', 15),
+                (int) $this->config->get('auth.ip_failure_limit', 30),
+            ),
+            $this->activity(),
+            (array) $this->config->get('auth'),
+        ));
+    }
+
+    public function passwordReset(): PasswordReset
+    {
+        return $this->service(PasswordReset::class, fn () => new PasswordReset(
+            $this->db(),
+            $this->users(),
+            $this->hasher(),
+            $this->mailer(),
+            $this->view(),
+            $this->activity(),
+            $this->logger(),
+            (int) $this->config->get('auth.reset_expires', 60),
+        ));
+    }
+
+    /**
+     * @template T of object
+     * @param class-string<T> $id
+     * @param Closure(): T    $factory
+     * @return T
+     */
+    private function service(string $id, Closure $factory): object
+    {
+        return $this->services[$id] ??= $factory();
+    }
+
     public function request(): ?Request
     {
         return $this->request;
@@ -145,6 +223,7 @@ final class App
         // État propre à chaque requête (plusieurs requêtes peuvent être traitées par la même instance : tests)
         $this->site = null;
         $this->settings = null;
+        unset($this->services[Auth::class]);
         $this->translator()->setLocale((string) $this->config->get('app.locale', 'fr'));
 
         try {

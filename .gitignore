@@ -10,6 +10,7 @@
 /public/uploads/
 /storage/cache/
 /storage/logs/
+/storage/mail/
 *.log
 
 # Système & éditeurs

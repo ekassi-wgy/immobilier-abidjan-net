@@ -16,7 +16,7 @@ $pageScripts ??= [];
 $noindex ??= false;
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= e(locale()) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -35,7 +35,7 @@ $noindex ??= false;
   <link rel="apple-touch-icon" href="<?= e(asset('img/brand/apple-touch-icon.png')) ?>">
 </head>
 <body class="<?= $headerOverlay ? '' : 'im-has-header' ?>">
-  <a class="im-skip-link" href="#contenu">Aller au contenu</a>
+  <a class="im-skip-link" href="#contenu"><?= e(__('common.skip_to_content')) ?></a>
 
   <?= render_view('front/partials/header', ['overlay' => $headerOverlay]) ?>
 

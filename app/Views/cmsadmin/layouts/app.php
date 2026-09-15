@@ -17,11 +17,11 @@ $plugins ??= [];
 $pageScripts ??= [];
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= e(locale()) ?>">
 <?= cmsadmin_partial('head', ['title' => $title, 'plugins' => $plugins]) ?>
 <body class="im-cmsadmin sidebar-fixed">
   <script>try{if(localStorage.getItem('cmsadmin.sidebar')==='icon-only'&&matchMedia('(min-width:992px)').matches){document.body.classList.add('sidebar-icon-only')}}catch(e){}</script>
-  <a class="im-skip-link" href="#contenu">Aller au contenu</a>
+  <a class="im-skip-link" href="#contenu"><?= e(__('common.skip_to_content')) ?></a>
 
   <div class="container-scroller">
     <?= cmsadmin_partial('navbar', [

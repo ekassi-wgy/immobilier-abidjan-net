@@ -9,7 +9,7 @@
 $variant ??= 'split';
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= e(locale()) ?>">
 <?= cmsadmin_partial('head', ['title' => $title, 'plugins' => []]) ?>
 <body class="im-cmsadmin im-auth-body im-auth-body--<?= e($variant) ?>">
   <?= $content ?>

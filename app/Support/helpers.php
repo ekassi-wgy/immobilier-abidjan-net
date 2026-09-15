@@ -3,13 +3,54 @@
 declare(strict_types=1);
 
 /**
- * Fonctions utilitaires globales.
- * Provisoire : sera intégré au socle (lot 1.1 — autoload Composer "files", configuration .env).
+ * Fonctions utilitaires globales (chargées par l'autoload Composer, section « files »).
  */
+
+use App\Core\App;
+use App\Core\Csrf;
+use App\Core\Env;
 
 if (!defined('APP_ROOT')) {
     define('APP_ROOT', dirname(__DIR__, 2));
 }
+
+// Application & configuration ---------------------------------------------------
+
+function app(): App
+{
+    return App::instance();
+}
+
+/** Valeur brute de .env (true/false/null convertis). À n'utiliser que dans config/*.php. */
+function env(string $key, mixed $default = null): mixed
+{
+    return Env::get($key, $default);
+}
+
+/** Configuration en notation pointée : config('app.debug'). */
+function config(string $key, mixed $default = null): mixed
+{
+    return app()->config->get($key, $default);
+}
+
+// Traductions ----------------------------------------------------------------------
+
+/**
+ * Chaîne d'interface traduite (lang/{locale}.php) : __('errors.404.title').
+ *
+ * @param array<string, string|int|float> $replace
+ */
+function __(string $key, array $replace = []): string
+{
+    return app()->translator()->get($key, $replace);
+}
+
+function locale(): string
+{
+    return app()->translator()->locale();
+}
+
+// Sécurité ------------------------------------------------------------------------
 
 /** Échappement HTML systématique en sortie. */
 function e(mixed $value): string
@@ -17,12 +58,46 @@ function e(mixed $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/** URL absolue depuis la racine publique du site. */
+/** Jeton CSRF de la session (ouvre la session si nécessaire). */
+function csrf_token(): string
+{
+    return app()->csrf()->token();
+}
+
+/** Champ caché CSRF à placer dans chaque formulaire POST. */
+function csrf_field(): string
+{
+    return '<input type="hidden" name="' . Csrf::FIELD . '" value="' . e(csrf_token()) . '">';
+}
+
+// URL ---------------------------------------------------------------------------------
+
+/** URL depuis la racine publique du site (préfixe d'installation inclus). */
 function url(string $path = ''): string
 {
-    $base = rtrim((string) ($_ENV['APP_BASE_PATH'] ?? ''), '/');
+    $base = (string) config('app.base_path', '');
 
     return $base . '/' . ltrim($path, '/');
+}
+
+/**
+ * URL d'une route nommée : route('cmsadmin.properties.edit', ['reference' => 'IAN-24531']).
+ *
+ * @param array<string, string|int> $params
+ */
+function route(string $name, array $params = []): string
+{
+    return url(app()->router->path($name, $params));
+}
+
+/** URL d'une ressource du site public (public/assets), versionnée par date de modification. */
+function asset(string $path): string
+{
+    $relative = 'assets/' . ltrim($path, '/');
+    $file = APP_ROOT . '/public/' . $relative;
+    $version = is_file($file) ? '?v=' . filemtime($file) : '';
+
+    return url($relative) . $version;
 }
 
 /** URL d'une ressource du back-office, versionnée par date de modification (cache busting). */
@@ -41,61 +116,26 @@ function cmsadmin_url(string $path = ''): string
     return url('cmsadmin/' . ltrim($path, '/'));
 }
 
+// Vues ------------------------------------------------------------------------------
+
 /**
- * Rend une vue PHP avec ses données et retourne le HTML.
- * Les données sont isolées dans la portée de la vue.
+ * Rend une vue PHP (app/Views) avec ses données et retourne le HTML.
+ *
+ * @param array<string, mixed> $data
  */
 function render_view(string $view, array $data = []): string
 {
-    $file = APP_ROOT . '/app/Views/' . $view . '.php';
-    if (!is_file($file)) {
-        throw new RuntimeException("Vue introuvable : {$view}");
-    }
-
-    return (static function (string $__file, array $__data): string {
-        extract($__data, EXTR_SKIP);
-        ob_start();
-        try {
-            require $__file;
-        } catch (Throwable $exception) {
-            ob_end_clean();
-            throw $exception;
-        }
-
-        return (string) ob_get_clean();
-    })($file, $data);
+    return app()->view()->render($view, $data);
 }
 
-/** Inclut un fragment du back-office (app/Views/cmsadmin/partials). */
+/**
+ * Inclut un fragment du back-office (app/Views/cmsadmin/partials).
+ *
+ * @param array<string, mixed> $data
+ */
 function cmsadmin_partial(string $name, array $data = []): string
 {
     return render_view('cmsadmin/partials/' . $name, $data);
-}
-
-/** Formatage d'un prix : 185 000 000 FCFA. */
-function format_price(int|float|null $amount, string $currency = 'FCFA'): string
-{
-    if ($amount === null) {
-        return 'Prix sur demande';
-    }
-
-    return number_format((float) $amount, 0, ',', "\u{00A0}") . "\u{00A0}" . $currency;
-}
-
-/** Formatage d'un nombre entier : 12 480. */
-function format_number(int|float $value): string
-{
-    return number_format((float) $value, 0, ',', "\u{00A0}");
-}
-
-/** URL d'une ressource du site public (public/assets), versionnée par date de modification. */
-function asset(string $path): string
-{
-    $relative = 'assets/' . ltrim($path, '/');
-    $file = APP_ROOT . '/public/' . $relative;
-    $version = is_file($file) ? '?v=' . filemtime($file) : '';
-
-    return url($relative) . $version;
 }
 
 /** Icône du sprite Phosphor (public/assets/img/icons.svg). Décorative par défaut. */
@@ -117,13 +157,26 @@ function icon(string $name, string $class = '', ?string $label = null): string
     );
 }
 
+// Formatage ---------------------------------------------------------------------------
+
+/** Formatage d'un prix : 185 000 000 FCFA. */
+function format_price(int|float|null $amount, string $currency = 'FCFA'): string
+{
+    if ($amount === null) {
+        return __('common.price_on_request');
+    }
+
+    return number_format((float) $amount, 0, ',', "\u{00A0}") . "\u{00A0}" . $currency;
+}
+
+/** Formatage d'un nombre entier : 12 480. */
+function format_number(int|float $value): string
+{
+    return number_format((float) $value, 0, ',', "\u{00A0}");
+}
+
 /** Libellé de période de prix : « / mois », « / nuit »… */
 function price_period_label(string $period): string
 {
-    return [
-        'month' => '/ mois',
-        'week' => '/ semaine',
-        'night' => '/ nuit',
-        'year' => '/ an',
-    ][$period] ?? '';
+    return in_array($period, ['month', 'week', 'night', 'year'], true) ? __('common.price_period.' . $period) : '';
 }

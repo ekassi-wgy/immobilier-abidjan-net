@@ -49,7 +49,7 @@ abstract class Controller extends BaseController
     }
 
     /**
-     * Compteurs affichés dans le menu (pastilles). Les annonces en attente et contacts arriveront avec leurs modules.
+     * Compteurs affichés dans le menu (pastilles), dans le périmètre du compte connecté.
      *
      * @return array<string, int>
      */
@@ -60,18 +60,24 @@ abstract class Controller extends BaseController
         if ($site === null) {
             return [];
         }
+        $countryId = $site->country->id;
         if ($user->isAgency()) {
-            $counts = $this->app->properties()->countsByStatus($site->country->id, (int) $user->agencyId);
+            $agencyId = (int) $user->agencyId;
+            $counts = $this->app->properties()->countsByStatus($countryId, $agencyId);
 
-            return ['pending_properties' => $counts['pending'] + $counts['revision']];
+            return [
+                'pending_properties' => $counts['pending'] + $counts['revision'],
+                'new_leads' => $this->app->leads()->newCount($countryId, $agencyId),
+            ];
         }
 
         return [
             'partner_requests' => (int) $this->app->db()->scalar(
                 "SELECT COUNT(*) FROM partner_requests WHERE country_id = :country AND status = 'new'",
-                ['country' => $site->country->id]
+                ['country' => $countryId]
             ),
-            'pending_properties' => $this->app->properties()->toReviewCount($site->country->id),
+            'pending_properties' => $this->app->properties()->toReviewCount($countryId),
+            'new_leads' => $this->app->leads()->newCount($countryId, null),
         ];
     }
 

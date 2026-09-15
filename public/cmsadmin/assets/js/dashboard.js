@@ -15,6 +15,9 @@
   var color = function (name) { return css.getPropertyValue(name).trim(); };
   var number = new Intl.NumberFormat('fr-FR');
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var legend = data.legend || {};
+  var viewsLabel = legend.views || 'Vues';
+  var leadsLabel = legend.leads || 'Contacts';
 
   Chart.defaults.font.family = color('--im-font');
   Chart.defaults.font.size = 12;
@@ -31,7 +34,7 @@
       datasets: [
         {
           type: 'line',
-          label: 'Vues',
+          label: viewsLabel,
           data: data.views,
           yAxisID: 'views',
           borderColor: color('--im-blue'),
@@ -46,7 +49,7 @@
         },
         {
           type: 'bar',
-          label: 'Contacts',
+          label: leadsLabel,
           data: data.leads,
           yAxisID: 'leads',
           backgroundColor: color('--im-navy'),

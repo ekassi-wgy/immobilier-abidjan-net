@@ -11,15 +11,18 @@ declare(strict_types=1);
 use App\Controllers\Cmsadmin\AccountController;
 use App\Controllers\Cmsadmin\Agencies\AgencyAccountController;
 use App\Controllers\Cmsadmin\Agencies\AgencyController;
+use App\Controllers\Cmsadmin\Agencies\AgencyProfileController;
 use App\Controllers\Cmsadmin\Agencies\PartnerRequestController;
 use App\Controllers\Cmsadmin\Agencies\StaffUserController;
 use App\Controllers\Cmsadmin\AuthController;
 use App\Controllers\Cmsadmin\Catalog\AttributeController;
 use App\Controllers\Cmsadmin\Catalog\CategoryController;
 use App\Controllers\Cmsadmin\Catalog\FeatureController;
+use App\Controllers\Cmsadmin\DashboardController;
 use App\Controllers\Cmsadmin\Geo\CityController;
 use App\Controllers\Cmsadmin\Geo\CommuneController;
 use App\Controllers\Cmsadmin\Geo\DistrictController;
+use App\Controllers\Cmsadmin\LeadController;
 use App\Controllers\Cmsadmin\NotificationController;
 use App\Controllers\Cmsadmin\PasswordController;
 use App\Controllers\Cmsadmin\Properties\PropertyActionController;
@@ -93,6 +96,19 @@ return static function (Router $router, App $app): void {
             $router->get('/notifications/{id:\\d+}', [NotificationController::class, 'open'], 'notifications.open');
             $router->post('/notifications/tout-lire', [NotificationController::class, 'markAllRead'], 'notifications.read_all');
 
+            // Demandes de contact : tous les rôles, dans leur périmètre (agence = les siennes)
+            $router->group(['prefix' => '/contacts', 'as' => 'leads.'], static function (Router $router): void {
+                $router->get('/', [LeadController::class, 'index'], 'index');
+                $router->get('/{id:\\d+}', [LeadController::class, 'show'], 'show');
+                $router->post('/{id:\\d+}', [LeadController::class, 'update'], 'update');
+            });
+
+            // Espace agence : profil public de l'agence connectée (modification réservée au responsable)
+            $router->group(['middleware' => [RequireRole::class . ':agency']], static function (Router $router): void {
+                $router->get('/profil-agence', [AgencyProfileController::class, 'show'], 'agency.profile');
+                $router->post('/profil-agence', [AgencyProfileController::class, 'update'], 'agency.profile.update');
+            });
+
             // Agences partenaires, leurs comptes et demandes de partenariat : Super Admin et Admin Pays (pays du site)
             $router->group(['middleware' => [RequireRole::class . ':staff']], static function (Router $router): void {
                 $router->group(['prefix' => '/agences', 'as' => 'agencies.'], static function (Router $router): void {
@@ -158,13 +174,10 @@ return static function (Router $router, App $app): void {
                 $router->post('/sites/{id:\\d+}/domaines/{domain:\\d+}/supprimer', [SiteController::class, 'deleteDomain'], 'domains.destroy');
             });
 
+            // Tableau de bord : réel pour les comptes agence (lot 1.7), maquette locale pour l'équipe interne (lot 1.12)
+            $router->get('/', [DashboardController::class, 'index'], 'dashboard');
             if ($app->config->get('app.preview')) {
-                // PROVISOIRE (APP_ENV=local) : tableau de bord fictif, remplacé au lot 1.12
-                $router->get('/', [CmsadminPreviewController::class, 'dashboard'], 'dashboard');
                 $router->get('/erreur-500', [CmsadminPreviewController::class, 'serverError'], 'preview.error');
-            } else {
-                // Tableau de bord réel : lot 1.12
-                $router->get('/', [AccountController::class, 'show'], 'dashboard');
             }
         });
     });

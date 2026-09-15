@@ -650,6 +650,8 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 .im-segmented__option input:checked + span { background: var(--im-white); color: var(--im-navy); box-shadow: 0 1px 2px rgba(14, 44, 102, .1), 0 0 0 1px var(--im-line); }
 .im-segmented__option input:focus-visible + span { box-shadow: var(--im-ring); }
 .im-segmented--compact .im-segmented__option span { min-width: 64px; justify-content: center; }
+.im-segmented--stack { display: flex; flex-direction: column; align-items: stretch; width: 100%; }
+.im-segmented--stack .im-segmented__option span { display: flex; justify-content: flex-start; }
 
 /* Interrupteur */
 .im-switch { display: inline-flex; align-items: center; gap: .65rem; margin: 0; font-weight: 500; font-size: 13.5px; cursor: pointer; user-select: none; }
@@ -797,6 +799,8 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
   .im-kpi:nth-child(n + 3) { border-top: 1px solid var(--im-line); }
   .im-form__layout { grid-template-columns: minmax(0, 1fr); }
   .im-form__aside { order: -1; }
+  /* Écrans où le contenu se lit avant les actions (message reçu, fiche) */
+  .im-form__layout--read-first .im-form__aside { order: 0; }
   .im-sticky { position: static; }
   .im-toc { display: none; }
 }

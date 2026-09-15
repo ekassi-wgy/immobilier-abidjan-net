@@ -99,6 +99,13 @@ erDiagram
 - `partner_requests` : `approved` uniquement via la création de l’agence (`agency_id`, `handled_by_user_id`, `handled_at`) ; `internal_notes` jamais visibles de l’agence.
 - Logos : `agencies.logo_path` = chemin relatif à `public/` (`uploads/{iso2}/agences/{id}/logo-{aléatoire}.webp`).
 
+## Espace agence et demandes de contact (lot 1.7)
+
+- **Périmètre d'un compte agence** : toutes les lectures sont filtrées par `country_id` du site **et** `agency_id` du compte connecté (jamais un identifiant passé en paramètre). Une demande adressée à une autre agence répond 404.
+- **`leads`** : `status` = `new` (jamais ouverte, pastille du menu), `read` (posé à la première ouverture), `in_progress`, `closed`, `spam` ; `handled_at` est renseigné en passant à `closed` ou `spam`, et remis à NULL si la demande est rouverte. `assigned_user_id` = personne chargée de répondre (équipe du pays, ou comptes de l'agence destinataire). Les types `general_contact` et `property_submission` ne concernent que l'équipe interne ; une agence ne reçoit que `property_contact` et `agency_contact`.
+- **Profil d'agence** : le responsable (`agency_owner`) ne modifie que `description`, `email`, `phone`, `whatsapp`, `website`, `address`, `city_id`, `commune_id`, `logo_path` et `agency_zones` ; `name`, `slug`, `legal_name`, `rccm`, `tax_id`, `status`, `is_verified` et `is_featured` restent à l'équipe interne. L'agent (`agency_agent`) est en lecture seule. Chaque enregistrement est journalisé (`agency.profile_updated`) et notifie l'équipe du pays dans la cloche.
+- **Statistiques du tableau de bord** : `property_stats_daily` (30 jours) pour l'audience et le classement des biens, compteurs `properties.views_count` / `leads_count` pour les totaux. Ces tables ne sont alimentées qu'à partir du site public (lots 1.9 et 1.10) : tant qu'aucune ligne n'existe, les écrans affichent un état vide au lieu d'une courbe à zéro.
+
 ## Conventions
 
 - Tables au pluriel en `snake_case`, clés étrangères `<entité>_id`, index `idx_<table>_<usage>`, uniques `uq_…`, contraintes `chk_…`, clés étrangères `fk_…`.
@@ -124,7 +131,6 @@ $MYSQL -uroot -proot -h127.0.0.1 -P8889 --default-character-set=utf8mb4 immobili
 
 ## Points à valider par le client
 
-- **Modification d'une annonce déjà publiée** : le cahier prévoit un retour en « En attente », donc l'annonce **disparaît du site** pendant la revalidation. Alternative : conserver la version en ligne et valider une révision (table de révisions supplémentaire).
 - **Commission** : mode (pourcentage, montant fixe, annonce premium) et taux — paramètres `commission.*` à renseigner.
 - **Référentiel géographique** : la liste des quartiers est une base de départ, à relire et compléter.
 - **Moteur de base en production (Plesk)** : MySQL 8 ou MariaDB (version) — le schéma est écrit pour les deux mais n'a été testé que sur MySQL 8.0.40.

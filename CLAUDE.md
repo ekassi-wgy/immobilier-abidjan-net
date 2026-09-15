@@ -44,19 +44,21 @@ Légende : ✅ existe · ⬜ à créer (lot indiqué dans `docs/PLAN.md`).
 .env.example          ✅ modèle de configuration (copier en .env, jamais commité)
 app/
   bootstrap.php       ✅ amorçage commun (autoload, .env, erreurs, UTC) → retourne App\Core\App
-  Core/               ✅ App (noyau + services), Router, Request, Response, Config, Env, Database (PDO), Session, Csrf, View, Translator, Logger, ErrorHandler, Middleware, Exceptions/HttpException
-  Support/helpers.php ✅ e(), __(), config(), env(), url(), route(), asset(), icon(), csrf_field(), csrf_token(), render_view(), cmsadmin_*(), format_*() (autoload Composer « files »)
+  Core/               ✅ App (noyau + services), Router, Request, Response, Config, Env, Database (PDO), Cache (fichiers), Session, Csrf, View, Translator, Logger, ErrorHandler, Middleware, Exceptions/HttpException
+  Support/helpers.php ✅ e(), __(), config(), env(), site(), settings(), url(), absolute_url(), route(), asset(), icon(), csrf_field(), csrf_token(), render_view(), cmsadmin_*(), format_*() (autoload Composer « files »)
   Views/cmsadmin/     ✅ layouts/ (app, auth) · partials/ (head, navbar, sidebar, footer, scripts, flash, page-header, status-badge, pagination, empty-state) · pages/ (dashboard, properties, auth, errors)
   Views/front/        ✅ layouts/app · partials/ (header, footer, hero, search, property-card) · pages/ (home-mockup, styleguide, errors/error)
   Views/errors/debug.php ✅ détail d’exception (app.debug uniquement, jamais en production)
   Controllers/        ✅ Controller (base) · Front/HomeController (503 « en préparation » jusqu’au lot 1.8) · Preview/ (PROVISOIRE, maquettes)
                       ⬜ Front (Search, Property, Agency, Page, Lead…) + Cmsadmin/ (Dashboard, Properties, Agencies, Categories, Geo, Leads, Users, Sites, Seo, Settings…)
-  Middlewares/        ✅ VerifyCsrfToken (global) · ⬜ SiteResolver, Auth, Role, RateLimit
-  Models/ Services/   ⬜
+  Middlewares/        ✅ SiteResolver, VerifyCsrfToken (globaux) · ⬜ Auth, Role, RateLimit
+  Models/             ✅ Site, Country (objets du site courant) · ⬜ modèles métier
+  Services/           ✅ SiteRepository (sites, domaines, pays, paramètres + cache), Settings · ⬜
 bin/
   preview/            ✅ PROVISOIRE : données fictives (fixtures.php, front-fixtures.php) des contrôleurs Preview/, retirées module par module
   build-css.php       ✅ compile resources/scss → public/assets/css/app.css
   build-icons.php     ✅ génère le sprite d’icônes
+  cache-clear.php     ✅ vide storage/cache (après déploiement ou modification directe en base)
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
   app.php             ✅ environnement, debug, URL, langue, prévisualisation, session, journaux
@@ -75,7 +77,7 @@ public/               DOCUMENT ROOT en production
 resources/scss/       ✅ app.scss · abstracts/_tokens.scss (SOURCE UNIQUE des couleurs, typo, espacements) · abstracts/_mixins.scss · vendor/_bootstrap.scss · base/ · layout/ · components/ · pages/
 lang/                 ✅ fr.php (référence et repli), en.php — aucune chaîne d'interface en dur dans les nouvelles vues
 database/             ✅ schema.sql (référence v1, 37 tables) · seed.sql (référentiels CI) · migrations/ (évolutions 0002+) — voir docs/database.md
-storage/              ✅ logs/app-AAAA-MM-JJ.log (créé automatiquement) · cache/ — git-ignorés
+storage/              ✅ logs/app-AAAA-MM-JJ.log · cache/ (sites.php…) — créés automatiquement, git-ignorés
 docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
 ```
 
@@ -92,14 +94,14 @@ php -l <fichier>                 # vérif syntaxe avant commit
 **Environnement local : MAMP → http://localhost:8888/** (Apache 2.4, PHP 8.3.14, MySQL 8 sur le port 8889).
 Le `DocumentRoot` MAMP pointe sur la racine du projet : le `.htaccess` racine bloque les dossiers internes (`app/`, `bin/`, `config/`, `docs/`, fichiers cachés…) et sert tout depuis `public/`, qui est le `DocumentRoot` en production. `public/.htaccess` envoie les URL non statiques vers `public/index.php`.
 
-Prévisualisation **sans base de données** (contrôleurs `app/Controllers/Preview/` + données fictives `bin/preview/`), routes déclarées **uniquement si `APP_ENV=local` et `APP_PREVIEW=true`** (ailleurs : accueil en 503, maquettes en 404) :
+Prévisualisation avec **données fictives** (contrôleurs `app/Controllers/Preview/` + `bin/preview/`) ; seul le site courant (nom, pays, devise) vient de la base locale, nécessaire depuis le lot 1.2, routes déclarées **uniquement si `APP_ENV=local` et `APP_PREVIEW=true`** (ailleurs : accueil en 503, maquettes en 404) :
 - Site public : http://localhost:8888/ (maquette d’accueil : hero + recherche + biens à la une) · http://localhost:8888/styleguide (**charte graphique de référence**)
 - Back-office : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/connexion` (POST : jeton CSRF vérifié, échec simulé) · `/cmsadmin/erreur-500`
 - Rôle simulé : `?role=super_admin|country_admin|agency` (mémorisé par cookie).
 - Chaque écran fictif est supprimé quand son module réel est livré (connexion → 1.3, annonces → 1.6, tableau de bord → 1.12, accueil → 1.8).
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
 Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.1:8889`). Réinstallation : commandes dans `docs/database.md`. Client : `/Applications/MAMP/Library/bin/mysql80/bin/mysql` (en zsh, passer la commande dans un tableau, pas dans une chaîne).
-`.env` (jamais commité, modèle `.env.example`) : `APP_ENV` (local|staging|production), `APP_DEBUG`, `APP_URL`, `APP_BASE_PATH`, `APP_LOCALE`, `APP_PREVIEW`, `DB_*`, `SESSION_*`, `SMTP_*`, `MAIL_*`. Une variable définie par le serveur (Plesk) prime sur `.env`.
+`.env` (jamais commité, modèle `.env.example`) : `APP_ENV` (local|staging|production), `APP_DEBUG`, `APP_URL`, `APP_BASE_PATH`, `APP_LOCALE`, `APP_PREVIEW`, `DB_*`, `CACHE_SITES_TTL` (vide en local = pas de cache ; 600 en production), `SESSION_*`, `SMTP_*`, `MAIL_*`. Une variable définie par le serveur (Plesk) prime sur `.env`.
 
 ### Socle applicatif (lot 1.1) — conventions
 
@@ -109,6 +111,7 @@ Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.
 - **Erreurs** : lever `HttpException(404|403|419|429|503…)` ; toute autre exception → journal `storage/logs/` + page 500 (détail seulement si `APP_DEBUG` hors production). AJAX (`Accept: application/json`) → réponse JSON.
 - **Session** : ouverte seulement si nécessaire (jeton CSRF, flash, connexion) ou si le navigateur en a déjà une ; les pages publiques sans formulaire restent sans cookie (cachables).
 - **BDD** : `$db->select/selectOne/scalar/execute/insert/transaction` — requêtes préparées, session SQL en UTC. Connexion ouverte à la première requête.
+- **Multisite (lot 1.2)** : `SiteResolver` (global, avant le routage) cherche l’hôte sans port dans `site_domains` → `site()` (`App\Models\Site`, avec `->country` : devise, indicatif, fuseau). Hôte inconnu ou site `disabled` → 404 ; `maintenance` → 503 côté public, /cmsadmin accessible ; domaines `local` acceptés seulement si `APP_ENV=local` ; alias de production non principal → 301 vers le domaine principal ; domaines hors production → `noindex`. Langue de l’interface = `sites.default_locale`. Requêtes publiques : **toujours** `WHERE country_id = :country` avec `site()->country->id`. Paramètres : `settings('listing.lifetime_days', 90)` (global surchargé par site ; NULL en base = défaut). `format_price()` prend la devise du pays. URL absolues : `absolute_url()` (jamais `$_SERVER['HTTP_HOST']`). Après écriture dans `sites`, `site_domains`, `countries` ou `settings` : `app()->sites()->flush()`.
 - **Traductions** : `__('errors.404.title', ['name' => …])` ; toute clé ajoutée dans `lang/fr.php` l’est aussi dans `lang/en.php`. Les vues maquettes existantes seront traduites quand leur module réel sera réalisé.
 - En-têtes de sécurité posés par `App` (nosniff, `X-Frame-Options: SAMEORIGIN`, Referrer-Policy, Permissions-Policy, HSTS en HTTPS, `X-Robots-Tag: noindex` sur /cmsadmin).
 

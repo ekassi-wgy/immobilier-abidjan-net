@@ -1,0 +1,52 @@
+// =============================================================================
+// Pages d'erreur du site public (404, 500, 503…)
+// =============================================================================
+
+.im-error-page {
+  display: flex;
+  align-items: center;
+  min-height: min(72vh, 44rem);
+  padding-block: im-fluid(3.5rem, 6rem);
+  border-bottom: 1px solid $im-line;
+  background: $im-snow;
+  overflow: hidden;
+
+  &__inner {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+
+    @include im-up(lg) {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 4rem;
+    }
+  }
+
+  &__text { max-width: 36rem; }
+  &__title { margin-top: 1rem; color: $im-navy; }
+  &__lead { margin-top: 1.25rem; }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: 2.25rem;
+  }
+
+  // Grand numéro éditorial en filigrane, en contrepoint du texte
+  &__code {
+    order: -1;
+    margin: 0;
+    font-size: im-fluid(5.5rem, 15rem);
+    font-weight: $im-weight-thin;
+    line-height: .85;
+    letter-spacing: -.05em;
+    color: rgba($im-navy, .16);
+    user-select: none;
+
+    @include im-up(lg) {
+      order: 0;
+      justify-self: end;
+    }
+  }
+}

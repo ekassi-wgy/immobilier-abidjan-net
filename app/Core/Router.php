@@ -184,7 +184,12 @@ final class Router
         preg_match_all('#\{([a-zA-Z_][a-zA-Z0-9_]*)(?::([^}]+))?\}#', $path, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
         foreach ($matches as $match) {
             $regex .= preg_quote(substr($path, $offset, $match[0][1] - $offset), '#');
-            $regex .= '(?P<' . $match[1][0] . '>' . ($match[2][0] ?? '[^/]+') . ')';
+            $pattern = $match[2][0] ?? '[^/]+';
+            if (str_contains($pattern, '{')) {
+                // « {id:\d{1,10}} » : l'accolade fermante du quantificateur coupe le paramètre → motif refusé
+                throw new InvalidArgumentException("Motif de route invalide (accolades non gérées) : {$path}");
+            }
+            $regex .= '(?P<' . $match[1][0] . '>' . $pattern . ')';
             $offset = $match[0][1] + strlen($match[0][0]);
         }
         $regex .= preg_quote(substr($path, $offset), '#');

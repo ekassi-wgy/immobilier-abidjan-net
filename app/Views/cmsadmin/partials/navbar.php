@@ -6,11 +6,16 @@
  * @var array  $site
  * @var array  $counters
  * @var string $csrfToken
+ * @var list<array<string, mixed>> $notifications
+ * @var int    $unread
+ * @var string $activeMenu
  */
+$notifications ??= [];
+$unread ??= 0;
+$activeMenu ??= '';
 $isStaff = in_array($user['role'], ['super_admin', 'country_admin'], true);
 $pending = (int) ($counters['pending_properties'] ?? 0);
 $newLeads = (int) ($counters['new_leads'] ?? 0);
-$notifications = $isStaff ? $pending : $newLeads;
 $initials = mb_strtoupper(implode('', array_map(
     static fn (string $part): string => mb_substr($part, 0, 1),
     array_slice(preg_split('/\s+/', trim($user['name'])) ?: [], 0, 2)
@@ -55,26 +60,32 @@ $initials = mb_strtoupper(implode('', array_map(
       </li>
 
       <li class="nav-item dropdown">
-        <a class="im-icon-btn" id="im-notifications" href="#" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+        <a class="im-icon-btn" id="im-notifications" href="#" data-bs-toggle="dropdown" aria-expanded="false" aria-label="<?= e(__('notifications.title')) ?>">
           <span class="mdi mdi-bell-outline" aria-hidden="true"></span>
-          <?php if ($notifications > 0): ?><span class="im-dot" aria-hidden="true"></span><?php endif; ?>
+          <?php if ($unread > 0): ?><span class="im-dot" aria-hidden="true"></span><?php endif; ?>
         </a>
-        <div class="dropdown-menu dropdown-menu-end im-dropdown" aria-labelledby="im-notifications">
-          <p class="im-dropdown__title">Notifications</p>
-          <?php if ($isStaff && $pending > 0): ?>
-          <a class="dropdown-item im-dropdown__item" href="<?= e(cmsadmin_url('annonces?statut=en-attente')) ?>">
-            <span class="mdi mdi-timer-sand" aria-hidden="true"></span>
-            <span><strong><?= e(format_number($pending)) ?> annonce<?= $pending > 1 ? 's' : '' ?></strong> en attente de validation</span>
+        <div class="dropdown-menu dropdown-menu-end im-dropdown im-dropdown--notifications" aria-labelledby="im-notifications">
+          <div class="im-dropdown__head">
+            <strong><?= e(__('notifications.title')) ?></strong>
+            <?php if ($unread > 0): ?>
+            <form method="post" action="<?= e(cmsadmin_url('notifications/tout-lire')) ?>">
+              <?= csrf_field() ?>
+              <input type="hidden" name="_back" value="<?= e((string) app()->request()?->path()) ?>">
+              <button class="im-link im-link--button im-link--small" type="submit"><?= e(__('notifications.mark_all_read')) ?></button>
+            </form>
+            <?php endif; ?>
+          </div>
+          <?php foreach ($notifications as $notification): ?>
+          <a class="dropdown-item im-dropdown__item im-notification<?= $notification['read_at'] === null ? ' is-unread' : '' ?>" href="<?= e(cmsadmin_url('notifications/' . $notification['id'])) ?>">
+            <span class="mdi <?= e(str_starts_with((string) $notification['type'], 'property.') ? 'mdi-home-city-outline' : 'mdi-bell-outline') ?>" aria-hidden="true"></span>
+            <span>
+              <strong><?= e($notification['title']) ?></strong>
+              <?php if ($notification['body']): ?><span class="im-notification__body"><?= e(mb_substr((string) $notification['body'], 0, 120)) ?></span><?php endif; ?>
+            </span>
           </a>
-          <?php endif; ?>
-          <?php if ($newLeads > 0): ?>
-          <a class="dropdown-item im-dropdown__item" href="<?= e(cmsadmin_url('contacts')) ?>">
-            <span class="mdi mdi-email-outline" aria-hidden="true"></span>
-            <span><strong><?= e(format_number($newLeads)) ?> nouvelle<?= $newLeads > 1 ? 's' : '' ?> demande<?= $newLeads > 1 ? 's' : '' ?></strong> de contact</span>
-          </a>
-          <?php endif; ?>
-          <?php if ($notifications === 0 && $newLeads === 0): ?>
-          <p class="im-dropdown__empty">Rien de nouveau pour le moment.</p>
+          <?php endforeach; ?>
+          <?php if ($notifications === []): ?>
+          <p class="im-dropdown__empty"><?= e(__('notifications.empty')) ?></p>
           <?php endif; ?>
         </div>
       </li>

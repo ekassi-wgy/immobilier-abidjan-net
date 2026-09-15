@@ -10,6 +10,9 @@ $pageScripts ??= [];
 <?php if (in_array('select2', $plugins, true)): ?>
 <script src="<?= e(cmsadmin_asset('vendors/select2/select2.min.js')) ?>"></script>
 <?php endif; ?>
+<?php if (in_array('leaflet', $plugins, true)): ?>
+<script src="<?= e(cmsadmin_asset('vendors/leaflet/leaflet.js')) ?>"></script>
+<?php endif; ?>
 <?php if (in_array('chart', $plugins, true)): ?>
 <script src="<?= e(cmsadmin_asset('vendors/chart.js/chart.umd.js')) ?>"></script>
 <?php endif; ?>

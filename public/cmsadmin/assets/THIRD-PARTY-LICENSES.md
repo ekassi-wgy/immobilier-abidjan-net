@@ -9,6 +9,7 @@
 | Material Design Icons | 7.4.47 | Apache 2.0 (icônes) / SIL OFL 1.1 (police) | `vendors/mdi/` |
 | Chart.js | 4.x | MIT | `vendors/chart.js/` |
 | Select2 | 4.x | MIT | `vendors/select2/` |
+| Leaflet | 1.9.4 | BSD 2-Clause | `vendors/leaflet/` (voir `LICENSE`) — tuiles © contributeurs OpenStreetMap (ODbL) |
 | Plus Jakarta Sans | 2.x | SIL OFL 1.1 | `/public/assets/fonts/plus-jakarta-sans/` (voir `OFL.txt`) |
 
 Modifications apportées au template d'origine : suppression de la bannière commerciale, des crédits et liens

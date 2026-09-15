@@ -158,6 +158,118 @@ final class CatalogRepository
         ]);
     }
 
+    /**
+     * Catégories proposées dans le formulaire d'annonce : familles actives avec leurs sous-catégories actives
+     * (une famille sans sous-catégorie est elle-même sélectionnable), limitées au pays.
+     *
+     * @return array<string, array<int, string>> [nom de la famille => [id => nom]]
+     */
+    public function categoryChoices(int $countryId): array
+    {
+        $rows = $this->db->select(
+            'SELECT c.id, c.parent_id, c.name, p.name AS parent_name, p.is_active AS parent_active,
+                    (SELECT COUNT(*) FROM property_categories k WHERE k.parent_id = c.id AND k.is_active = 1) AS children
+             FROM property_categories c LEFT JOIN property_categories p ON p.id = c.parent_id
+             WHERE c.is_active = 1 AND (c.country_id IS NULL OR c.country_id = :country)
+             ORDER BY COALESCE(p.sort_order, c.sort_order), COALESCE(p.name, c.name), c.parent_id IS NOT NULL, c.sort_order, c.name',
+            ['country' => $countryId]
+        );
+
+        $choices = [];
+        foreach ($rows as $row) {
+            if ($row['parent_id'] === null) {
+                if ((int) $row['children'] === 0) {
+                    $choices[(string) $row['name']][(int) $row['id']] = (string) $row['name'];
+                }
+                continue;
+            }
+            if ((int) $row['parent_active'] === 1) {
+                $choices[(string) $row['parent_name']][(int) $row['id']] = (string) $row['name'];
+            }
+        }
+
+        return $choices;
+    }
+
+    /**
+     * Schéma du formulaire d'annonce pour une catégorie : transactions autorisées et critères
+     * (critères de la famille + critères propres), avec leurs options actives.
+     *
+     * @return array{category: array<string, mixed>, transactions: array<int, array<string, mixed>>, groups: array<string, list<array<string, mixed>>>, attributes: array<int, array<string, mixed>>}|null
+     */
+    public function formSchema(int $categoryId, int $countryId): ?array
+    {
+        $category = $this->db->selectOne(
+            'SELECT c.*, p.name AS parent_name FROM property_categories c LEFT JOIN property_categories p ON p.id = c.parent_id
+             WHERE c.id = :id AND c.is_active = 1 AND (c.country_id IS NULL OR c.country_id = :country)
+               AND (c.parent_id IS NULL OR p.is_active = 1)',
+            ['id' => $categoryId, 'country' => $countryId]
+        );
+        if ($category === null) {
+            return null;
+        }
+
+        $scope = array_values(array_filter([(int) $category['id'], $category['parent_id'] !== null ? (int) $category['parent_id'] : null]));
+
+        // Transactions : celles de la sous-catégorie si elle en déclare, sinon celles de la famille
+        $transactionIds = $this->categoryTransactionIds((int) $category['id']);
+        if ($transactionIds === [] && $category['parent_id'] !== null) {
+            $transactionIds = $this->categoryTransactionIds((int) $category['parent_id']);
+        }
+        $transactions = [];
+        foreach ($this->db->select('SELECT id, code, name, default_price_period FROM transaction_types WHERE is_active = 1 ORDER BY sort_order, name') as $row) {
+            if (in_array((int) $row['id'], $transactionIds, true)) {
+                $transactions[(int) $row['id']] = $row;
+            }
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($scope), '?'));
+        $rows = $this->db->select(
+            "SELECT a.*, g.name AS group_name, g.sort_order AS group_sort, MAX(ca.is_required) AS is_required,
+                    MIN(CASE WHEN ca.category_id = ? THEN ca.sort_order + 1000 ELSE ca.sort_order END) AS link_sort
+             FROM category_attributes ca
+             JOIN property_attributes a ON a.id = ca.attribute_id AND a.is_active = 1
+             JOIN attribute_groups g ON g.id = a.group_id
+             WHERE ca.category_id IN ({$placeholders})
+             GROUP BY a.id
+             ORDER BY g.sort_order, link_sort, a.sort_order, a.name",
+            [(int) $category['id'], ...$scope]
+        );
+
+        $attributes = [];
+        foreach ($rows as $row) {
+            $row['options'] = [];
+            $attributes[(int) $row['id']] = $row;
+        }
+        if ($attributes !== []) {
+            $ids = implode(', ', array_fill(0, count($attributes), '?'));
+            foreach ($this->db->select(
+                "SELECT id, attribute_id, code, label FROM property_attribute_options WHERE attribute_id IN ({$ids}) AND is_active = 1 ORDER BY sort_order, label",
+                array_keys($attributes)
+            ) as $option) {
+                $attributes[(int) $option['attribute_id']]['options'][(int) $option['id']] = (string) $option['label'];
+            }
+        }
+
+        $groups = [];
+        foreach ($attributes as $attribute) {
+            $groups[(string) $attribute['group_name']][] = $attribute;
+        }
+
+        return ['category' => $category, 'transactions' => $transactions, 'groups' => $groups, 'attributes' => $attributes];
+    }
+
+    /** @return array<string, array<int, string>> Équipements actifs [famille => [id => nom]] */
+    public function featureChoices(): array
+    {
+        $choices = [];
+        foreach ($this->features(['etat' => 'actifs']) as $row) {
+            $choices[(string) $row['feature_group']][(int) $row['id']] = (string) $row['name'];
+        }
+
+        return $choices;
+    }
+
     // Types de transaction ---------------------------------------------------------------------------
 
     /** @return array<int, string> [id => nom] */

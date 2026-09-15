@@ -29,6 +29,9 @@ $pageScripts ??= [];
         'site' => $site,
         'counters' => $counters ?? [],
         'csrfToken' => $csrfToken ?? '',
+        'notifications' => $notifications ?? [],
+        'unread' => $unread ?? 0,
+        'activeMenu' => $activeMenu ?? '',
     ]) ?>
 
     <div class="container-fluid page-body-wrapper">

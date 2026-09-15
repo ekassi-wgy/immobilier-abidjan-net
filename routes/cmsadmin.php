@@ -20,7 +20,11 @@ use App\Controllers\Cmsadmin\Catalog\FeatureController;
 use App\Controllers\Cmsadmin\Geo\CityController;
 use App\Controllers\Cmsadmin\Geo\CommuneController;
 use App\Controllers\Cmsadmin\Geo\DistrictController;
+use App\Controllers\Cmsadmin\NotificationController;
 use App\Controllers\Cmsadmin\PasswordController;
+use App\Controllers\Cmsadmin\Properties\PropertyActionController;
+use App\Controllers\Cmsadmin\Properties\PropertyController;
+use App\Controllers\Cmsadmin\Properties\PropertyMediaController;
 use App\Controllers\Cmsadmin\SiteController;
 use App\Controllers\Preview\CmsadminPreviewController;
 use App\Core\App;
@@ -62,6 +66,32 @@ return static function (Router $router, App $app): void {
                     $router->post("/{$segment}/{id:\\d+}/supprimer", [$controller, 'destroy'], "{$name}.destroy");
                 }
             });
+
+            // Annonces : tous les rôles, dans leur périmètre (agence = ses annonces)
+            $router->group(['prefix' => '/annonces', 'as' => 'properties.'], static function (Router $router): void {
+                $router->get('/', [PropertyController::class, 'index'], 'index');
+                $router->get('/nouvelle', [PropertyController::class, 'create'], 'create');
+                $router->post('/', [PropertyController::class, 'store'], 'store');
+                $router->get('/criteres', [PropertyMediaController::class, 'criteria'], 'criteria');
+                $router->get('/listes', [PropertyMediaController::class, 'options'], 'options');
+                $router->post('/photos', [PropertyMediaController::class, 'uploadPhoto'], 'photos');
+                $router->get('/{reference:[A-Z][A-Z0-9]*-[0-9]+}', [PropertyController::class, 'show'], 'show');
+                $router->get('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/modifier', [PropertyController::class, 'edit'], 'edit');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}', [PropertyController::class, 'update'], 'update');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/valider', [PropertyActionController::class, 'approve'], 'approve');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/rejeter', [PropertyActionController::class, 'reject'], 'reject');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/depublier', [PropertyActionController::class, 'unpublish'], 'unpublish');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/republier', [PropertyActionController::class, 'republish'], 'republish');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/prolonger', [PropertyActionController::class, 'extend'], 'extend');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/archiver', [PropertyActionController::class, 'archive'], 'archive');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/disponibilite', [PropertyActionController::class, 'availability'], 'availability');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/mise-en-avant', [PropertyActionController::class, 'feature'], 'feature');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/supprimer', [PropertyActionController::class, 'destroy'], 'destroy');
+            });
+
+            // Notifications (cloche de la barre supérieure)
+            $router->get('/notifications/{id:\\d+}', [NotificationController::class, 'open'], 'notifications.open');
+            $router->post('/notifications/tout-lire', [NotificationController::class, 'markAllRead'], 'notifications.read_all');
 
             // Agences partenaires, leurs comptes et demandes de partenariat : Super Admin et Admin Pays (pays du site)
             $router->group(['middleware' => [RequireRole::class . ':staff']], static function (Router $router): void {
@@ -129,12 +159,8 @@ return static function (Router $router, App $app): void {
             });
 
             if ($app->config->get('app.preview')) {
-                // PROVISOIRE (APP_ENV=local) : écrans avec données fictives, remplacés module par module
-                // (annonces → lot 1.6, tableau de bord → lot 1.12)
+                // PROVISOIRE (APP_ENV=local) : tableau de bord fictif, remplacé au lot 1.12
                 $router->get('/', [CmsadminPreviewController::class, 'dashboard'], 'dashboard');
-                $router->get('/annonces', [CmsadminPreviewController::class, 'properties'], 'properties.index');
-                $router->get('/annonces/nouvelle', [CmsadminPreviewController::class, 'propertyForm'], 'properties.create');
-                $router->get('/annonces/{reference:[A-Z0-9-]+}/modifier', [CmsadminPreviewController::class, 'propertyForm'], 'properties.edit');
                 $router->get('/erreur-500', [CmsadminPreviewController::class, 'serverError'], 'preview.error');
             } else {
                 // Tableau de bord réel : lot 1.12

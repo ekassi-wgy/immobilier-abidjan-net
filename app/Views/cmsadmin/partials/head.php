@@ -15,6 +15,9 @@ $plugins ??= [];
   <link rel="preload" href="<?= e(url('assets/fonts/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2')) ?>" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="<?= e(cmsadmin_asset('vendors/mdi/css/materialdesignicons.min.css')) ?>">
   <link rel="stylesheet" href="<?= e(cmsadmin_asset('vendors/css/vendor.bundle.base.css')) ?>">
+  <?php if (in_array('leaflet', $plugins, true)): ?>
+  <link rel="stylesheet" href="<?= e(cmsadmin_asset('vendors/leaflet/leaflet.css')) ?>">
+  <?php endif; ?>
   <?php if (in_array('select2', $plugins, true)): ?>
   <link rel="stylesheet" href="<?= e(cmsadmin_asset('vendors/select2/select2.min.css')) ?>">
   <?php endif; ?>

@@ -564,10 +564,31 @@ CREATE TABLE property_features (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Galerie : chemin de base, les variantes (thumb, medium, large, .webp) suivent une convention de nommage
+-- Révisions d'annonces publiées (migration 0002) : la version en ligne reste visible jusqu'à validation
+CREATE TABLE property_revisions (
+  id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  property_id           BIGINT UNSIGNED NOT NULL,
+  status                ENUM('pending','approved','rejected','superseded') NOT NULL DEFAULT 'pending',
+  data                  JSON            NOT NULL COMMENT 'Instantané proposé : fields, attributes, features, images',
+  rejection_reason      TEXT            NULL,
+  submitted_by_user_id  INT UNSIGNED    NULL,
+  reviewed_by_user_id   INT UNSIGNED    NULL,
+  submitted_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_at           DATETIME        NULL,
+  PRIMARY KEY (id),
+  KEY idx_property_revisions_property (property_id, status),
+  KEY idx_property_revisions_status (status, submitted_at),
+  CONSTRAINT fk_property_revisions_property     FOREIGN KEY (property_id)          REFERENCES properties (id) ON DELETE CASCADE,
+  CONSTRAINT fk_property_revisions_submitted_by FOREIGN KEY (submitted_by_user_id) REFERENCES users (id) ON DELETE SET NULL,
+  CONSTRAINT fk_property_revisions_reviewed_by  FOREIGN KEY (reviewed_by_user_id)  REFERENCES users (id) ON DELETE SET NULL,
+  CONSTRAINT chk_property_revisions_rejection CHECK (status <> 'rejected' OR rejection_reason IS NOT NULL)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE property_images (
   id             BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
   property_id    BIGINT UNSIGNED  NOT NULL,
-  path           VARCHAR(255)     NOT NULL COMMENT 'ci/24531/7f3a9c…',
+  revision_id    BIGINT UNSIGNED  NULL COMMENT 'Photo d’une révision en attente (non publique)',
+  path           VARCHAR(255)     NOT NULL COMMENT 'uploads/ci/annonces/24531/7f3a9c… (sans suffixe de taille)',
   original_name  VARCHAR(255)     NULL,
   mime_type      VARCHAR(50)      NOT NULL,
   width          SMALLINT UNSIGNED NOT NULL,
@@ -578,7 +599,9 @@ CREATE TABLE property_images (
   created_at     DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_property_images_property (property_id, sort_order),
-  CONSTRAINT fk_property_images_property FOREIGN KEY (property_id) REFERENCES properties (id) ON DELETE CASCADE
+  KEY idx_property_images_revision (revision_id),
+  CONSTRAINT fk_property_images_property FOREIGN KEY (property_id) REFERENCES properties (id) ON DELETE CASCADE,
+  CONSTRAINT fk_property_images_revision FOREIGN KEY (revision_id) REFERENCES property_revisions (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Historique du workflow (qui a soumis / validé / rejeté, avec motif)

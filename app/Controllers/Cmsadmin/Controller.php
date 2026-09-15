@@ -35,7 +35,14 @@ abstract class Controller extends BaseController
     protected function render(Request $request, string $view, array $data = [], array $layoutData = [], int $status = 200): Response
     {
         $shared = $this->shared($request);
-        $layoutData += ['counters' => $this->counters($request), 'flash' => []];
+        $notifier = $this->app->notifier();
+        $userId = $this->user($request)->id;
+        $layoutData += [
+            'counters' => $this->counters($request),
+            'flash' => [],
+            'notifications' => $notifier->latest($userId),
+            'unread' => $notifier->unreadCount($userId),
+        ];
         $layoutData['flash'] = [...$this->app->session()->flashes(), ...$layoutData['flash']];
 
         return $this->page('cmsadmin/layouts/app', 'cmsadmin/pages/' . $view, $data + $shared, $layoutData + $shared, $status);
@@ -50,8 +57,13 @@ abstract class Controller extends BaseController
     {
         $user = $this->user($request);
         $site = site();
-        if (!$user->isStaff() || $site === null) {
+        if ($site === null) {
             return [];
+        }
+        if ($user->isAgency()) {
+            $counts = $this->app->properties()->countsByStatus($site->country->id, (int) $user->agencyId);
+
+            return ['pending_properties' => $counts['pending'] + $counts['revision']];
         }
 
         return [
@@ -59,6 +71,7 @@ abstract class Controller extends BaseController
                 "SELECT COUNT(*) FROM partner_requests WHERE country_id = :country AND status = 'new'",
                 ['country' => $site->country->id]
             ),
+            'pending_properties' => $this->app->properties()->toReviewCount($site->country->id),
         ];
     }
 

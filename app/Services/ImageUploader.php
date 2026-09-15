@@ -91,6 +91,118 @@ final class ImageUploader
         return 'uploads/' . $directory . '/' . $name;
     }
 
+    /**
+     * Enregistre une photo en plusieurs largeurs WebP : {base}-1600.webp, {base}-800.webp, {base}-400.webp
+     * (jamais agrandie). Retourne la base (chemin relatif à public/, sans suffixe) et les dimensions de la plus grande.
+     *
+     * @param array<string, mixed> $file Fichier déjà validé par check()
+     * @param list<int>            $widths Largeurs, de la plus grande à la plus petite
+     * @return array{path: string, width: int, height: int, size: int}
+     */
+    public function storeVariants(array $file, string $directory, array $widths = [1600, 800, 400], int $quality = 80): array
+    {
+        $source = $this->load((string) $file['tmp_name']);
+        $directory = trim(str_replace('..', '', $directory), '/');
+        $absoluteDir = $this->publicRoot . '/uploads/' . $directory;
+        if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir)) {
+            imagedestroy($source);
+            throw new RuntimeException("Dossier d'envoi non inscriptible : uploads/{$directory}");
+        }
+
+        $base = 'uploads/' . $directory . '/' . bin2hex(random_bytes(10));
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $result = null;
+
+        foreach ($widths as $targetWidth) {
+            $ratio = min(1, $targetWidth / $width);
+            $w = max(1, (int) round($width * $ratio));
+            $h = max(1, (int) round($height * $ratio));
+            $target = imagecreatetruecolor($w, $h);
+            imagecopyresampled($target, $source, 0, 0, 0, 0, $w, $h, $width, $height);
+            $file = $this->publicRoot . '/' . $base . '-' . $targetWidth . '.webp';
+            $ok = imagewebp($target, $file, $quality);
+            imagedestroy($target);
+            if (!$ok) {
+                imagedestroy($source);
+                $this->deleteVariants($base);
+                throw new RuntimeException('Encodage WebP impossible.');
+            }
+            $result ??= ['path' => $base, 'width' => $w, 'height' => $h, 'size' => (int) filesize($file)];
+        }
+        imagedestroy($source);
+
+        return $result;
+    }
+
+    /** Déplace toutes les tailles d'une photo vers un autre dossier d'uploads. Retourne la nouvelle base. */
+    public function moveVariants(string $base, string $directory): string
+    {
+        $directory = trim(str_replace('..', '', $directory), '/');
+        $absoluteDir = $this->publicRoot . '/uploads/' . $directory;
+        if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir)) {
+            throw new RuntimeException("Dossier d'envoi non inscriptible : uploads/{$directory}");
+        }
+
+        $newBase = 'uploads/' . $directory . '/' . basename($base);
+        foreach ($this->variantFiles($base) as $file) {
+            $suffix = substr(basename($file), strlen(basename($base)));
+            rename($file, $this->publicRoot . '/' . $newBase . $suffix);
+        }
+
+        return $newBase;
+    }
+
+    public function deleteVariants(?string $base): void
+    {
+        if ($base === null || !str_starts_with($base, 'uploads/') || str_contains($base, '..')) {
+            return;
+        }
+        foreach ($this->variantFiles($base) as $file) {
+            @unlink($file);
+        }
+    }
+
+    /** Envoi d'un document PDF (type réel contrôlé). Retourne le chemin relatif à public/. */
+    public function storePdf(array $file, string $directory, string $prefix): string
+    {
+        $directory = trim(str_replace('..', '', $directory), '/');
+        $absoluteDir = $this->publicRoot . '/uploads/' . $directory;
+        if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir)) {
+            throw new RuntimeException("Dossier d'envoi non inscriptible : uploads/{$directory}");
+        }
+        $path = 'uploads/' . $directory . '/' . $prefix . '-' . bin2hex(random_bytes(8)) . '.pdf';
+        if (!move_uploaded_file((string) $file['tmp_name'], $this->publicRoot . '/' . $path)) {
+            throw new RuntimeException('Enregistrement du document impossible.');
+        }
+
+        return $path;
+    }
+
+    /** Contrôle d'un PDF envoyé : clé d'erreur, 'none' si absent, null si valide. */
+    public function checkPdf(?array $file, int $maxBytes): ?string
+    {
+        if ($file === null || !isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            return 'none';
+        }
+        if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE || (int) $file['size'] > $maxBytes) {
+            return 'upload.too_large';
+        }
+        if ($file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file((string) $file['tmp_name'])) {
+            return 'upload.failed';
+        }
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file((string) $file['tmp_name']);
+        $header = (string) file_get_contents((string) $file['tmp_name'], false, null, 0, 5);
+
+        return $mime === 'application/pdf' && $header === '%PDF-' ? null : 'upload.type_pdf';
+    }
+
+    /** @return list<string> */
+    private function variantFiles(string $base): array
+    {
+        return glob($this->publicRoot . '/' . $base . '-*.webp') ?: [];
+    }
+
     /** Supprime un fichier précédemment enregistré (chemin relatif à public/, limité à uploads/). */
     public function delete(?string $relativePath): void
     {

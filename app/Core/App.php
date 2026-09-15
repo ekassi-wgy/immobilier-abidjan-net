@@ -13,10 +13,15 @@ use App\Services\CountryRepository;
 use App\Services\GeoRepository;
 use App\Services\LoginThrottle;
 use App\Services\Mailer;
+use App\Services\Notifier;
 use App\Services\PasswordHasher;
 use App\Services\ImageUploader;
 use App\Services\PartnerRequestRepository;
 use App\Services\PasswordReset;
+use App\Services\PendingUploads;
+use App\Services\PropertyForm;
+use App\Services\PropertyRepository;
+use App\Services\PropertyWorkflow;
 use App\Services\RateLimiter;
 use App\Services\Settings;
 use App\Services\SiteRepository;
@@ -186,6 +191,48 @@ final class App
         return $this->service(ImageUploader::class, fn () => new ImageUploader($this->root . '/public'));
     }
 
+    public function properties(): PropertyRepository
+    {
+        return $this->service(PropertyRepository::class, fn () => new PropertyRepository($this->db()));
+    }
+
+    public function pendingUploads(): PendingUploads
+    {
+        return $this->service(PendingUploads::class, fn () => new PendingUploads($this->session()));
+    }
+
+    public function notifier(): Notifier
+    {
+        return $this->service(Notifier::class, fn () => new Notifier($this->db(), $this->mailer(), $this->view(), $this->logger()));
+    }
+
+    public function propertyForm(): PropertyForm
+    {
+        return $this->service(PropertyForm::class, fn () => new PropertyForm(
+            $this->catalog(),
+            $this->geo(),
+            $this->agencies(),
+            $this->users(),
+            $this->pendingUploads(),
+            $this->images(),
+            (int) $this->settings()->get('listing.max_photos', 30),
+        ));
+    }
+
+    public function workflow(): PropertyWorkflow
+    {
+        return $this->service(PropertyWorkflow::class, fn () => new PropertyWorkflow(
+            $this->db(),
+            $this->properties(),
+            $this->pendingUploads(),
+            $this->images(),
+            $this->notifier(),
+            $this->activity(),
+            $this->logger(),
+            $this->settings(),
+        ));
+    }
+
     public function rateLimiter(): RateLimiter
     {
         return $this->service(RateLimiter::class, fn () => new RateLimiter($this->cache()));
@@ -260,7 +307,7 @@ final class App
         // État propre à chaque requête (plusieurs requêtes peuvent être traitées par la même instance : tests)
         $this->site = null;
         $this->settings = null;
-        unset($this->services[Auth::class]);
+        unset($this->services[Auth::class], $this->services[PropertyForm::class], $this->services[PropertyWorkflow::class]);
         $this->translator()->setLocale((string) $this->config->get('app.locale', 'fr'));
 
         try {

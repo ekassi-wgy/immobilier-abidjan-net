@@ -6,7 +6,7 @@
  * @var string                    $label
  * @var mixed                     $value
  * @var string                    $type       text | email | number | url | tel | textarea | select
- * @var array<string|int, string> $options    Pour select : [valeur => libellé]
+ * @var array<string|int, string|array<string|int, string>> $options Pour select : [valeur => libellé], ou [groupe => [valeur => libellé]] pour des optgroups
  * @var string|null               $placeholder Pour select : option vide (null = pas d'option vide)
  * @var string|null               $error
  * @var string|null               $hint
@@ -50,7 +50,15 @@ $invalid = $error !== null ? ' is-invalid' : '';
   <select class="form-select<?= $invalid ?>" <?= $common ?>>
     <?php if ($placeholder !== null): ?><option value=""><?= e($placeholder) ?></option><?php endif; ?>
     <?php foreach ($options as $optionValue => $optionLabel): ?>
-    <option value="<?= e($optionValue) ?>"<?= (string) $value === (string) $optionValue ? ' selected' : '' ?>><?= e($optionLabel) ?></option>
+      <?php if (is_array($optionLabel)): ?>
+      <optgroup label="<?= e($optionValue) ?>">
+        <?php foreach ($optionLabel as $groupedValue => $groupedLabel): ?>
+        <option value="<?= e($groupedValue) ?>"<?= (string) $value === (string) $groupedValue ? ' selected' : '' ?>><?= e($groupedLabel) ?></option>
+        <?php endforeach; ?>
+      </optgroup>
+      <?php else: ?>
+      <option value="<?= e($optionValue) ?>"<?= (string) $value === (string) $optionValue ? ' selected' : '' ?>><?= e($optionLabel) ?></option>
+      <?php endif; ?>
     <?php endforeach; ?>
   </select>
   <?php elseif ($suffix !== null): ?>

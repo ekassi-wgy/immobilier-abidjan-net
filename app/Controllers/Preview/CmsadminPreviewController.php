@@ -11,7 +11,7 @@ use App\Core\Response;
 /**
  * PROVISOIRE — écrans du back-office avec données fictives (bin/preview/fixtures.php).
  * Routes déclarées uniquement si app.preview (APP_ENV=local), derrière la vraie authentification (lot 1.3).
- * Chaque écran disparaît quand son module réel est livré.
+ * Le module Annonces réel (lot 1.6) a remplacé les écrans fictifs correspondants ; reste le tableau de bord (lot 1.12).
  *
  * Le rôle affiché est celui du compte connecté. Un Super Admin peut prévisualiser les écrans d'un autre rôle
  * avec ?role=country_admin|agency|super_admin (mémorisé par cookie) — prévisualisation locale uniquement.
@@ -27,27 +27,6 @@ final class CmsadminPreviewController extends Controller
             'activeMenu' => 'dashboard',
             'plugins' => ['chart'],
             'pageScripts' => ['js/dashboard.js'],
-        ]);
-    }
-
-    public function properties(Request $request): Response
-    {
-        return $this->screen($request, 'properties/index', fn (array $f, string $role): array => $f['properties']($role, $request->queryAll()), [
-            'title' => 'Annonces',
-            'activeMenu' => $request->query('statut') === 'en-attente' ? 'properties.pending' : 'properties.all',
-            'plugins' => ['select2'],
-            'flash' => $request->query('flash') !== null ? [['type' => 'success', 'message' => 'L’annonce IAN-24518 a été publiée.']] : [],
-        ]);
-    }
-
-    public function propertyForm(Request $request, ?string $reference = null): Response
-    {
-        $isEdit = $reference !== null;
-
-        return $this->screen($request, 'properties/form', fn (array $f, string $role): array => $f['form']($role, $isEdit, $request->query('erreurs') !== null), [
-            'title' => $isEdit ? 'Modifier l’annonce' : 'Nouvelle annonce',
-            'activeMenu' => $isEdit ? 'properties.all' : 'properties.create',
-            'plugins' => ['select2'],
         ]);
     }
 

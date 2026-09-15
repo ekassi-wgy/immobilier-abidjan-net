@@ -15,6 +15,17 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 | Captures laforet.com (hors dépôt) | `/Users/emmanuelkassi/Documents/WP-WEBLOGY/WebSite/Immobilier Abidjan.net/*.png` — accueil, liste, fiche, connexion, inscription. **Inspiration ergonomique uniquement.** |
 | Template admin source | `/Users/emmanuelkassi/Documents/KP/Templates/staradmin-2-free/dist` (base de `cmsadmin`). |
 
+## État d'avancement (à tenir à jour à chaque lot)
+
+- **Terminés** : 0.1 cadrage · 0.2 schéma BDD · 0.3 charte graphique · 0.4 back-office StarAdmin rethémé · 1.1 socle applicatif · 1.2 multisite · 1.3 authentification · 1.4 référentiels (pays & sites, géographie, catalogue) · 1.5 agences, comptes, demandes de partenariat. Détail et livrables : `docs/PLAN.md`.
+- **Prochain lot : 1.6 — module annonces** (formulaire dynamique selon la catégorie, galerie photo, carte GPS, workflow de validation, mise en avant, expiration). Remplacera les écrans fictifs `/cmsadmin/annonces`.
+- **Décisions en attente du client** (ne pas trancher seul) :
+  - modification d’une annonce **déjà publiée** par une agence : retrait du site pendant la revalidation (cahier) ou révision validée en parallèle ;
+  - taux et mode de commission, durée de vie d’une annonce (défaut 90 j), photos d’Abidjan libres de droits, accès Plesk/DNS, textes légaux, relecture du référentiel des quartiers.
+- **Choix pris par défaut, signalés au client, à confirmer** : sous-catégorie sans transaction = transactions de sa famille ; agences gérées sur le pays du site connecté (pas de sélecteur de pays, contrairement à la géographie) ; comptes activés uniquement par invitation email (pas de mot de passe provisoire affiché, sauf `bin/create-user.php`).
+- **Avant la mise en production (lot 3.1)** : régénérer le mot de passe d’application Gmail (communiqué en clair pendant le développement) et remplacer `SMTP_PASSWORD` ; `CACHE_SITES_TTL=600`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_PREVIEW=false`.
+- **Base locale** : ne contient que le schéma et le seed (aucun compte). Créer son Super Admin avec `bin/create-user.php` après chaque réinstallation.
+
 ## Règles métier non négociables
 
 - **Aucune inscription publique, aucun compte visiteur.** Les pages « Créer un compte » de Laforêt ne sont PAS reprises côté public. La seule connexion est celle du back-office (`/cmsadmin`) pour les rôles internes. Favoris visiteurs = cookie/localStorage.
@@ -32,7 +43,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 - Dépendances Composer **minimales et justifiées** : `phpmailer/phpmailer` (emails, lot 1.3) ; en dev `scssphp/scssphp` (compilation Sass en PHP — pas de Node sur le poste) et `twbs/bootstrap` (sources SCSS). Pas de framework. Composer : `php /Applications/MAMP/bin/php/composer …`, `composer.lock` commité, `vendor/` ignoré.
 - Front : HTML5 sémantique, **Bootstrap 5.3 comme socle technique uniquement** (grille, reboot, utilitaires, modal/offcanvas/collapse) compilé en SCSS avec les seuls modules utiles, JavaScript **vanilla** (Alpine.js toléré si justifié). Pas de jQuery côté public.
 - Carte : **Leaflet + OpenStreetMap + markercluster**. Slider/galerie/lightbox : librairies légères **hébergées localement**.
-- Images : **GD** (Imagick non disponible) — redimensionnement multi-tailles + WebP, stockage `public/uploads/{pays}/{annonce}/`.
+- Images : **GD** (Imagick non disponible) — redimensionnement + WebP via `App\Services\ImageUploader`, stockage `public/uploads/{iso2}/…` (logos : `agences/{id}/`, annonces au lot 1.6).
 - **Zéro CDN / zéro ressource externe** (polices, JS, CSS, icônes : tout est auto-hébergé), sauf tuiles OSM et services explicitement validés.
 
 ## Arborescence
@@ -107,7 +118,7 @@ Prévisualisation avec **données fictives** (contrôleurs `app/Controllers/Prev
 - Site public : http://localhost:8888/ (maquette d’accueil : hero + recherche + biens à la une) · http://localhost:8888/styleguide (**charte graphique de référence**)
 - Back-office (**connexion réelle obligatoire** depuis le lot 1.3 : créer d’abord un compte avec `bin/create-user.php`) : http://localhost:8888/cmsadmin · `/cmsadmin/annonces` · `/cmsadmin/annonces/nouvelle` · `/cmsadmin/annonces/IAN-24531/modifier?erreurs=1` · `/cmsadmin/erreur-500`
 - Rôle affiché = celui du compte connecté ; un Super Admin peut prévisualiser un autre rôle avec `?role=country_admin|agency|super_admin` (cookie, écrans fictifs uniquement — sans effet sur les droits réels).
-- Emails : SMTP Gmail configuré dans `.env` (`MAIL_MAILER=smtp`, jamais commité). **Pendant des tests créant des comptes ou des demandes : passer `MAIL_MAILER=log`** (sinon de vrais emails partent vers les adresses de test) puis revenir à `smtp` → fichiers `storage/mail/*.eml`. Test d’envoi : `php bin/mail-test.php --to=…`. Avec Gmail, l’expéditeur (`MAIL_FROM_ADDRESS`) doit être le compte authentifié ou un alias validé ; quota d’envoi journalier limité (à surveiller pour les alertes v2).
+- Emails : SMTP Gmail configuré dans `.env` (`MAIL_MAILER=smtp`, jamais commité). **Pendant des tests créant des comptes ou des demandes : passer `MAIL_MAILER=log`** (les messages sont alors écrits dans `storage/mail/*.eml`, sinon de vrais emails partent vers les adresses de test), puis revenir à `smtp`. Test d’envoi : `php bin/mail-test.php --to=…`. Avec Gmail, l’expéditeur (`MAIL_FROM_ADDRESS`) doit être le compte authentifié ou un alias validé ; quota d’envoi journalier limité (à surveiller pour les alertes v2).
 - Chaque écran fictif est supprimé quand son module réel est livré (annonces → 1.6, tableau de bord → 1.12, accueil → 1.8).
 - Alternative sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-server.php` (plusieurs workers obligatoires).
 Base locale : **`immobilier_abidjan_net`** (MySQL MAMP, `root`/`root`, `127.0.0.1:8889`). Réinstallation : commandes dans `docs/database.md`. Client : `/Applications/MAMP/Library/bin/mysql80/bin/mysql` (en zsh, passer la commande dans un tableau, pas dans une chaîne).
@@ -190,9 +201,9 @@ Plein écran sobre (≈ 88vh desktop, 70vh mobile) : **slides photo en fondu len
 Même palette et même typographie que le front, UI calme et dense, lisible. StarAdmin 2 fournit la **structure** (layout, sidebar, tables, formulaires) ; l'**habillage** est réécrit via une feuille d'override. Menu latéral construit selon le rôle connecté.
 
 - **Ne jamais modifier** `public/cmsadmin/assets/css/style.css` (template compilé/minifié) : tout passe par `css/cmsadmin.css`, qui ne contient des couleurs que dans `:root`.
-- Vues : `app/Views/cmsadmin/layouts/` (`app`, `auth`), `partials/` (navbar, sidebar, page-header, status-badge, pagination, empty-state, flash), `pages/<module>/`. Modèles de référence à copier : `pages/properties/index.php` (liste), `pages/properties/form.php` (formulaire), `pages/dashboard/index.php`.
+- Vues : `app/Views/cmsadmin/layouts/` (`app`, `auth`), `partials/` (navbar, sidebar, page-header, status-badge, pagination, empty-state, flash, field, switch, state-badge, row-actions), `pages/<module>/`. Modèles de référence à copier (écrans réels) : `pages/geo/index.php` et `pages/agencies/index.php` (listes), `pages/catalog/attributes/form.php` et `pages/agencies/form.php` (formulaires, envoi de fichier). `pages/properties/*` et `pages/dashboard/index.php` restent des maquettes fictives (lots 1.6 et 1.12).
 - Menu : `config/cmsadmin-menu.php` (entrées, rôles autorisés, compteurs). Masquer une entrée n'est pas un contrôle d'accès.
-- Helpers disponibles : `e()`, `__()`, `url()`, `route()`, `cmsadmin_url()`, `cmsadmin_asset()` (versionné), `render_view()`, `cmsadmin_partial()`, `csrf_field()`, `format_price()`, `format_number()` (`app/Support/helpers.php`).
+- Helpers disponibles : `e()`, `__()`, `site()`, `settings()`, `url()`, `absolute_url()`, `route()`, `cmsadmin_url()`, `cmsadmin_asset()` (versionné), `render_view()`, `cmsadmin_partial()`, `csrf_field()`, `format_price()`, `format_number()` (`app/Support/helpers.php`).
 - Plugins chargés à la demande via `$plugins` (`'select2'`, `'chart'`). Select2 : attribut **`data-im-select`** (jamais `data-select2`, qui entre en conflit avec la bibliothèque).
 - Listes : pagination et filtres **côté serveur** (pas de DataTables : volumes importants). Dates : `<input type="date">` natif (pas de datepicker jQuery).
 - jQuery est toléré **uniquement** dans `cmsadmin` (dépendance du template), jamais côté public.
@@ -217,4 +228,5 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 
 ### Git
 - Dépôt **propre au projet** (racine `immobilier-abidjan-net/`), branche unique `main`, remote `origin` = `git@github.com:ekassi-wgy/immobilier-abidjan-net.git` (GitHub, SSH : clé `~/.ssh/id_ed25519` protégée par phrase de passe, à charger dans l'agent avec `ssh-add --apple-use-keychain`).
-- Ne jamais committer : `.env`, `vendor/`, `public/uploads/`, `storage/`, captures d'écran.
+- Ne jamais committer : `.env`, `vendor/`, `public/uploads/` (sauf son `.htaccess`), `storage/`, captures d'écran.
+- Push : `git push origin main` (si la clé SSH n’est pas chargée, l’utilisateur lance `! ssh-add --apple-use-keychain ~/.ssh/id_ed25519`).

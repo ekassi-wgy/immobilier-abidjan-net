@@ -59,7 +59,7 @@ erDiagram
 5. **Deux statuts distincts** sur une annonce : `status` (workflow de publication : `pending`, `published`, `rejected`, `unpublished`, `archived`, `expired`) et `availability` (disponibilité du bien : disponible, réservé, vendu, loué). Un rejet sans motif est refusé par la base. Chaque changement de statut est historisé dans `property_status_history`.
 6. **Origine d'une annonce** (`source`) : `agency` (agence partenaire, `agency_id` obligatoire), `private_owner` (bien de particulier publié par l'admin), `platform` (bien propre).
 7. **Multisite** : `site_domains` associe chaque nom d'hôte (production, staging, local) à un site ; le middleware `SiteResolver` retire le port de `HTTP_HOST` avant la recherche. Les domaines `local` ne sont acceptés qu'en `APP_ENV=local` ; un domaine `production` non principal (`is_primary = 0`, ex. `www.`) redirige en 301 vers le domaine principal ; `sites.status` : `maintenance` = site public en 503 (back-office ouvert), `disabled` = 404. Ces tables et `settings` sont mises en cache (`storage/cache/sites.php`, `CACHE_SITES_TTL`) : vider le cache après modification directe (`php bin/cache-clear.php`). Toutes les tables métier portent `country_id`.
-8. **Paramètres** : `settings` avec `site_id` NULL = valeur globale, sinon surcharge par site. Les décisions métier en attente (taux et mode de commission, contacts du site) sont initialisées à `null`.
+8. **Paramètres** : `settings` avec `site_id` NULL = valeur globale, sinon surcharge par site. Les coordonnées du site affichées sur le front sont les colonnes `sites.contact_*` / `address` (éditées dans Pays & sites) ; les clés `contact.*` de `settings` ne sont pas utilisées. Les décisions métier en attente (taux et mode de commission, contacts du site) sont initialisées à `null`.
 9. **Multilingue prêt** : libellés de référentiels en français + colonne JSON `*_translations` (`{"en": "…"}`) ; les chaînes d'interface restent dans `lang/*.php`.
 10. **Prix** : `DECIMAL(15,2)` + `currency_code` copié du pays à la création (FCFA sans décimales, autres devises possibles). `price` NULL = prix sur demande ; `price_period` = total, mois, semaine, nuit, année.
 11. **Statistiques** : compteurs dénormalisés sur `properties` (`views_count`, `leads_count`) + agrégats journaliers `property_stats_daily` (vues, clics téléphone / WhatsApp, partages, contacts) pour les graphiques des tableaux de bord.
@@ -74,6 +74,13 @@ erDiagram
 | « Bail commercial / cession de bail » | Deux types de transaction distincts | Une cession de bail se vend (prix total), un bail se loue (loyer mensuel) |
 | « Terrain à vendre / à louer » | Transactions Vente / Location sur la catégorie Terrains | Même logique que les autres biens |
 | Équipements et critères résidentiels | Piscine, jardin, garage, climatisation, sécurité, groupe électrogène, forage, ascenseur, fibre → `features` ; surfaces, pièces, étage, standing… → critères | Les équipements sont des cases à cocher filtrables communes à plusieurs catégories |
+
+## Règles de gestion du catalogue et des référentiels (back-office, lot 1.4)
+
+- **Transactions** (`category_transaction_types`) : déclarées sur les familles (catégories racines). Une sous-catégorie sans ligne reprend les transactions de sa famille ; si elle en a, elle les restreint (sous-ensemble de la famille).
+- **Critères** : une sous-catégorie hérite des critères de sa famille (`category_attributes` de la racine) et ne stocke que ses critères propres.
+- **Codes immuables** après création : `property_categories.code`, `property_attributes.code`, `property_attribute_options.code` (dès qu’une valeur l’utilise), `features.code`, `countries.iso2`, `sites.code`. Le `storage`/`column_name` d’un critère est fixé à la création ; son `input_type` est verrouillé dès qu’une valeur existe.
+- **Suppression** : uniquement si l’élément n’est pas utilisé (annonces, agences, zones, demandes de partenariat, sous-niveaux) ; sinon désactivation (`is_active = 0`). Une option retirée d’un critère est supprimée si inutilisée, désactivée sinon. `property_features` étant en `ON DELETE CASCADE`, un équipement utilisé n’est jamais supprimé.
 
 ## Conventions
 

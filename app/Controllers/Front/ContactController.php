@@ -110,7 +110,7 @@ final class ContactController extends Controller
                 'partner_request.new',
                 __('front.partner.notification_title', ['agency' => $validator->string('agency_name')]),
                 __('front.partner.notification_body', ['name' => $validator->string('name'), 'email' => $validator->string('email')]),
-                cmsadmin_url('demandes-partenaires/' . $requestId)
+                cmsadmin_url('demandes-partenariat/' . $requestId)
             );
         }
 

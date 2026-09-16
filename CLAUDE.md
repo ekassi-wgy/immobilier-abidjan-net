@@ -8,6 +8,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 
 | Document | Rôle |
 |---|---|
+| `README.md` | Présentation du dépôt : stack, installation locale, commandes, organisation du code. **À tenir à jour** (état d'avancement, nouveaux scripts). |
 | `docs/cahier-des-charges.md` | **Périmètre fonctionnel. Fait foi.** Ne rien ajouter hors périmètre sans demander. |
 | `docs/PLAN.md` | Plan de projet par phases/lots + état d'avancement (à tenir à jour). |
 | `docs/database.md` | Schéma de BDD : tables, relations, choix de conception, conventions, migrations. **À relire avant toute requête ou migration.** |
@@ -52,6 +53,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 Légende : ✅ existe · ⬜ à créer (lot indiqué dans `docs/PLAN.md`).
 
 ```
+README.md             ✅ présentation du projet, installation, commandes, règles à respecter
 .htaccess             ✅ dev MAMP uniquement : bloque les dossiers internes, sert tout depuis public/
 .env.example          ✅ modèle de configuration (copier en .env, jamais commité)
 app/
@@ -226,7 +228,7 @@ Même palette et même typographie que le front, UI calme et dense, lisible. Sta
 
 ## Méthode de travail
 
-- Lire la section concernée du cahier des charges + `docs/PLAN.md` avant chaque lot ; mettre à jour le statut du lot à la fin.
+- Lire la section concernée du cahier des charges + `docs/PLAN.md` avant chaque lot ; à la fin, mettre à jour le statut du lot (`docs/PLAN.md`), l'état d'avancement de ce fichier et la section « État d'avancement » du `README.md`.
 - Travail par lots **directement sur `main`** (pas de branches de fonctionnalité) : vérifications (`php -l`, scénario par rôle, contrôle mobile 375 px, rendu sur http://localhost:8888) → commits atomiques en français.
 - Toute évolution du schéma BDD passe par une migration numérotée dans `database/migrations/` (à partir de `0002_…`) + mise à jour de `schema.sql` et de `docs/database.md`.
 - Données : requêtes préparées PDO ; ne **jamais** joindre `property_private_details` dans une requête du site public ; toujours filtrer par `country_id` du site courant ; dates en UTC.

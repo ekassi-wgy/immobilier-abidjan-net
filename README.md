@@ -94,16 +94,17 @@ routes/          web.php (site public) · cmsadmin.php (back-office)
 
 ## État d'avancement
 
-Phase 1 (MVP Côte d'Ivoire) : **lots 0.1 à 1.11 terminés** — socle applicatif, multisite, authentification,
+Phase 1 (MVP Côte d'Ivoire) : **lots 0.1 à 1.12 terminés** — socle applicatif, multisite, authentification,
 référentiels, agences et comptes, module annonces avec workflow de validation et révisions, espace agence,
-et tout le site public : accueil, page de résultats (filtres multicritères, tri, pagination, vues grille /
-liste / carte, favoris visiteurs), fiche annonce (galerie, critères, situation juridique, carte, contact,
-biens similaires), annuaire et profil des agences, pages éditoriales, formulaires Contact / Devenir
-partenaire / Déposer un bien, bandeau cookies. Lot suivant : **1.12, tableau de bord et exports du
-back-office**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+tout le site public (accueil, résultats avec filtres / tri / pagination / carte, fiche annonce, annuaire et
+profil des agences, pages éditoriales, formulaires publics, favoris, bandeau cookies), et le back-office
+complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plus aucun écran à données
+fictives.** Lot suivant : **1.13, recette par rôle** (checklist `docs/tests.md`, mobile 375 px,
+navigateurs). Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
-> Les **textes légaux** (mentions légales, CGU, confidentialité, cookies) sont attendus du client : leurs
-> pages existent en base mais restent non publiées, donc invisibles et sans lien dans le pied de page.
+> **Décisions attendues du client** : les **textes légaux** (mentions légales, CGU, confidentialité,
+> cookies) — leurs pages existent en base mais restent non publiées, donc invisibles et sans lien dans le
+> pied de page ; et le **mode de commission**, que l'écran Paramètres laisse à « non décidé ».
 
 ## Règles à respecter
 

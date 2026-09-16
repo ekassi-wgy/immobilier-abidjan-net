@@ -327,7 +327,7 @@ final class ContentController extends Controller
         $file = $request->file('cover');
         $error = $this->app->images()->check($file, self::MAX_IMAGE_MB * 1024 * 1024);
         if ($error !== null && $error !== 'none') {
-            $v->add('cover', __('upload.' . $error, ['max' => self::MAX_IMAGE_MB . ' Mo']));
+            $v->add('cover', __($error, ['max' => self::MAX_IMAGE_MB . ' Mo']));
         }
 
         if ($v->fails()) {
@@ -402,7 +402,7 @@ final class ContentController extends Controller
         $file = $request->file('image');
         $error = $this->app->images()->check($file, self::MAX_IMAGE_MB * 1024 * 1024);
         if ($error !== null && $error !== 'none') {
-            $v->add('image', __('upload.' . $error, ['max' => self::MAX_IMAGE_MB . ' Mo']));
+            $v->add('image', __($error, ['max' => self::MAX_IMAGE_MB . ' Mo']));
         }
         // Une bannière sans visuel n'a pas d'objet : l'image est obligatoire à la création.
         if ($id === null && $error === 'none') {

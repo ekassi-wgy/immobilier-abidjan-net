@@ -94,10 +94,11 @@ routes/          web.php (site public) · cmsadmin.php (back-office)
 
 ## État d'avancement
 
-Phase 1 (MVP Côte d'Ivoire) : **lots 0.1 à 1.8 terminés** — socle applicatif, multisite, authentification,
+Phase 1 (MVP Côte d'Ivoire) : **lots 0.1 à 1.9 terminés** — socle applicatif, multisite, authentification,
 référentiels, agences et comptes, module annonces avec workflow de validation et révisions, espace agence,
-accueil du site public. Lot suivant : **1.9, page de résultats** (filtres, tri, pagination, vue carte).
-Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+accueil du site public, page de résultats (filtres multicritères, tri, pagination, vues grille / liste /
+carte, favoris visiteurs). Lot suivant : **1.10, fiche annonce** (galerie, critères, carte, contact,
+biens similaires). Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Règles à respecter
 
@@ -112,5 +113,6 @@ Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 ## Licence
 
 Projet propriétaire — Weblogy. Les dépendances tierces conservent leur licence d'origine
-(Bootstrap MIT, Phosphor Icons MIT, Plus Jakarta Sans SIL OFL 1.1, StarAdmin 2 pour le back-office :
+(Bootstrap MIT, Phosphor Icons MIT, Plus Jakarta Sans SIL OFL 1.1, Leaflet BSD-2-Clause,
+StarAdmin 2 pour le back-office :
 voir `public/cmsadmin/assets/THIRD-PARTY-LICENSES.md`).

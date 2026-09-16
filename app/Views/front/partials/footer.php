@@ -32,6 +32,7 @@ $columns = [
     ])),
     $siteName => array_values(array_filter([
         $pageLink('about'),
+        [__('front.footer.news'), 'actualites'],
         [__('front.footer.contact'), 'contact'],
     ])),
 ];

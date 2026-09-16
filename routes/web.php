@@ -11,6 +11,7 @@ use App\Controllers\Front\ContactController;
 use App\Controllers\Front\FavoriteController;
 use App\Controllers\Front\HomeController;
 use App\Controllers\Front\PageController;
+use App\Controllers\Front\PostController;
 use App\Controllers\Front\PropertyController;
 use App\Controllers\Front\SearchController;
 use App\Controllers\Front\SitemapController;
@@ -21,6 +22,10 @@ use App\Core\Router;
 return static function (Router $router, App $app): void {
     $router->get('/', [HomeController::class, 'index'], 'home');
     $router->get('/favoris', [FavoriteController::class, 'index'], 'favorites');
+
+    // Actualités (lot 2.2)
+    $router->get('/actualites', [PostController::class, 'index'], 'posts');
+    $router->get('/actualites/{slug:[a-z0-9-]+}', [PostController::class, 'show'], 'post.show');
 
     // Référencement (lot 2.1)
     $router->get('/sitemap.xml', [SitemapController::class, 'sitemap'], 'sitemap');

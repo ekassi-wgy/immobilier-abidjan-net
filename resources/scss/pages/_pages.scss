@@ -1,0 +1,262 @@
+// =============================================================================
+// Annuaire et profil d'agence, formulaires publics, pages éditoriales, bandeau cookies
+// =============================================================================
+
+// Pages éditoriales et légales ------------------------------------------------------
+.im-page {
+  max-width: 46rem;
+
+  &__title { margin: 0 0 .5rem; }
+  &__content { margin-top: im-fluid(1.5rem, 2rem); }
+}
+
+// Contenu rédigé depuis le back-office : styles typographiques de base
+.im-prose {
+  color: $im-ink;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+
+  > * + * { margin-top: 1.1rem; }
+
+  h2 { @include im-type("h3"); margin-top: 2.25rem; font-weight: $im-weight-semibold; }
+  h3 { @include im-type("h4"); margin-top: 1.75rem; font-weight: $im-weight-semibold; }
+
+  ul, ol { padding-left: 1.25rem; }
+  li + li { margin-top: .4rem; }
+
+  a { color: $im-blue; text-decoration: underline; text-underline-offset: .2em; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td { padding: .6rem .75rem; border-bottom: 1px solid $im-line-soft; text-align: left; }
+  }
+}
+
+// Formulaires publics autonomes -------------------------------------------------------
+.im-form-page {
+  display: grid;
+  align-items: start;
+  gap: im-fluid(2rem, 3.5rem);
+  grid-template-columns: minmax(0, 1fr);
+
+  @include im-up(lg) { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); }
+
+  &__intro {
+    .im-h2 { margin: .75rem 0 0; }
+    .im-lead { margin-top: .75rem; }
+  }
+
+  &__contact {
+    display: grid;
+    gap: .6rem;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: .9375rem;
+
+    li { display: flex; align-items: center; gap: .5rem; }
+
+    .im-icon { width: 1.15rem; height: 1.15rem; flex: none; color: $im-navy; }
+
+    a { color: inherit; }
+
+    @include im-hover { a { color: $im-navy; } }
+  }
+
+  &__form {
+    padding: im-fluid(1.25rem, 2rem);
+    border: 1px solid $im-line;
+    border-radius: $im-radius-lg;
+    background: $im-white;
+  }
+}
+
+.im-form {
+  display: grid;
+  gap: 1rem;
+
+  &__pair {
+    display: grid;
+    gap: 1rem;
+
+    @include im-up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  &__consent { align-items: flex-start; font-size: .8125rem; line-height: 1.45; }
+  &__consent .im-check__box { margin-top: .1rem; }
+
+  .im-field__help { margin-top: -.35rem; }
+  .im-btn { justify-self: start; }
+}
+
+.im-field__optional { color: $im-subtle; font-weight: $im-weight-regular; }
+
+// Étapes numérotées (candidature, dépôt de bien) ----------------------------------------
+.im-steps {
+  display: grid;
+  gap: 0;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: .9375rem;
+
+  li {
+    display: flex;
+    gap: 1rem;
+    padding: .85rem 0;
+    border-top: 1px solid $im-line;
+  }
+
+  &__number {
+    flex: none;
+    color: $im-subtle;
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    line-height: 1.6;
+  }
+}
+
+// Annuaire des agences -------------------------------------------------------------------
+.im-agency-filters {
+  display: grid;
+  align-items: center;
+  gap: .75rem;
+  margin-top: im-fluid(1.5rem, 2rem);
+  grid-template-columns: minmax(0, 1fr);
+
+  @include im-up(md) { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto auto; }
+
+  &__verified { white-space: nowrap; }
+
+  + .im-results__count { margin-top: 1.5rem; }
+}
+
+.im-results__count + .im-agency-grid { margin-top: 1rem; }
+
+// Complément au composant .im-agency de l'accueil
+.im-agency__meta + .im-agency__meta { margin-top: .15rem; color: $im-subtle; }
+
+.im-agency__logo img { display: block; }
+
+// Profil d'agence --------------------------------------------------------------------------
+.im-agency-hero {
+  padding-block: im-fluid(1.75rem, 3rem);
+  background: $im-navy;
+  color: $im-white;
+
+  &__inner {
+    display: grid;
+    align-items: center;
+    gap: 1.25rem;
+    grid-template-columns: auto minmax(0, 1fr);
+
+    @include im-up(md) { grid-template-columns: auto minmax(0, 1fr) auto; }
+  }
+
+  &__logo {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 5rem;
+    height: 5rem;
+    overflow: hidden;
+    border-radius: $im-radius;
+    background: $im-white;
+    color: $im-navy;
+    font-size: 2rem;
+    font-weight: $im-weight-bold;
+
+    img { width: 100%; height: 100%; object-fit: contain; padding: .35rem; }
+  }
+
+  &__identity .im-h2 { margin: .35rem 0 0; color: $im-white; }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem 1rem;
+    margin: .75rem 0 0;
+    color: rgba($im-white, .78);
+    font-size: .875rem;
+
+    span { display: inline-flex; align-items: center; gap: .35rem; }
+
+    .im-icon { width: 1rem; height: 1rem; }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    grid-column: 1 / -1;
+
+    @include im-up(md) { grid-column: auto; }
+  }
+}
+
+.im-agency-profile {
+  padding-bottom: im-fluid(3rem, 5rem);
+
+  &__layout {
+    display: grid;
+    align-items: start;
+    gap: im-fluid(2rem, 3.5rem);
+    padding-top: im-fluid(1.5rem, 2.5rem);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(lg) { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
+  }
+
+  &__main { min-width: 0; }
+
+  &__aside {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+
+    @include im-up(lg) { position: sticky; top: calc(var(--im-header-height) + 1rem); }
+  }
+}
+
+// Grille d'annonces resserrée (colonne d'un profil)
+.im-grid-cards--compact {
+  gap: 2rem 1.5rem;
+
+  @include im-up(lg) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+// Bandeau cookies ----------------------------------------------------------------------------
+.im-cookies {
+  position: fixed;
+  right: clamp(.75rem, 3vw, 1.5rem);
+  bottom: clamp(.75rem, 3vw, 1.5rem);
+  left: clamp(.75rem, 3vw, 1.5rem);
+  z-index: 1040;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+  max-width: 52rem;
+  margin-inline: auto;
+  padding: 1rem 1.25rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius;
+  background: $im-white;
+  box-shadow: $im-shadow-lg;
+
+  &[hidden] { display: none; }
+
+  &__text {
+    flex: 1 1 22rem;
+    margin: 0;
+    color: $im-muted;
+    font-size: .8125rem;
+    line-height: 1.55;
+  }
+}
+
+.im-footer__legal a + a { margin-left: 0; }

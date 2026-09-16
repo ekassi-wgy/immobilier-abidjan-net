@@ -25,6 +25,7 @@ use App\Services\PendingUploads;
 use App\Services\PropertyForm;
 use App\Services\PropertyRepository;
 use App\Services\PropertyWorkflow;
+use App\Services\PageRepository;
 use App\Services\RateLimiter;
 use App\Services\SearchFilters;
 use App\Services\SearchOptions;
@@ -220,6 +221,15 @@ final class App
     public function searchFilters(): SearchFilters
     {
         return $this->service(SearchFilters::class, fn () => new SearchFilters($this->db()));
+    }
+
+    public function pages(): PageRepository
+    {
+        return $this->service(PageRepository::class, fn () => new PageRepository(
+            $this->db(),
+            $this->cache(),
+            $this->config->get('app.cache.sites_ttl')
+        ));
     }
 
     public function images(): ImageUploader

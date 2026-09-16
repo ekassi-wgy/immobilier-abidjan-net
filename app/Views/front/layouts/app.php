@@ -23,6 +23,10 @@ $pageScripts ??= [];
 $pageStyles ??= [];
 $noindex ??= false;
 $siteName = site()->name ?? config('app.name');
+// Pages éditoriales et légales publiées : les liens absents ne sont pas affichés (lot 1.11).
+$cmsPages = site() !== null
+    ? app()->pages()->byCodes(['about', 'how_it_works', 'legal_notice', 'terms', 'privacy', 'cookies'], site()->id, locale())
+    : [];
 ?>
 <!doctype html>
 <html lang="<?= e(locale()) ?>">
@@ -75,7 +79,9 @@ $siteName = site()->name ?? config('app.name');
     <?= $content ?>
   </main>
 
-  <?= render_view('front/partials/footer') ?>
+  <?= render_view('front/partials/footer', ['pages' => $cmsPages]) ?>
+
+  <?= render_view('front/partials/cookie-banner', ['pages' => $cmsPages]) ?>
 
   <script src="<?= e(asset('js/site.js')) ?>" defer></script>
   <?php foreach ($pageScripts as $script): ?>

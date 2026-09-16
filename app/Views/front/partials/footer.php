@@ -2,7 +2,17 @@
 /**
  * Pied de page du site public : navigation secondaire, coordonnées du site et mentions.
  * Les coordonnées affichées sont celles du site courant (Pays & sites), jamais des valeurs en dur.
+ *
+ * Les pages éditoriales et légales ne sont listées que si elles sont publiées (table `pages`) :
+ * tant que le client n'a pas fourni ses textes, aucun lien mort n'apparaît.
+ *
+ * @var array $pages Pages publiées par code
  */
+$pages ??= [];
+// Une page publiée devient un lien portant son propre titre ; sinon rien.
+$pageLink = static fn (string $code): ?array => isset($pages[$code])
+    ? [$pages[$code]['title'], $pages[$code]['slug']]
+    : null;
 $site = site();
 $siteName = $site->name ?? config('app.name');
 $country = $site?->country->localizedName(locale()) ?? '';
@@ -14,18 +24,22 @@ $columns = [
         [__('front.footer.land'), 'acheter/terrains'],
         [__('front.footer.commercial'), 'louer/commercial-bureaux'],
     ],
-    __('front.footer.sell') => [
+    __('front.footer.sell') => array_values(array_filter([
         [__('front.footer.submit_property'), 'deposer-un-bien'],
         [__('front.footer.find_agency'), 'agences'],
         [__('front.footer.become_partner'), 'devenir-partenaire'],
-        [__('front.footer.how_it_works'), 'comment-ca-marche'],
-    ],
-    $siteName => [
-        [__('front.footer.about'), 'a-propos'],
-        [__('front.footer.news'), 'actualites'],
+        $pageLink('how_it_works'),
+    ])),
+    $siteName => array_values(array_filter([
+        $pageLink('about'),
         [__('front.footer.contact'), 'contact'],
-    ],
+    ])),
 ];
+$legal = array_values(array_filter([
+    $pageLink('legal_notice'),
+    $pageLink('terms'),
+    $pageLink('privacy'),
+]));
 $phone = $site->contactPhone ?? null;
 $email = $site->contactEmail ?? null;
 $whatsapp = $site->contactWhatsapp ?? null;
@@ -65,11 +79,13 @@ $whatsapp = $site->contactWhatsapp ?? null;
     </div>
     <div class="im-footer__bottom">
       <span>© <?= e(date('Y')) ?> <?= e($siteName) ?></span>
-      <span>
-        <a href="<?= e(url('mentions-legales')) ?>"><?= e(__('front.footer.legal')) ?></a> ·
-        <a href="<?= e(url('conditions-generales')) ?>"><?= e(__('front.footer.terms')) ?></a> ·
-        <a href="<?= e(url('politique-de-confidentialite')) ?>"><?= e(__('front.footer.privacy')) ?></a>
+      <?php if ($legal !== []): ?>
+      <span class="im-footer__legal">
+        <?php foreach ($legal as $index => [$label, $href]): ?>
+        <?= $index > 0 ? ' · ' : '' ?><a href="<?= e(url($href)) ?>"><?= e($label) ?></a>
+        <?php endforeach; ?>
       </span>
+      <?php endif; ?>
     </div>
   </div>
 </footer>

@@ -6,8 +6,11 @@ declare(strict_types=1);
  * Routes du site public.
  */
 
+use App\Controllers\Front\AgencyController;
+use App\Controllers\Front\ContactController;
 use App\Controllers\Front\FavoriteController;
 use App\Controllers\Front\HomeController;
+use App\Controllers\Front\PageController;
 use App\Controllers\Front\PropertyController;
 use App\Controllers\Front\SearchController;
 use App\Controllers\Preview\FrontPreviewController;
@@ -22,6 +25,28 @@ return static function (Router $router, App $app): void {
     $listing = '/annonces/{slug:[a-z0-9-]+}-ref{id:[0-9]+}';
     $router->get($listing, [PropertyController::class, 'show'], 'property.show');
     $router->post($listing . '/contact', [PropertyController::class, 'contact'], 'property.contact');
+
+    // Annuaire et profil public des agences (lot 1.11)
+    $router->get('/agences', [AgencyController::class, 'index'], 'agencies');
+    $router->get('/agences/{slug:[a-z0-9-]+}', [AgencyController::class, 'show'], 'agency.show');
+    $router->post('/agences/{slug:[a-z0-9-]+}/contact', [AgencyController::class, 'contact'], 'agency.contact');
+
+    // Formulaires publics autonomes (lot 1.11)
+    $router->get('/contact', [ContactController::class, 'contact'], 'contact');
+    $router->post('/contact', [ContactController::class, 'sendContact']);
+    $router->get('/devenir-partenaire', [ContactController::class, 'partner'], 'partner');
+    $router->post('/devenir-partenaire', [ContactController::class, 'sendPartner']);
+    $router->get('/deposer-un-bien', [ContactController::class, 'submit'], 'submit-property');
+    $router->post('/deposer-un-bien', [ContactController::class, 'sendSubmit']);
+
+    // Pages éditoriales et légales : une route par page publiée (table `pages`, liste en cache).
+    // Elles sont déclarées ici, au-dessus du bloc de recherche : un slug de page ne doit donc
+    // jamais reprendre un slug de transaction, sinon la recherche passerait avant.
+    foreach ($app->pages()->publishedSlugs() as $pageSlug) {
+        // Le slug est passé en paramètre de route (motif littéral) : PageController::show()
+        // le reçoit comme n'importe quel autre segment nommé.
+        $router->get('/{slug:' . preg_quote($pageSlug, '#') . '}', [PageController::class, 'show']);
+    }
 
     if ($app->config->get('app.preview')) {
         // PROVISOIRE (APP_ENV=local) : charte graphique de référence, avec des données fictives

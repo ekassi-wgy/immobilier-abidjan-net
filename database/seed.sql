@@ -399,7 +399,10 @@ INSERT INTO features (code, name, name_translations, feature_group, icon, sort_o
   ('fiber_optic',      'Fibre optique',            '{"en": "Fibre internet"}',   'connectivity', 'wifi',        14);
 
 -- -----------------------------------------------------------------------------
--- Pages système (contenu à rédiger, non publiées)
+-- Pages système. Les deux pages éditoriales sont remplies et publiées par la migration
+-- 0004 (textes de proposition) ; les quatre pages légales restent non publiées tant que
+-- le client n'a pas fourni ses textes — une page non publiée répond 404 et son lien
+-- n'apparaît pas dans le pied de page.
 -- -----------------------------------------------------------------------------
 INSERT INTO pages (site_id, code, slug, locale, title, is_published) VALUES
   (@site, 'about',         'a-propos',                    'fr', 'À propos',                     0),

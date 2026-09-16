@@ -109,6 +109,24 @@
   renderFavorites();
   writeFavoritesCookie(readFavorites()); // le cookie peut expirer alors que le stockage local persiste
 
+  /* Bandeau cookies : information, pas consentement (aucun traceur sur le site) ---------- */
+  var cookies = document.querySelector('[data-cookies]');
+  if (cookies) {
+    var COOKIES_KEY = 'ian.cookies';
+    var seen = false;
+    try { seen = localStorage.getItem(COOKIES_KEY) === '1'; } catch (e) { seen = false; }
+
+    if (!seen) {
+      cookies.hidden = false;
+      cookies.querySelectorAll('[data-cookies-accept]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          cookies.hidden = true;
+          try { localStorage.setItem(COOKIES_KEY, '1'); } catch (e) { /* stockage indisponible */ }
+        });
+      });
+    }
+  }
+
   /* Recherche : changement de transaction ---------------------------------------------- */
   document.querySelectorAll('[data-search]').forEach(function (form) {
     var budgets = {};

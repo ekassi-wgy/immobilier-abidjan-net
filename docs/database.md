@@ -112,6 +112,7 @@ erDiagram
 - **Mise en avant** : une annonce `is_featured = 1` n'est « à la une » que si `featured_until` est NULL ou dans le futur ; les agences en vedette sont `agencies.is_featured = 1` et `status = 'active'`.
 - **Hero de l'accueil** : `banners` avec `placement = 'home_hero'`, `is_active = 1` et période (`starts_at` / `ends_at`) courante ; sans bannière, l'accueil sert les photos provisoires livrées avec la maquette (`HomeController::FALLBACK_SLIDES`). Le CRUD des bannières arrive au lot 2.2.
 - **Icônes des catégories** : `property_categories.icon` porte un nom du sprite Phosphor local (`public/assets/img/icons.svg`) ; les familles du seed ont été alignées par la migration `0003`.
+- **Pages éditoriales** (`pages`) : le seed crée six pages système vides et non publiées. La migration `0004` remplit et publie « À propos » et « Comment ça marche » (textes de proposition, modifiables au lot 2.2) ; les quatre pages légales restent **non publiées** en attendant les textes du client. Une page non publiée répond 404 et son lien disparaît du pied de page — le site ne sert donc jamais de page vide. Les slugs publiés sont mis en cache (`PageRepository::publishedSlugs()`) pour déclarer une route par page : un slug de page ne doit jamais reprendre un slug de `transaction_types`, et toute écriture dans `pages` doit appeler `flush()`.
 - **URL publique d'une annonce** : `/annonces/{slug}-ref{id}` (`ListingPresenter::url()`) ; le `slug` reste modifiable en back-office, l'identifiant garantit l'unicité.
 
 ## Conventions

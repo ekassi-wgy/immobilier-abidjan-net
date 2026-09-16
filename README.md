@@ -16,6 +16,7 @@ Production : **https://immobilier.abidjan.net** (sous-domaine, hébergement Ples
 |---|---|
 | [`docs/cahier-des-charges.md`](docs/cahier-des-charges.md) | Périmètre fonctionnel. **Fait foi.** |
 | [`docs/PLAN.md`](docs/PLAN.md) | Plan par phases et lots, état d'avancement, pré-requis client |
+| [`docs/tests.md`](docs/tests.md) | Checklist de recette par rôle, à rejouer avant chaque mise en production |
 | [`docs/database.md`](docs/database.md) | Schéma de la base, choix de conception, règles métier, migrations |
 | [`CLAUDE.md`](CLAUDE.md) | Conventions de développement, direction artistique, méthode de travail |
 | `/styleguide` (en local) | Charte graphique de référence : couleurs, typographie, composants `im-` |
@@ -99,8 +100,9 @@ référentiels, agences et comptes, module annonces avec workflow de validation 
 tout le site public (accueil, résultats avec filtres / tri / pagination / carte, fiche annonce, annuaire et
 profil des agences, pages éditoriales, formulaires publics, favoris, bandeau cookies), et le back-office
 complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plus aucun écran à données
-fictives.** Lot suivant : **1.13, recette par rôle** (checklist `docs/tests.md`, mobile 375 px,
-navigateurs). Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+fictives**, et la recette par rôle est passée ([`docs/tests.md`](docs/tests.md)). **La phase 1 est
+terminée.** Lot suivant : **2.1, SEO** (méta par page, sitemap.xml, redirections). Le détail lot par
+lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 > **Décisions attendues du client** : les **textes légaux** (mentions légales, CGU, confidentialité,
 > cookies) — leurs pages existent en base mais restent non publiées, donc invisibles et sans lien dans le

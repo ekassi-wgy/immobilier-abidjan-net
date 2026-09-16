@@ -18,6 +18,8 @@
   var captionWrap = hero.querySelector('[data-hero-caption-wrap]');
   var counter = hero.querySelector('[data-hero-current]');
   var toggle = hero.querySelector('[data-hero-toggle]');
+  var labelPause = (toggle && toggle.getAttribute('data-hero-label-pause')) || 'Mettre le diaporama en pause';
+  var labelPlay = (toggle && toggle.getAttribute('data-hero-label-play')) || 'Relancer le diaporama';
   var iconPause = hero.querySelector('[data-hero-icon-pause]');
   var iconPlay = hero.querySelector('[data-hero-icon-play]');
 
@@ -98,7 +100,7 @@
       remaining = Math.max(0, remaining - (Date.now() - startedAt));
     }
     if (toggle) {
-      toggle.setAttribute('aria-label', pausedByUser ? 'Relancer le diaporama' : 'Mettre le diaporama en pause');
+      toggle.setAttribute('aria-label', pausedByUser ? labelPlay : labelPause);
       iconPause.hidden = pausedByUser;
       iconPlay.hidden = !pausedByUser;
     }

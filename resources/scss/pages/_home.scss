@@ -1,0 +1,280 @@
+// =============================================================================
+// Accueil (lot 1.8) — types de biens, communes, chiffres clés, agences, appel partenaire
+// =============================================================================
+
+// Types de biens --------------------------------------------------------------
+.im-family-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include im-up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include im-up(lg) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.im-family {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius;
+  background: $im-white;
+  color: $im-ink;
+  transition: border-color $im-duration $im-ease, transform $im-duration $im-ease, box-shadow $im-duration $im-ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($im-blue, .45);
+    box-shadow: $im-shadow-sm;
+    color: $im-ink;
+    transform: translateY(-2px);
+  }
+
+  &.is-empty { color: $im-muted; }
+
+  &__icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: $im-radius-sm;
+    background: $im-blue-tint;
+    color: $im-navy;
+
+    .im-icon { width: 1.4rem; height: 1.4rem; }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__name {
+    font-weight: $im-weight-semibold;
+    line-height: 1.3;
+  }
+
+  &__count {
+    color: $im-muted;
+    font-size: .8125rem;
+  }
+
+  &__arrow {
+    flex: none;
+    margin-left: auto;
+    color: $im-subtle;
+    transition: transform $im-duration $im-ease, color $im-duration $im-ease;
+  }
+
+  &:hover &__arrow,
+  &:focus-visible &__arrow {
+    color: $im-blue;
+    transform: translateX(3px);
+  }
+}
+
+// Communes en raccourci -------------------------------------------------------
+.im-chips-block {
+  margin-top: im-fluid(1.75rem, 2.5rem);
+
+  &__title {
+    margin-bottom: .85rem;
+    color: $im-muted;
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+  }
+}
+
+.im-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Chiffres clés ---------------------------------------------------------------
+.im-section--figures {
+  background: $im-navy-deep;
+  color: $im-white;
+}
+
+.im-figures {
+  display: grid;
+  gap: im-fluid(2rem, 3rem);
+  align-items: center;
+
+  @include im-up(lg) { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); }
+
+  &__text .im-lead { color: rgba($im-white, .72); }
+  &__text .im-h3 { color: $im-white; }
+
+  &__list {
+    display: grid;
+    gap: 1.5rem 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+
+    @include im-up(md) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+}
+
+.im-figure {
+  padding-left: 1rem;
+  border-left: 1px solid rgba($im-white, .18);
+
+  &__value {
+    display: block;
+    font-size: im-fluid(2rem, 3rem);
+    font-weight: $im-weight-thin;
+    line-height: 1.05;
+    letter-spacing: -.02em;
+  }
+
+  &__label {
+    margin: .35rem 0 0;
+    color: rgba($im-white, .68);
+    font-size: .875rem;
+  }
+}
+
+// Agences en vedette ----------------------------------------------------------
+.im-agency-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include im-up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include im-up(lg) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.im-agency {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius;
+  background: $im-white;
+  color: $im-ink;
+  transition: border-color $im-duration $im-ease, box-shadow $im-duration $im-ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($im-blue, .45);
+    box-shadow: $im-shadow-sm;
+    color: $im-ink;
+  }
+
+  &__logo {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    overflow: hidden;
+    border: 1px solid $im-line-soft;
+    border-radius: $im-radius-sm;
+    background: $im-snow;
+    color: $im-navy;
+    font-weight: $im-weight-bold;
+
+    img { width: 100%; height: 100%; object-fit: contain; }
+  }
+
+  &__body { min-width: 0; }
+
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-weight: $im-weight-semibold;
+    line-height: 1.3;
+  }
+
+  &__check {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: $im-blue;
+  }
+
+  &__meta {
+    display: block;
+    color: $im-muted;
+    font-size: .8125rem;
+  }
+}
+
+// Appel aux agences partenaires ------------------------------------------------
+.im-section--partner {
+  background: $im-mist;
+}
+
+.im-partner {
+  display: grid;
+  gap: im-fluid(1.5rem, 2.5rem);
+  align-items: center;
+
+  @include im-up(lg) { grid-template-columns: minmax(0, 1fr) auto; }
+
+  &__text {
+    max-width: 44rem;
+
+    .im-h2 { margin-top: .75rem; }
+    .im-lead { margin-top: .85rem; }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .85rem;
+
+    @include im-up(lg) { align-items: flex-end; text-align: right; }
+  }
+
+  &__secondary {
+    margin: 0;
+    color: $im-muted;
+    font-size: .875rem;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: .25rem;
+      font-weight: $im-weight-semibold;
+    }
+  }
+}
+
+.im-eyebrow--light { color: $im-navy; }
+
+// Accueil sans annonce (lancement) ---------------------------------------------
+.im-empty-home {
+  max-width: 34rem;
+  margin-inline: auto;
+  padding-block: im-fluid(1rem, 2rem);
+  text-align: center;
+
+  &__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 1rem;
+    color: $im-subtle;
+  }
+
+  .im-lead { margin: .85rem 0 1.75rem; }
+}

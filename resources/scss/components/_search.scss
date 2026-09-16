@@ -12,8 +12,14 @@
   @include im-up(lg) { padding: 1.5rem 1.5rem 1.1rem; }
 
   &__tabs {
+    // Les onglets défilent quand le pays propose beaucoup de transactions (bail commercial, cession…) :
+    // un dégradé signale le contenu hors écran, sans flèche ni barre de défilement visible.
+    position: relative;
     margin-bottom: 1.1rem;
     border-bottom: 1px solid $im-line;
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent 100%);
+
+    @include im-up(lg) { mask-image: none; }
   }
 
   &__fields {

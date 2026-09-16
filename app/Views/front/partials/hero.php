@@ -2,24 +2,26 @@
 /**
  * Hero de l'accueil : diaporama + recherche flottante.
  *
- * @var array $slides  Liste de ['image' => 'img/…/nom' (sans suffixe), 'caption' => ?string, 'origin' => '50% 50%']
- * @var int   $listingsCount Nombre d'annonces publiées
- * @var array $search  Données du module de recherche (voir partials/search)
- * @var int   $interval Durée d'une diapositive (ms)
+ * @var array $slides        Liste de ['desktop','mobile','fallback' => URL, 'caption' => ?string, 'origin' => '50% 50%']
+ * @var int   $listingsCount Nombre d'annonces en ligne
+ * @var array $search        Données du module de recherche (voir partials/search)
+ * @var int   $interval      Durée d'une diapositive (ms)
+ * @var string $city         Ville principale du pays (titre éditorial)
  */
 $interval ??= 7000;
 $total = count($slides);
+$country = site()?->country->localizedName(locale()) ?? '';
 ?>
-<section class="im-hero" aria-roledescription="carrousel" aria-label="Vues d'Abidjan" data-hero style="--im-hero-interval: <?= (int) $interval ?>ms">
+<section class="im-hero" aria-roledescription="carrousel" aria-label="<?= e(__('front.hero.carousel_label', ['country' => $country])) ?>" data-hero style="--im-hero-interval: <?= (int) $interval ?>ms">
   <div class="im-hero__slides">
     <?php foreach ($slides as $index => $slide): ?>
     <figure class="im-hero__slide<?= $index === 0 ? ' is-active' : '' ?>"
-            role="group" aria-roledescription="diapositive" aria-label="<?= $index + 1 ?> sur <?= $total ?>"
+            role="group" aria-roledescription="diapositive" aria-label="<?= e(__('front.hero.slide_label', ['index' => $index + 1, 'total' => $total])) ?>"
             data-caption="<?= e($slide['caption'] ?? '') ?>"<?= $index === 0 ? '' : ' aria-hidden="true"' ?>>
       <picture>
-        <source media="(max-width: 767px)" type="image/webp" srcset="<?= e(url('assets/' . $slide['image'] . '-960.webp')) ?>">
-        <source type="image/webp" srcset="<?= e(url('assets/' . $slide['image'] . '-1920.webp')) ?>">
-        <img class="im-hero__image" src="<?= e(url('assets/' . $slide['image'] . '-1920.jpg')) ?>" alt=""
+        <source media="(max-width: 767px)" type="image/webp" srcset="<?= e($slide['mobile']) ?>">
+        <source type="image/webp" srcset="<?= e($slide['desktop']) ?>">
+        <img class="im-hero__image" src="<?= e($slide['fallback']) ?>" alt=""
              width="1920" height="1080" decoding="async"
              <?= $index === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
              style="--im-hero-origin: <?= e($slide['origin'] ?? '50% 50%') ?>">
@@ -31,12 +33,17 @@ $total = count($slides);
 
   <div class="im-container im-hero__inner">
     <div class="im-hero__content">
-      <p class="im-hero__eyebrow"><?= icon('verified') ?> <span><span class="im-num"><?= e(format_number($listingsCount)) ?></span> annonces vérifiées en Côte d’Ivoire</span></p>
+      <p class="im-hero__eyebrow">
+        <?= icon('verified') ?>
+        <span><?= $listingsCount > 0
+            ? '<span class="im-num">' . e(format_number($listingsCount)) . '</span> ' . e(__('front.hero.eyebrow_suffix', ['country' => $country]))
+            : e(__('front.hero.eyebrow_empty', ['country' => $country])) ?></span>
+      </p>
       <h1 class="im-display im-hero__title">
-        Votre prochaine adresse
-        <span class="im-hero__title-soft">à Abidjan.</span>
+        <?= e(__('front.hero.title')) ?>
+        <span class="im-hero__title-soft"><?= e(__('front.hero.title_soft', ['city' => $city])) ?></span>
       </h1>
-      <p class="im-hero__text">Villas, appartements, terrains et bureaux publiés par des agences partenaires, contrôlés avant leur mise en ligne.</p>
+      <p class="im-hero__text"><?= e(__('front.hero.text')) ?></p>
     </div>
 
     <?php if ($total > 1): ?>
@@ -48,10 +55,10 @@ $total = count($slides);
         <span class="im-hero__counter" aria-hidden="true"><strong data-hero-current>01</strong> / <?= e(str_pad((string) $total, 2, '0', STR_PAD_LEFT)) ?></span>
         <div class="im-hero__progress">
           <?php foreach ($slides as $index => $slide): ?>
-          <button class="im-hero__step<?= $index === 0 ? ' is-active' : '' ?>" type="button" aria-label="Afficher la photo <?= $index + 1 ?>"<?= $index === 0 ? ' aria-current="true"' : '' ?> data-hero-step="<?= $index ?>"></button>
+          <button class="im-hero__step<?= $index === 0 ? ' is-active' : '' ?>" type="button" aria-label="<?= e(__('front.hero.show_photo', ['index' => $index + 1])) ?>"<?= $index === 0 ? ' aria-current="true"' : '' ?> data-hero-step="<?= $index ?>"></button>
           <?php endforeach; ?>
         </div>
-        <button class="im-hero__toggle" type="button" aria-label="Mettre le diaporama en pause" data-hero-toggle>
+        <button class="im-hero__toggle" type="button" aria-label="<?= e(__('front.hero.pause')) ?>" data-hero-label-pause="<?= e(__('front.hero.pause')) ?>" data-hero-label-play="<?= e(__('front.hero.play')) ?>" data-hero-toggle>
           <span data-hero-icon-pause><?= icon('pause') ?></span>
           <span data-hero-icon-play hidden><?= icon('play') ?></span>
         </button>

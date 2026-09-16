@@ -28,6 +28,7 @@ use App\Services\PropertyWorkflow;
 use App\Services\PageRepository;
 use App\Services\RateLimiter;
 use App\Services\SearchFilters;
+use App\Services\SeoRepository;
 use App\Services\SearchOptions;
 use App\Services\Settings;
 use App\Services\StatsRepository;
@@ -40,7 +41,7 @@ use Throwable;
 /**
  * Noyau de l'application : services partagés (créés à la demande) et traitement d'une requête.
  *
- * Cycle : requête → redirection des « / » finaux → middlewares globaux (site courant, CSRF)
+ * Cycle : requête → redirection des « / » finaux → middlewares globaux (site courant, redirections SEO, CSRF)
  *         → routeur → middlewares de la route → contrôleur → réponse (+ en-têtes de sécurité, page d'erreur si exception).
  */
 final class App
@@ -50,6 +51,7 @@ final class App
     /** Middlewares appliqués à toute requête, avant le routage, dans l'ordre. */
     private const GLOBAL_MIDDLEWARE = [
         \App\Middlewares\SiteResolver::class,
+        \App\Middlewares\ApplyRedirects::class,
         \App\Middlewares\VerifyCsrfToken::class,
     ];
 
@@ -221,6 +223,15 @@ final class App
     public function searchFilters(): SearchFilters
     {
         return $this->service(SearchFilters::class, fn () => new SearchFilters($this->db()));
+    }
+
+    public function seo(): SeoRepository
+    {
+        return $this->service(SeoRepository::class, fn () => new SeoRepository(
+            $this->db(),
+            $this->cache(),
+            $this->config->get('app.cache.sites_ttl')
+        ));
     }
 
     public function pages(): PageRepository

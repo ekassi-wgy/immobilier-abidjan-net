@@ -76,13 +76,53 @@ final class ListingRepository
             $params["ex{$index}"] = $id;
         }
 
-        return $this->db->select(
-            'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . '
-             WHERE ' . $this->publishedScope() . ($exclude !== '' ? " AND p.id NOT IN ({$exclude})" : '') . '
-             ORDER BY p.published_at DESC, p.id DESC
-             LIMIT :limit',
-            $params
+        // En deux temps volontairement : l'ordre chronologique se lit directement dans
+        // `idx_properties_published` tant que la requête ne porte que sur `properties`. Avec les
+        // jointures de la carte dans le même SELECT, l'optimiseur change d'ordre de jointure et
+        // trie toutes les annonces en ligne du pays (37 ms contre 1 ms sur 10 000 annonces).
+        $ids = array_map(
+            static fn (array $row): int => (int) $row['id'],
+            $this->db->select(
+                'SELECT p.id FROM properties p
+                 WHERE ' . $this->publishedScope() . ($exclude !== '' ? " AND p.id NOT IN ({$exclude})" : '') . '
+                 ORDER BY p.published_at DESC, p.id DESC
+                 LIMIT :limit',
+                $params
+            )
         );
+
+        return $this->cardsByIds($countryId, $ids);
+    }
+
+    /**
+     * Cartes annonce d'une liste d'identifiants, dans l'ordre reçu.
+     *
+     * @param list<int> $ids
+     * @return list<array<string, mixed>>
+     */
+    private function cardsByIds(int $countryId, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = ['country' => $countryId];
+        foreach ($ids as $index => $id) {
+            $placeholders[] = ":i{$index}";
+            $params["i{$index}"] = $id;
+        }
+
+        $rows = [];
+        foreach ($this->db->select(
+            'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . '
+             WHERE ' . $this->publishedScope() . ' AND p.id IN (' . implode(', ', $placeholders) . ')',
+            $params
+        ) as $row) {
+            $rows[(int) $row['id']] = $row;
+        }
+
+        return array_values(array_intersect_key($rows, array_flip($ids)));
     }
 
     /**

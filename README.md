@@ -94,12 +94,16 @@ routes/          web.php (site public) · cmsadmin.php (back-office)
 
 ## État d'avancement
 
-Phase 1 (MVP Côte d'Ivoire) : **lots 0.1 à 1.10 terminés** — socle applicatif, multisite, authentification,
+Phase 1 (MVP Côte d'Ivoire) : **lots 0.1 à 1.11 terminés** — socle applicatif, multisite, authentification,
 référentiels, agences et comptes, module annonces avec workflow de validation et révisions, espace agence,
-accueil du site public, page de résultats (filtres multicritères, tri, pagination, vues grille / liste /
-carte, favoris visiteurs) et fiche annonce (galerie, critères, situation juridique, carte, demande de
-contact, biens similaires). Lot suivant : **1.11, annuaire des agences, pages statiques et formulaires
-publics**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+et tout le site public : accueil, page de résultats (filtres multicritères, tri, pagination, vues grille /
+liste / carte, favoris visiteurs), fiche annonce (galerie, critères, situation juridique, carte, contact,
+biens similaires), annuaire et profil des agences, pages éditoriales, formulaires Contact / Devenir
+partenaire / Déposer un bien, bandeau cookies. Lot suivant : **1.12, tableau de bord et exports du
+back-office**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+
+> Les **textes légaux** (mentions légales, CGU, confidentialité, cookies) sont attendus du client : leurs
+> pages existent en base mais restent non publiées, donc invisibles et sans lien dans le pied de page.
 
 ## Règles à respecter
 

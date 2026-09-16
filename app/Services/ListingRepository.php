@@ -755,6 +755,92 @@ final class ListingRepository
         );
     }
 
+    /**
+     * Annonces en ligne pour le sitemap (lot 2.1), avec leur date de dernière modification.
+     * L'URL est composée par `ListingPresenter::url()` : une seule façon de l'écrire.
+     *
+     * @return list<array{id: int, slug: string, lastmod: ?string}>
+     */
+    public function sitemapProperties(int $countryId, int $limit = 20000): array
+    {
+        return array_map(
+            static fn (array $row): array => [
+                'id' => (int) $row['id'],
+                'slug' => (string) $row['slug'],
+                'lastmod' => $row['updated_at'] !== null ? (string) $row['updated_at'] : (string) $row['published_at'],
+            ],
+            $this->db->select(
+                'SELECT p.id, p.slug, p.updated_at, p.published_at FROM properties p
+                 WHERE ' . $this->publishedScope() . '
+                 ORDER BY p.published_at DESC LIMIT :limit',
+                ['country' => $countryId, 'limit' => $limit]
+            )
+        );
+    }
+
+    /**
+     * URL des agences partenaires actives.
+     *
+     * @return list<array{loc: string, lastmod: ?string}>
+     */
+    public function sitemapAgencies(int $countryId): array
+    {
+        return array_map(
+            static fn (array $row): array => [
+                'loc' => 'agences/' . $row['slug'],
+                'lastmod' => $row['updated_at'] !== null ? (string) $row['updated_at'] : null,
+            ],
+            $this->db->select(
+                "SELECT slug, updated_at FROM agencies
+                 WHERE country_id = :country AND status = 'active' AND deleted_at IS NULL
+                 ORDER BY name",
+                ['country' => $countryId]
+            )
+        );
+    }
+
+    /**
+     * Combinaisons transaction × type et transaction × ville qui portent au moins une annonce :
+     * ce sont les seules pages de résultats qui méritent d'être proposées aux moteurs.
+     *
+     * @return list<string> Chemins relatifs
+     */
+    public function sitemapSearchPaths(int $countryId): array
+    {
+        $paths = [];
+
+        foreach ($this->db->select(
+            'SELECT DISTINCT t.slug AS transaction, c.slug AS category
+             FROM properties p
+             JOIN transaction_types t ON t.id = p.transaction_type_id AND t.is_active = 1
+             JOIN property_categories c ON c.id = p.category_id AND c.is_active = 1
+             WHERE ' . $this->publishedScope() . '
+             ORDER BY t.slug, c.slug',
+            ['country' => $countryId]
+        ) as $row) {
+            $paths[] = (string) $row['transaction'];
+            $paths[] = $row['transaction'] . '/' . $row['category'];
+        }
+
+        foreach ($this->db->select(
+            'SELECT DISTINCT t.slug AS transaction, ci.slug AS city, m.slug AS commune
+             FROM properties p
+             JOIN transaction_types t ON t.id = p.transaction_type_id AND t.is_active = 1
+             JOIN cities ci ON ci.id = p.city_id AND ci.is_active = 1
+             LEFT JOIN communes m ON m.id = p.commune_id AND m.is_active = 1
+             WHERE ' . $this->publishedScope() . '
+             ORDER BY t.slug, ci.slug, m.slug',
+            ['country' => $countryId]
+        ) as $row) {
+            $paths[] = $row['transaction'] . '/' . $row['city'];
+            if ($row['commune'] !== null) {
+                $paths[] = $row['transaction'] . '/' . $row['city'] . '/' . $row['commune'];
+            }
+        }
+
+        return array_values(array_unique($paths));
+    }
+
     /** Annonces en ligne du pays : condition commune à toutes les requêtes publiques. */
     private function publishedScope(string $countryParam = ':country'): string
     {

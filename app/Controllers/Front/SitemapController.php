@@ -45,10 +45,12 @@ final class SitemapController extends Controller
             $urls[] = ['loc' => $slug, 'lastmod' => null, 'priority' => '0.3', 'changefreq' => 'yearly'];
         }
 
-        // Une page mise en noindex depuis le back-office sort du sitemap.
+        // Une page mise en noindex depuis le back-office sort du sitemap. La liste est chargée
+        // en une requête : l'interroger URL par URL en ferait des milliers.
+        $noindex = $seo->noindexPaths($site->id);
         $urls = array_values(array_filter(
             $urls,
-            static fn (array $url): bool => ($seo->meta('/' . ltrim((string) $url['loc'], '/'), $site->id)['noindex'] ?? false) === false
+            static fn (array $url): bool => !isset($noindex[$seo->normalize((string) $url['loc'])])
         ));
 
         return new Response($this->xml($urls), 200, [

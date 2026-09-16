@@ -56,6 +56,27 @@ final class SeoRepository
     }
 
     /**
+     * URL mises en `noindex` pour ce site, en une seule requête.
+     *
+     * Le sitemap doit écarter ces pages : les interroger une par une ferait autant de requêtes
+     * qu'il y a d'URL (près de 10 000 sur un site chargé).
+     *
+     * @return array<string, true> Chemins normalisés, en clés
+     */
+    public function noindexPaths(int $siteId): array
+    {
+        $paths = [];
+        foreach ($this->db->select(
+            'SELECT path FROM seo_meta WHERE site_id = :site AND noindex = 1',
+            ['site' => $siteId]
+        ) as $row) {
+            $paths[(string) $row['path']] = true;
+        }
+
+        return $paths;
+    }
+
+    /**
      * Redirection active pour une URL, ou null.
      *
      * @return array{id: int, target: string, code: int}|null

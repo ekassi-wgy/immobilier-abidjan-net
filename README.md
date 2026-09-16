@@ -102,12 +102,14 @@ profil des agences, pages éditoriales, formulaires publics, favoris, bandeau co
 complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plus aucun écran à données
 fictives**, et la recette par rôle est passée ([`docs/tests.md`](docs/tests.md)). **La phase 1 est
 terminée**, et le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robots.txt`, redirections gérées
-en base) est livré. Lot suivant : **2.2, blog et CMS léger** (pages, actualités, bannières). Le
-détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+en base) et le lot 2.2 (pages, actualités, bannières) sont livrés. Lot suivant : **2.3, audit de
+sécurité et performance**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
-> **Décisions attendues du client** : les **textes légaux** (mentions légales, CGU, confidentialité,
-> cookies) — leurs pages existent en base mais restent non publiées, donc invisibles et sans lien dans le
-> pied de page ; et le **mode de commission**, que l'écran Paramètres laisse à « non décidé ».
+> **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)
+> sont rédigés au nom de Weblogy et publiés — une relecture juridique est recommandée et quatre mentions
+> obligatoires restent à compléter dans les mentions légales (forme juridique, capital, RCCM, directeur de
+> publication, hébergeur). La **commission** est proposée à 25 % des honoraires d'agence, plancher
+> 50 000 FCFA, modifiable dans Paramètres.
 
 ## Règles à respecter
 

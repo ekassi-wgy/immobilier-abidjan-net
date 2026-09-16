@@ -101,8 +101,9 @@ tout le site public (accueil, résultats avec filtres / tri / pagination / carte
 profil des agences, pages éditoriales, formulaires publics, favoris, bandeau cookies), et le back-office
 complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plus aucun écran à données
 fictives**, et la recette par rôle est passée ([`docs/tests.md`](docs/tests.md)). **La phase 1 est
-terminée.** Lot suivant : **2.1, SEO** (méta par page, sitemap.xml, redirections). Le détail lot par
-lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+terminée**, et le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robots.txt`, redirections gérées
+en base) est livré. Lot suivant : **2.2, blog et CMS léger** (pages, actualités, bannières). Le
+détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 > **Décisions attendues du client** : les **textes légaux** (mentions légales, CGU, confidentialité,
 > cookies) — leurs pages existent en base mais restent non publiées, donc invisibles et sans lien dans le

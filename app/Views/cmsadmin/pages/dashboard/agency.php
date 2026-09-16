@@ -18,7 +18,7 @@
  * @var bool                      $isOwner   Responsable de l'agence (peut modifier le profil)
  */
 $firstName = explode(' ', trim((string) $user['name']))[0];
-$maxViews = max(array_map(static fn (array $row): int => (int) $row['views'], $top) ?: [1]);
+$maxViews = max([1, ...array_map(static fn (array $row): int => (int) $row['views'], $top)]);
 $propertyUrl = static fn (array $row): string => cmsadmin_url('annonces/' . $row['reference']);
 $chartData = ['labels' => $audience['labels'], 'views' => $audience['views'], 'leads' => $audience['leads'],
     'legend' => ['views' => __('properties.views'), 'leads' => __('properties.leads')]];

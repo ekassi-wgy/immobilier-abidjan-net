@@ -137,7 +137,7 @@ return [
         'hero' => [
             'carousel_label' => 'Vues de :country',
             'slide_label' => ':index sur :total',
-            'eyebrow_suffix' => 'annonces vérifiées en :country',
+            'eyebrow_suffix' => 'annonce vérifiée en :country|annonces vérifiées en :country',
             'eyebrow_empty' => 'Des annonces vérifiées en :country',
             'title' => 'Votre prochaine adresse',
             'title_soft' => 'à :city.',

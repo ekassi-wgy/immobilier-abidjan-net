@@ -36,7 +36,7 @@ $country = site()?->country->localizedName(locale()) ?? '';
       <p class="im-hero__eyebrow">
         <?= icon('verified') ?>
         <span><?= $listingsCount > 0
-            ? '<span class="im-num">' . e(format_number($listingsCount)) . '</span> ' . e(__('front.hero.eyebrow_suffix', ['country' => $country]))
+            ? '<span class="im-num">' . e(format_number($listingsCount)) . '</span> ' . e(__n('front.hero.eyebrow_suffix', $listingsCount, ['country' => $country]))
             : e(__('front.hero.eyebrow_empty', ['country' => $country])) ?></span>
       </p>
       <h1 class="im-display im-hero__title">

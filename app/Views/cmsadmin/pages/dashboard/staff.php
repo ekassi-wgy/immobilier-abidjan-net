@@ -20,8 +20,8 @@
  * @var array                     $commission   ['mode','label'] — null tant que non décidé
  */
 $firstName = explode(' ', trim((string) $user['name']))[0];
-$maxViews = max(array_map(static fn (array $row): int => (int) $row['views'], $top) ?: [1]);
-$maxAgencyViews = max(array_map(static fn (array $row): int => (int) $row['views'], $topAgencies) ?: [1]);
+$maxViews = max([1, ...array_map(static fn (array $row): int => (int) $row['views'], $top)]);
+$maxAgencyViews = max([1, ...array_map(static fn (array $row): int => (int) $row['views'], $topAgencies)]);
 $propertyUrl = static fn (array $row): string => cmsadmin_url('annonces/' . $row['reference']);
 $chartData = ['labels' => $audience['labels'], 'views' => $audience['views'], 'leads' => $audience['leads'],
     'legend' => ['views' => __('properties.views'), 'leads' => __('properties.leads')]];

@@ -57,6 +57,10 @@ final class PropertyPresenter
      */
     public function revisionDiff(array $property, array $revisionData, array $liveAttributes, array $liveValues, array $newAttributes, array $liveFeatures, array $liveImages): array
     {
+        // `property_revisions.data` est du JSON libre : une charge utile incomplète (format plus
+        // ancien, correction manuelle en base) ne doit pas faire tomber la fiche en erreur 500.
+        $revisionData += ['fields' => [], 'attributes' => [], 'features' => [], 'images' => []];
+
         $fields = (array) $revisionData['fields'];
         $diff = [];
         $add = static function (string $label, mixed $before, mixed $after) use (&$diff): void {

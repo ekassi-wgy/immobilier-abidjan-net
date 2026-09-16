@@ -136,7 +136,7 @@ return [
         'hero' => [
             'carousel_label' => 'Views of :country',
             'slide_label' => ':index of :total',
-            'eyebrow_suffix' => 'verified listings in :country',
+            'eyebrow_suffix' => 'verified listing in :country|verified listings in :country',
             'eyebrow_empty' => 'Verified listings in :country',
             'title' => 'Your next address',
             'title_soft' => 'in :city.',

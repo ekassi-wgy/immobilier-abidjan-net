@@ -1211,6 +1211,11 @@ return [
             'security_hint' => 'Blocage des tentatives de connexion répétées.',
         ],
         'commission' => [
+            'bases' => [
+                'agency_fee' => 'Les honoraires encaissés par l’agence',
+                'transaction_amount' => 'Le montant de la transaction',
+            ],
+            'base_required' => 'Indiquez sur quoi porte le pourcentage.',
             'undecided' => 'Non décidé',
             'modes' => [
                 'percent' => 'Pourcentage par transaction',
@@ -1224,6 +1229,8 @@ return [
         ],
         'fields' => [
             'commission_mode' => 'Mode de commission',
+            'commission_base' => 'Assiette',
+            'commission_minimum_amount' => 'Commission minimum',
             'commission_rate_percent' => 'Taux de commission',
             'commission_fixed_amount' => 'Montant fixe',
             'listing_lifetime_days' => 'Durée de vie d’une annonce (jours)',
@@ -1237,7 +1244,9 @@ return [
             'security_login_lockout_minutes' => 'Durée du blocage (minutes)',
         ],
         'help' => [
-            'commission_mode' => 'Décision du client, en attente.',
+            'commission_mode' => 'Proposition en place : pourcentage des honoraires d’agence. À valider.',
+            'commission_base' => 'Sur les honoraires : le taux marche pour la vente comme pour la location. Sur la transaction : à réserver à la vente.',
+            'commission_minimum_amount' => 'Plancher par opération, pour que les petits dossiers couvrent leur traitement. Vide = pas de plancher.',
             'commission_rate_percent' => 'Utilisé si le mode est « pourcentage ».',
             'commission_fixed_amount' => 'Utilisé si le mode est « montant fixe ».',
             'listing_lifetime_days' => 'Au-delà, l’annonce passe en « expirée » (CRON quotidien).',

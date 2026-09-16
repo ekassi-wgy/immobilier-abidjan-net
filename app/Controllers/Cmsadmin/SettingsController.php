@@ -26,13 +26,21 @@ final class SettingsController extends Controller
     private const COMMISSION_MODES = ['percent', 'fixed', 'premium_listing'];
 
     /**
+     * Assiette de la commission : la part prélevée porte soit sur les honoraires encaissés par
+     * l'agence (modèle d'apport d'affaires), soit sur le montant de la transaction elle-même.
+     */
+    private const COMMISSION_BASES = ['agency_fee', 'transaction_amount'];
+
+    /**
      * Champs exposés : clé de paramètre => type de saisie et bornes.
      * Seules ces clés peuvent être écrites depuis l'écran.
      */
     private const FIELDS = [
         'commission.mode' => ['type' => 'enum', 'group' => 'commission'],
+        'commission.base' => ['type' => 'base', 'group' => 'commission'],
         'commission.rate_percent' => ['type' => 'decimal', 'min' => 0, 'max' => 100, 'group' => 'commission'],
         'commission.fixed_amount' => ['type' => 'decimal', 'min' => 0, 'max' => 1000000000, 'group' => 'commission'],
+        'commission.minimum_amount' => ['type' => 'decimal', 'min' => 0, 'max' => 1000000000, 'group' => 'commission'],
         'listing.lifetime_days' => ['type' => 'int', 'min' => 1, 'max' => 3650, 'group' => 'listing'],
         'listing.expiry_reminder_days' => ['type' => 'int', 'min' => 0, 'max' => 365, 'group' => 'listing'],
         'listing.max_photos' => ['type' => 'int', 'min' => 1, 'max' => 100, 'group' => 'listing'],
@@ -66,6 +74,7 @@ final class SettingsController extends Controller
             $values[$key] = match ($field['type']) {
                 'bool' => $request->input($name) === '1',
                 'enum' => in_array($raw, self::COMMISSION_MODES, true) ? $raw : null,
+                'base' => in_array($raw, self::COMMISSION_BASES, true) ? $raw : null,
                 'int' => $this->number($validator, $name, $raw, $field, true),
                 default => $this->number($validator, $name, $raw, $field, false),
             };
@@ -77,6 +86,10 @@ final class SettingsController extends Controller
         }
         if ($values['commission.mode'] === 'fixed' && $values['commission.fixed_amount'] === null) {
             $validator->add($this->fieldName('commission.fixed_amount'), __('settings.commission.amount_required'));
+        }
+        // Un pourcentage sans assiette ne veut rien dire : sur quoi porterait-il ?
+        if ($values['commission.mode'] === 'percent' && $values['commission.base'] === null) {
+            $validator->add($this->fieldName('commission.base'), __('settings.commission.base_required'));
         }
 
         if ($validator->fails()) {
@@ -136,6 +149,7 @@ final class SettingsController extends Controller
         return $this->render($request, 'settings/index', [
             'groups' => $groups,
             'modes' => self::COMMISSION_MODES,
+            'bases' => self::COMMISSION_BASES,
             'errors' => $errors,
             'currency' => site()?->country->currencySymbol ?? '',
         ], [

@@ -1210,6 +1210,11 @@ return [
             'security_hint' => 'Blocking repeated sign-in attempts.',
         ],
         'commission' => [
+            'bases' => [
+                'agency_fee' => 'The fees collected by the agency',
+                'transaction_amount' => 'The transaction amount',
+            ],
+            'base_required' => 'State what the percentage applies to.',
             'undecided' => 'Not decided',
             'modes' => [
                 'percent' => 'Percentage per transaction',
@@ -1223,6 +1228,8 @@ return [
         ],
         'fields' => [
             'commission_mode' => 'Commission mode',
+            'commission_base' => 'Basis',
+            'commission_minimum_amount' => 'Minimum commission',
             'commission_rate_percent' => 'Commission rate',
             'commission_fixed_amount' => 'Fixed amount',
             'listing_lifetime_days' => 'Listing lifetime (days)',
@@ -1236,7 +1243,9 @@ return [
             'security_login_lockout_minutes' => 'Blocking duration (minutes)',
         ],
         'help' => [
-            'commission_mode' => 'Client decision, pending.',
+            'commission_mode' => 'Proposal in place: percentage of the agency fees. To be confirmed.',
+            'commission_base' => 'On fees: the rate works for both sales and rentals. On the transaction: for sales only.',
+            'commission_minimum_amount' => 'Floor per deal, so small cases cover their handling. Empty = no floor.',
             'commission_rate_percent' => 'Used when the mode is “percentage”.',
             'commission_fixed_amount' => 'Used when the mode is “fixed amount”.',
             'listing_lifetime_days' => 'After that, the listing becomes “expired” (daily cron).',

@@ -7,6 +7,7 @@
  *
  * @var array<string, array<string, array<string,mixed>>> $groups   [section => [clé => champ]]
  * @var list<string>         $modes    Modes de commission
+ * @var list<string>         $bases    Assiettes de commission
  * @var array<string,string> $errors
  * @var string               $currency
  */
@@ -14,7 +15,11 @@ $modeOptions = [];
 foreach ($modes as $mode) {
     $modeOptions[$mode] = __('settings.commission.modes.' . $mode);
 }
-$render = static function (array $field) use ($errors, $currency, $modeOptions): string {
+$baseOptions = [];
+foreach ($bases as $base) {
+    $baseOptions[$base] = __('settings.commission.bases.' . $base);
+}
+$render = static function (array $field) use ($errors, $currency, $modeOptions, $baseOptions): string {
     $options = [
         'name' => $field['name'],
         'label' => $field['label'],
@@ -24,10 +29,10 @@ $render = static function (array $field) use ($errors, $currency, $modeOptions):
         'class' => 'mb-4',
     ];
 
-    if ($field['type'] === 'enum') {
+    if ($field['type'] === 'enum' || $field['type'] === 'base') {
         return cmsadmin_partial('field', $options + [
             'type' => 'select',
-            'options' => $modeOptions,
+            'options' => $field['type'] === 'enum' ? $modeOptions : $baseOptions,
             'placeholder' => __('settings.commission.undecided'),
         ]);
     }
@@ -35,7 +40,7 @@ $render = static function (array $field) use ($errors, $currency, $modeOptions):
     return cmsadmin_partial('field', $options + [
         'type' => 'number',
         'optional' => true,
-        'suffix' => $field['name'] === 'commission_rate_percent' ? '%' : ($field['name'] === 'commission_fixed_amount' ? $currency : null),
+        'suffix' => $field['name'] === 'commission_rate_percent' ? '%' : (str_starts_with($field['name'], 'commission_') ? $currency : null),
         'attributes' => ['step' => $field['type'] === 'int' ? '1' : '0.01', 'min' => (string) ($field['min'] ?? 0), 'max' => (string) ($field['max'] ?? 0)],
     ]);
 };

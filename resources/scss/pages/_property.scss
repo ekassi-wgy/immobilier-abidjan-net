@@ -1,0 +1,540 @@
+// =============================================================================
+// Fiche annonce : galerie, critères, situation juridique, vendeur, contact, partage
+// =============================================================================
+
+.im-property {
+  padding-bottom: im-fluid(3rem, 5rem);
+
+  &__top {
+    padding-block: 1rem;
+    border-bottom: 1px solid $im-line-soft;
+  }
+
+  &__layout {
+    display: grid;
+    align-items: start;
+    gap: im-fluid(2rem, 3.5rem);
+    padding-top: im-fluid(1.75rem, 2.5rem);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(lg) { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
+  }
+
+  &__main { min-width: 0; }
+
+  &__header { padding-bottom: 1.5rem; border-bottom: 1px solid $im-line; }
+
+  &__eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin: 0 0 .75rem;
+    color: $im-muted;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  &__title { margin: 0; }
+
+  &__location {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin: .6rem 0 0;
+    color: $im-muted;
+    font-size: .9375rem;
+
+    .im-icon { width: 1.05rem; height: 1.05rem; flex: none; }
+  }
+
+  &__pricing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: .5rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  &__price {
+    margin: 0;
+    color: $im-navy;
+    font-size: im-fluid(1.75rem, 2.25rem);
+    font-weight: $im-weight-bold;
+    letter-spacing: -.02em;
+  }
+
+  &__period { margin-left: .35rem; color: $im-muted; font-size: 1rem; font-weight: $im-weight-medium; }
+
+  &__price-notes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem .75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: $im-muted;
+    font-size: .875rem;
+
+    li + li::before { content: "·"; margin-right: .75rem; color: $im-subtle; }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem 1.25rem;
+    margin-top: 1.25rem;
+    color: $im-subtle;
+    font-size: .8125rem;
+  }
+
+  &__reference { font-variant-numeric: tabular-nums; }
+
+  & &__fav { min-height: 36px; margin-left: auto; padding: .35rem .75rem; font-size: .8125rem; }
+
+  &__specs {
+    display: grid;
+    gap: .75rem 1rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .85rem 1rem;
+      border: 1px solid $im-line;
+      border-radius: $im-radius-sm;
+      font-size: .9375rem;
+      font-weight: $im-weight-medium;
+    }
+
+    .im-icon { width: 1.25rem; height: 1.25rem; flex: none; color: $im-navy; }
+  }
+
+  &__block {
+    margin-top: im-fluid(2rem, 2.75rem);
+
+    > .im-h3 {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin: 0 0 1rem;
+
+      .im-icon { width: 1.35rem; height: 1.35rem; color: $im-navy; }
+    }
+  }
+
+  &__subtitle {
+    margin: 1.5rem 0 .75rem;
+    color: $im-subtle;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+
+    &:first-of-type { margin-top: 0; }
+  }
+
+  &__text {
+    color: $im-ink;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  &__media { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+  &__map-note {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin: .6rem 0 0;
+
+    .im-icon { width: 1rem; height: 1rem; flex: none; }
+  }
+
+  &__aside { min-width: 0; }
+
+  &__sticky {
+    display: grid;
+    gap: 1.25rem;
+
+    @include im-up(lg) {
+      position: sticky;
+      top: calc(var(--im-header-height) + 1rem);
+      max-height: calc(100vh - var(--im-header-height) - 2rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+  }
+}
+
+// Galerie en mosaïque ---------------------------------------------------------------
+.im-gallery {
+  position: relative;
+  display: grid;
+  gap: .5rem;
+  margin-top: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @include im-up(md) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  &__main {
+    grid-column: 1 / -1;
+
+    @include im-up(md) { grid-column: span 2; grid-row: span 2; }
+  }
+
+  &__main, &__tile {
+    display: block;
+    overflow: hidden;
+    border-radius: $im-radius-sm;
+    background: $im-mist;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform $im-duration-slow $im-ease;
+    }
+
+    @include im-hover { img { transform: scale(1.03); } }
+  }
+
+  &__main { aspect-ratio: 3 / 2; }
+  &__tile { aspect-ratio: 3 / 2; }
+
+  &--single {
+    grid-template-columns: minmax(0, 1fr);
+
+    .im-gallery__main { grid-column: 1 / -1; grid-row: auto; aspect-ratio: 16 / 9; }
+  }
+
+  &__all {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    box-shadow: $im-shadow-sm;
+  }
+
+  &--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    padding: im-fluid(2rem, 3.5rem);
+    border: 1px dashed $im-line;
+    border-radius: $im-radius-lg;
+    background: $im-snow;
+    grid-template-columns: none;
+
+    img { opacity: .5; }
+    p { margin: 0; }
+  }
+}
+
+// Visionneuse -------------------------------------------------------------------------
+.im-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1070;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: rgba($im-navy-deep, .94);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+
+  &[hidden] { display: none; }
+
+  &__figure {
+    margin: 0;
+    grid-column: 2;
+  }
+
+  &__image {
+    display: block;
+    max-width: 100%;
+    max-height: 82vh;
+    border-radius: $im-radius-sm;
+    object-fit: contain;
+  }
+
+  &__close {
+    position: absolute;
+    top: clamp(.75rem, 3vw, 1.5rem);
+    right: clamp(.75rem, 3vw, 1.5rem);
+  }
+
+  &__close, &__nav {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba($im-white, .25);
+    border-radius: 50%;
+    background: rgba($im-white, .08);
+    color: $im-white;
+    cursor: pointer;
+    transition: background-color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.35rem; height: 1.35rem; }
+
+    @include im-hover { background: rgba($im-white, .2); }
+
+    &:focus-visible { @include im-focus-ring; }
+  }
+
+  &__nav--prev { grid-column: 1; }
+  &__nav--next { grid-column: 3; }
+
+  &__counter {
+    grid-column: 2;
+    margin: 1rem 0 0;
+    color: rgba($im-white, .72);
+    font-size: .875rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+}
+
+// Listes de critères et d'équipements ------------------------------------------------------
+.im-specs-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  grid-template-columns: minmax(0, 1fr);
+
+  @include im-up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2rem; }
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .7rem 0;
+    border-bottom: 1px solid $im-line-soft;
+  }
+
+  dt { color: $im-muted; font-size: .9375rem; }
+  dd { margin: 0; font-weight: $im-weight-semibold; text-align: right; }
+}
+
+.im-features {
+  display: grid;
+  gap: .6rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+
+  li { display: flex; align-items: center; gap: .55rem; font-size: .9375rem; }
+
+  .im-icon { width: 1.15rem; height: 1.15rem; flex: none; color: $im-navy; }
+}
+
+// Situation juridique : mise en avant sobre, sans dramatiser -----------------------------------
+.im-legal {
+  padding: im-fluid(1.25rem, 1.75rem);
+  border: 1px solid $im-blue-tint;
+  border-radius: $im-radius-lg;
+  background: rgba($im-blue-tint, .38);
+
+  .im-specs-list > div { border-bottom-color: rgba($im-navy, .1); }
+
+  &__note {
+    display: flex;
+    align-items: flex-start;
+    gap: .45rem;
+    margin: 1rem 0 0;
+
+    .im-icon { width: 1rem; height: 1rem; flex: none; margin-top: .15rem; }
+  }
+}
+
+// Bloc vendeur ---------------------------------------------------------------------------------
+.im-seller {
+  padding: 1.25rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    margin-top: .75rem;
+  }
+
+  &__logo {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border: 1px solid $im-line-soft;
+    border-radius: $im-radius-sm;
+    object-fit: contain;
+    background: $im-white;
+  }
+
+  &__initial {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: $im-radius-sm;
+    background: $im-blue-tint;
+    color: $im-navy;
+    font-size: 1.5rem;
+    font-weight: $im-weight-bold;
+  }
+
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin: 0;
+    font-weight: $im-weight-semibold;
+
+    .im-icon { width: 1.1rem; height: 1.1rem; flex: none; color: $im-blue; }
+  }
+
+  &__agent {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 1rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid $im-line-soft;
+    color: $im-muted;
+    font-size: .875rem;
+
+    .im-icon { width: 1.05rem; height: 1.05rem; flex: none; }
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-top: 1rem;
+    font-size: .875rem;
+
+    .im-icon { width: 1rem; height: 1rem; }
+  }
+}
+
+// Demande de contact ------------------------------------------------------------------------------
+.im-contact {
+  padding: 1.25rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+
+  &__head .im-h3 { margin: 0 0 .35rem; }
+
+  &__direct {
+    display: grid;
+    gap: .6rem;
+    margin: 1rem 0;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+
+  &__form {
+    display: grid;
+    gap: .9rem;
+    margin-top: 1rem;
+  }
+
+  &__pair {
+    display: grid;
+    gap: .9rem;
+
+    @include im-up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  &__consent { align-items: flex-start; font-size: .8125rem; line-height: 1.45; }
+  &__consent .im-check__box { margin-top: .1rem; }
+
+  .im-field__help { margin: -.35rem 0 0; }
+}
+
+// Champ piège : hors écran mais focusable par un robot, jamais par un lecteur d'écran
+.im-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+// Messages du formulaire -----------------------------------------------------------------------------
+.im-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin: 0 0 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid transparent;
+  border-radius: $im-radius-sm;
+  font-size: .875rem;
+
+  .im-icon { width: 1.1rem; height: 1.1rem; flex: none; margin-top: .1rem; }
+
+  &--success { border-color: rgba($im-success, .28); background: $im-success-tint; color: $im-success; }
+  &--error { border-color: rgba($im-red, .28); background: rgba($im-red, .07); color: $im-red; }
+  &--info { border-color: $im-line; background: $im-snow; color: $im-muted; }
+}
+
+// Partage ------------------------------------------------------------------------------------------------
+.im-share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0;
+    color: $im-muted;
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+
+    .im-icon { width: 1.1rem; height: 1.1rem; }
+  }
+
+  &__links { display: flex; gap: .4rem; }
+
+  &__link {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid $im-line;
+    border-radius: $im-radius-sm;
+    background: $im-white;
+    color: $im-muted;
+    cursor: pointer;
+    transition: border-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.15rem; height: 1.15rem; }
+
+    @include im-hover { border-color: $im-navy; color: $im-navy; }
+
+    &.is-copied { border-color: $im-success; color: $im-success; }
+  }
+}
+
+// Carte d'une seule annonce
+.im-map--single { height: clamp(16rem, 42vh, 26rem); }

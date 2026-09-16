@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use App\Controllers\Front\FavoriteController;
 use App\Controllers\Front\HomeController;
+use App\Controllers\Front\PropertyController;
 use App\Controllers\Front\SearchController;
 use App\Controllers\Preview\FrontPreviewController;
 use App\Core\App;
@@ -16,6 +17,11 @@ use App\Core\Router;
 return static function (Router $router, App $app): void {
     $router->get('/', [HomeController::class, 'index'], 'home');
     $router->get('/favoris', [FavoriteController::class, 'index'], 'favorites');
+
+    // Fiche annonce (lot 1.10). Déclarée avant le bloc de recherche ci-dessous.
+    $listing = '/annonces/{slug:[a-z0-9-]+}-ref{id:[0-9]+}';
+    $router->get($listing, [PropertyController::class, 'show'], 'property.show');
+    $router->post($listing . '/contact', [PropertyController::class, 'contact'], 'property.contact');
 
     if ($app->config->get('app.preview')) {
         // PROVISOIRE (APP_ENV=local) : charte graphique de référence, avec des données fictives

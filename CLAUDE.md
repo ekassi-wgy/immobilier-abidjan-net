@@ -14,6 +14,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 | `docs/database.md` | Schéma de BDD : tables, relations, choix de conception, conventions, migrations. **À relire avant toute requête ou migration.** |
 | `docs/tests.md` | Checklist de recette par rôle (lot 1.13). **À rejouer après toute modification des droits, du workflow d'annonce ou des formulaires publics.** |
 | `docs/audit-securite-performance.md` | Audit sécurité et performance (lot 2.3) : ce qui a été vérifié, les correctifs apportés, les points ouverts et les prérequis de mise en production. |
+| `docs/deploiement.md` | **Procédure de mise en production Plesk (lot 3.1)** : prérequis client, sous-domaine, PHP, base, `.env`, HTTPS, CRON, sauvegardes, vérifications, déploiements suivants, pré-production. |
 | `docs/brand/` | Logo complet + symbole (maison dans un cercle). |
 | Captures laforet.com (hors dépôt) | `/Users/emmanuelkassi/Documents/WP-WEBLOGY/WebSite/Immobilier Abidjan.net/*.png` — accueil, liste, fiche, connexion, inscription. **Inspiration ergonomique uniquement.** |
 | Template admin source | `/Users/emmanuelkassi/Documents/KP/Templates/staradmin-2-free/dist` (base de `cmsadmin`). |
@@ -21,7 +22,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 ## État d'avancement (à tenir à jour à chaque lot)
 
 - **Terminés** : phase 1 complète (0.1 à 1.13) · **2.1 SEO** (balises par URL, sitemap, robots, redirections) · **2.2 contenu** (pages, actualités, bannières, blog public) · **2.3 audit sécurité et performance** (`docs/audit-securite-performance.md`). Détail et livrables : `docs/PLAN.md`.
-- **Prochain lot : 3.1 — mise en production** (Plesk, DNS, HTTPS, CRON, sauvegardes). Les prérequis sont listés ci-dessous et dans `docs/audit-securite-performance.md` § 4.
+- **Lot 3.1 — mise en production : préparation livrée, exécution bloquée.** `docs/deploiement.md` (runbook) et `bin/check-deploy.php` (contrôle de l'environnement sur le serveur) sont prêts. **Il manque les accès Plesk, le DNS du sous-domaine et le moteur de base de production** : rien de plus ne peut être fait tant que le client ne les fournit pas. Piège principal du déploiement : la racine des documents doit pointer sur `httpdocs/public`, jamais sur la racine du dépôt.
 - **Règles de performance issues du lot 2.3** (à ne pas défaire) : une requête publique qui trie sur `published_at` avec une `LIMIT` ne doit porter **que sur `properties`** — les jointures de la carte annonce dans le même `SELECT` font perdre `idx_properties_published` à l'optimiseur, qui trie alors toutes les annonces du pays (`ListingRepository::latest()` puis `cardsByIds()`, 88 → 2 ms). Jamais de requête par URL dans une boucle : charger la liste en une fois (`SeoRepository::noindexPaths()` pour le sitemap). Compression gzip et `Cache-Control` d'un an sont posés dans `public/.htaccess` — les URL de ressources sont versionnées par `asset()`/`cmsadmin_asset()`, ne jamais servir un CSS ou un JS sans `?v=`.
 - **Reprise d'une session** : `git log --oneline -5` pour le contexte, MAMP démarré (http://localhost:8888), se connecter à `/cmsadmin` avec son compte. **Avant tout test créant des comptes, agences ou annonces : `MAIL_MAILER=log` dans `.env`**, puis rétablir `smtp` et supprimer ses données de test à la fin.
 - **Décisions en attente du client** (ne pas trancher seul) :
@@ -85,6 +86,7 @@ bin/
   expire-listings.php ✅ CRON quotidien : expiration des annonces + relance avant échéance (--dry-run)
   cleanup-uploads.php ✅ CRON quotidien : supprime les photos envoyées jamais rattachées (uploads/*/tmp)
   cache-clear.php     ✅ vide storage/cache (après déploiement ou modification directe en base)
+  check-deploy.php    ✅ contrôle de l’environnement de production (PHP, extensions, .env, droits, base, domaines) — code 1 si un contrôle bloquant échoue
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
   app.php             ✅ environnement, debug, URL, langue, prévisualisation, session, cache, journaux
@@ -107,7 +109,7 @@ resources/scss/       ✅ app.scss · abstracts/_tokens.scss (SOURCE UNIQUE des 
 lang/                 ✅ fr.php (référence et repli), en.php — aucune chaîne d'interface en dur dans les nouvelles vues
 database/             ✅ schema.sql (référence v1, 38 tables) · seed.sql (référentiels CI) · migrations/ (0002 révisions, 0003 icônes des familles, 0004 pages éditoriales, 0005 commission et textes légaux) — voir docs/database.md
 storage/              ✅ logs/app-AAAA-MM-JJ.log · cache/ (sites.php, ratelimit_…) · mail/ (emails en pilote log) — créés automatiquement, git-ignorés
-docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, brand/
+docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, tests.md, audit-securite-performance.md, deploiement.md, brand/
 ```
 
 ## Commandes
@@ -122,6 +124,7 @@ php bin/cache-clear.php          # vide storage/cache
 php bin/expire-listings.php      # expiration + relances (CRON quotidien) · --dry-run
 php bin/cleanup-uploads.php      # purge des photos temporaires (CRON quotidien) · --hours=24 --dry-run
 php bin/mail-test.php --to=…     # email de test avec la configuration courante
+php bin/check-deploy.php --host=immobilier.abidjan.net   # contrôle de l'environnement (à lancer SUR LE SERVEUR ; échoue volontairement en local)
 php -l <fichier>                 # vérif syntaxe avant commit
 ```
 

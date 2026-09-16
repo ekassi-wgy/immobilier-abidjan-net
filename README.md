@@ -67,6 +67,7 @@ php bin/cache-clear.php         # vide storage/cache (après déploiement ou éc
 php bin/expire-listings.php     # CRON quotidien : expiration des annonces + relances (--dry-run)
 php bin/cleanup-uploads.php     # CRON quotidien : purge des photos jamais rattachées (--hours=24)
 php bin/mail-test.php --to=…    # vérification de la configuration SMTP
+php bin/check-deploy.php        # contrôle de l'environnement de production (à lancer sur le serveur)
 php -l <fichier>                # contrôle de syntaxe avant commit
 ```
 
@@ -105,8 +106,10 @@ terminée**. En phase 2, le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robo
 gérées en base), le lot 2.2 (pages, actualités, bannières) et le lot 2.3 (audit) sont livrés.
 L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
 n'a relevé aucune vulnérabilité exploitable ; sous 10 000 annonces, toutes les pages publiques répondent
-en moins de 125 ms et le back-office en moins de 85 ms. Lot suivant : **3.1, mise en production**.
-Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+en moins de 125 ms et le back-office en moins de 85 ms. Pour le lot **3.1 (mise en production)**, la
+préparation est livrée — [`docs/deploiement.md`](docs/deploiement.md) et `bin/check-deploy.php` — mais
+**le déploiement lui-même attend les accès Plesk, le DNS du sous-domaine et le moteur de base de
+production**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 > **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)
 > sont rédigés au nom de Weblogy et publiés — une relecture juridique est recommandée et quatre mentions

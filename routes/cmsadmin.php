@@ -18,6 +18,7 @@ use App\Controllers\Cmsadmin\AuthController;
 use App\Controllers\Cmsadmin\Catalog\AttributeController;
 use App\Controllers\Cmsadmin\Catalog\CategoryController;
 use App\Controllers\Cmsadmin\Catalog\FeatureController;
+use App\Controllers\Cmsadmin\ContentController;
 use App\Controllers\Cmsadmin\DashboardController;
 use App\Controllers\Cmsadmin\ExportController;
 use App\Controllers\Cmsadmin\Geo\CityController;
@@ -139,6 +140,23 @@ return static function (Router $router, App $app): void {
                 $router->get('/exports', [ExportController::class, 'index'], 'exports');
                 $router->get('/exports/annonces.csv', [ExportController::class, 'properties'], 'exports.properties');
                 $router->get('/exports/contacts.csv', [ExportController::class, 'leads'], 'exports.leads');
+            });
+
+            // Contenu éditorial (lot 2.2, Super Admin) : pages, actualités, bannières
+            $router->group(['middleware' => [RequireRole::class . ':super_admin']], static function (Router $router): void {
+                foreach ([
+                    ['pages', 'Page'],
+                    ['actualites', 'Post'],
+                    ['bannieres', 'Banner'],
+                ] as [$prefix, $suffix]) {
+                    // pages() / posts() / banners() pour la liste, puis createX, storeX…
+                    $router->get('/' . $prefix, [ContentController::class, lcfirst($suffix) . 's'], 'content.' . $prefix);
+                    $router->get('/' . $prefix . '/ajouter', [ContentController::class, 'create' . $suffix], 'content.' . $prefix . '.create');
+                    $router->post('/' . $prefix, [ContentController::class, 'store' . $suffix], 'content.' . $prefix . '.store');
+                    $router->get('/' . $prefix . '/{id:\\d+}/modifier', [ContentController::class, 'edit' . $suffix], 'content.' . $prefix . '.edit');
+                    $router->post('/' . $prefix . '/{id:\\d+}', [ContentController::class, 'update' . $suffix], 'content.' . $prefix . '.update');
+                    $router->post('/' . $prefix . '/{id:\\d+}/supprimer', [ContentController::class, 'destroy' . $suffix], 'content.' . $prefix . '.destroy');
+                }
             });
 
             // Référencement (lot 2.1, Super Admin) : balises méta et redirections du site courant

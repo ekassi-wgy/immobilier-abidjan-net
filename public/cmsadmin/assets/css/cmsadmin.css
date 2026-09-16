@@ -882,6 +882,9 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 /* Icône du sprite public */
 .im-icon-field { display: flex; align-items: flex-start; gap: .75rem; }
 .im-icon-field > :first-child { flex: 1 1 auto; }
+/* Aperçu d'une image déjà envoyée (actualités, bannières — lot 2.2) */
+.im-preview { display: block; width: 100%; max-width: 20rem; height: auto; margin-bottom: .6rem; border: 1px solid var(--im-line); border-radius: var(--im-radius-sm); object-fit: cover; background: var(--im-snow); }
+
 .im-icon-preview { display: inline-grid; place-items: center; flex: none; width: 46px; height: 46px; margin-top: 1.75rem; border: 1px solid var(--im-line); border-radius: var(--im-radius-sm); background: var(--im-snow); color: var(--im-navy); }
 .im-icon-preview svg { width: 24px; height: 24px; fill: currentColor; }
 .im-icon-preview--sm { width: 34px; height: 34px; margin-top: 0; }

@@ -9,6 +9,7 @@ use App\Services\ActivityLogger;
 use App\Services\AgencyRepository;
 use App\Services\Auth;
 use App\Services\CatalogRepository;
+use App\Services\ContentRepository;
 use App\Services\CountryRepository;
 use App\Services\GeoRepository;
 use App\Services\LoginThrottle;
@@ -223,6 +224,11 @@ final class App
     public function searchFilters(): SearchFilters
     {
         return $this->service(SearchFilters::class, fn () => new SearchFilters($this->db()));
+    }
+
+    public function content(): ContentRepository
+    {
+        return $this->service(ContentRepository::class, fn () => new ContentRepository($this->db()));
     }
 
     public function seo(): SeoRepository

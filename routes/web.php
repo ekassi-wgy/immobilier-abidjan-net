@@ -32,9 +32,12 @@ return static function (Router $router, App $app): void {
     // déclarée AU-DESSUS de ce bloc. Un slug inconnu répond 404 (SearchFilters::resolve).
     // -------------------------------------------------------------------------------------------
     $segment = '[a-z0-9-]+';
-    $router->get("/{transaction:{$segment}}", [SearchController::class, 'index'], 'search');
-    $router->get("/{transaction:{$segment}}/{s1:{$segment}}", [SearchController::class, 'index']);
-    $router->get("/{transaction:{$segment}}/{s1:{$segment}}/{s2:{$segment}}", [SearchController::class, 'index']);
-    $router->get("/{transaction:{$segment}}/{s1:{$segment}}/{s2:{$segment}}/{s3:{$segment}}", [SearchController::class, 'index']);
-    $router->get("/{transaction:{$segment}}/{s1:{$segment}}/{s2:{$segment}}/{s3:{$segment}}/{s4:{$segment}}", [SearchController::class, 'index']);
+    // « cmsadmin » est un préfixe réservé : jamais capturé comme slug de transaction, même si
+    // l'ordre de chargement des fichiers de routes venait à changer.
+    $first = '(?!cmsadmin(?:/|$))[a-z0-9-]+';
+    $router->get("/{transaction:{$first}}", [SearchController::class, 'index'], 'search');
+    $router->get("/{transaction:{$first}}/{s1:{$segment}}", [SearchController::class, 'index']);
+    $router->get("/{transaction:{$first}}/{s1:{$segment}}/{s2:{$segment}}", [SearchController::class, 'index']);
+    $router->get("/{transaction:{$first}}/{s1:{$segment}}/{s2:{$segment}}/{s3:{$segment}}", [SearchController::class, 'index']);
+    $router->get("/{transaction:{$first}}/{s1:{$segment}}/{s2:{$segment}}/{s3:{$segment}}/{s4:{$segment}}", [SearchController::class, 'index']);
 };

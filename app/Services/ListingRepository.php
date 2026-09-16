@@ -294,9 +294,14 @@ final class ListingRepository
 
         if ($criteria->category !== null) {
             $params['category'] = $criteria->category['id'];
-            $sql .= $criteria->category['family']
-                ? ' AND p.category_id IN (SELECT c2.id FROM property_categories c2 WHERE c2.id = :category OR c2.parent_id = :category)'
-                : ' AND p.category_id = :category';
+            if ($criteria->category['family']) {
+                // MySQL n'accepte pas deux fois le même paramètre nommé (EMULATE_PREPARES=false).
+                $params['category_family'] = $criteria->category['id'];
+                $sql .= ' AND p.category_id IN (SELECT c2.id FROM property_categories c2
+                                                 WHERE c2.id = :category OR c2.parent_id = :category_family)';
+            } else {
+                $sql .= ' AND p.category_id = :category';
+            }
         }
         foreach (['city' => 'city_id', 'commune' => 'commune_id', 'district' => 'district_id'] as $level => $column) {
             if ($criteria->{$level} !== null) {

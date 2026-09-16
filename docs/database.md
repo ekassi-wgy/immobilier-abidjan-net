@@ -106,6 +106,14 @@ erDiagram
 - **Profil d'agence** : le responsable (`agency_owner`) ne modifie que `description`, `email`, `phone`, `whatsapp`, `website`, `address`, `city_id`, `commune_id`, `logo_path` et `agency_zones` ; `name`, `slug`, `legal_name`, `rccm`, `tax_id`, `status`, `is_verified` et `is_featured` restent à l'équipe interne. L'agent (`agency_agent`) est en lecture seule. Chaque enregistrement est journalisé (`agency.profile_updated`) et notifie l'équipe du pays dans la cloche.
 - **Statistiques du tableau de bord** : `property_stats_daily` (30 jours) pour l'audience et le classement des biens, compteurs `properties.views_count` / `leads_count` pour les totaux. Ces tables ne sont alimentées qu'à partir du site public (lots 1.9 et 1.10) : tant qu'aucune ligne n'existe, les écrans affichent un état vide au lieu d'une courbe à zéro.
 
+## Site public (lot 1.8)
+
+- **Trois règles pour toute requête publique** (`ListingRepository`) : `country_id` du site courant, `status = 'published'` et `deleted_at IS NULL`, photos filtrées par `revision_id IS NULL`. `property_private_details` n'est jamais joint.
+- **Mise en avant** : une annonce `is_featured = 1` n'est « à la une » que si `featured_until` est NULL ou dans le futur ; les agences en vedette sont `agencies.is_featured = 1` et `status = 'active'`.
+- **Hero de l'accueil** : `banners` avec `placement = 'home_hero'`, `is_active = 1` et période (`starts_at` / `ends_at`) courante ; sans bannière, l'accueil sert les photos provisoires livrées avec la maquette (`HomeController::FALLBACK_SLIDES`). Le CRUD des bannières arrive au lot 2.2.
+- **Icônes des catégories** : `property_categories.icon` porte un nom du sprite Phosphor local (`public/assets/img/icons.svg`) ; les familles du seed ont été alignées par la migration `0003`.
+- **URL publique d'une annonce** : `/annonces/{slug}-ref{id}` (`ListingPresenter::url()`) ; le `slug` reste modifiable en back-office, l'identifiant garantit l'unicité.
+
 ## Conventions
 
 - Tables au pluriel en `snake_case`, clés étrangères `<entité>_id`, index `idx_<table>_<usage>`, uniques `uq_…`, contraintes `chk_…`, clés étrangères `fk_…`.

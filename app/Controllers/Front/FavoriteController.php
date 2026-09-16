@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers\Front;
 
-use App\Controllers\Controller;
-use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 
@@ -26,7 +24,7 @@ final class FavoriteController extends Controller
 
     public function index(Request $request): Response
     {
-        $site = site() ?? throw new HttpException(404);
+        $site = $this->site();
 
         $references = $this->references($request->cookie(self::COOKIE));
         $rows = $references === [] ? [] : $this->app->listings()->byReferences($site->country->id, $references);

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers\Front;
 
-use App\Controllers\Controller;
-use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Site;
@@ -35,7 +33,7 @@ final class HomeController extends Controller
 
     public function index(Request $request): Response
     {
-        $site = site() ?? throw new HttpException(404);
+        $site = $this->site();
         $countryId = $site->country->id;
 
         $listings = $this->app->listings();

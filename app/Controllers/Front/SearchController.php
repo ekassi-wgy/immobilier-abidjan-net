@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers\Front;
 
-use App\Controllers\Controller;
 use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
@@ -35,7 +34,7 @@ final class SearchController extends Controller
         string $s3 = '',
         string $s4 = '',
     ): Response {
-        $site = site() ?? throw new HttpException(404);
+        $site = $this->site();
         $countryId = $site->country->id;
         $filters = $this->app->searchFilters();
         $query = $request->queryAll();

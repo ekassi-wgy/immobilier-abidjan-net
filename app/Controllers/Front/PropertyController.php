@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers\Front;
 
-use App\Controllers\Controller;
 use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Site;
-use App\Services\IpAddress;
 use App\Support\Validator;
 
 /**
@@ -24,10 +22,6 @@ use App\Support\Validator;
 final class PropertyController extends Controller
 {
     private const SIMILAR = 3;
-
-    /** Anti-spam : demandes de contact acceptées par adresse IP sur une heure glissante. */
-    private const CONTACT_MAX = 5;
-    private const CONTACT_WINDOW = 3600;
 
     /** Cookie de dédoublonnage des consultations (une vue par annonce et par visiteur, 12 h). */
     private const SEEN_COOKIE = 'ian_seen';
@@ -55,11 +49,9 @@ final class PropertyController extends Controller
         $url = $presenter->url($property);
 
         $input = $request->all();
-        $validator = $this->validate($input);
-
-        // Pot de miel : un robot remplit tous les champs, un visiteur ne voit jamais celui-ci.
-        $trapped = trim((string) ($input['site_web'] ?? '')) !== '';
-        $allowed = $this->app->rateLimiter()->attempt('lead:' . $request->ip(), self::CONTACT_MAX, self::CONTACT_WINDOW);
+        $validator = $this->validateContact($input);
+        $trapped = $this->isTrapped($request);
+        $allowed = $this->withinQuota($request, 'property');
 
         if ($validator->fails()) {
             return $this->render($request, $site, $property, $validator->errors(), $input, 422);
@@ -70,7 +62,7 @@ final class PropertyController extends Controller
 
         // Un envoi piégé reçoit la même confirmation qu'un envoi valide, sans rien enregistrer.
         if (!$trapped) {
-            $this->createLead($request, $site->id, $property, $validator);
+            $this->createLead($request, $property, $validator);
         }
 
         $this->flash('success', __('front.contact.success'));
@@ -86,7 +78,7 @@ final class PropertyController extends Controller
      */
     private function findOrFail(int $id): array
     {
-        $site = site() ?? throw new HttpException(404);
+        $site = $this->site();
         $property = $this->app->listings()->findPublished($id, $site->country->id) ?? throw new HttpException(404);
 
         return [$site, $property];
@@ -175,40 +167,10 @@ final class PropertyController extends Controller
         return $items;
     }
 
-    /** @param array<string, mixed> $input */
-    private function validate(array $input): Validator
-    {
-        $validator = new Validator($input);
-        $validator->required('name', 'message')
-            ->maxLength('name', 150)
-            ->maxLength('message', 2000)
-            ->maxLength('email', 190)
-            ->maxLength('phone', 30);
-
-        if (trim((string) ($input['email'] ?? '')) !== '') {
-            $validator->email('email');
-        }
-        if (trim((string) ($input['phone'] ?? '')) !== '') {
-            $validator->phone('phone');
-        }
-
-        // La table `leads` impose au moins un moyen de recontact.
-        $validator->rule(
-            'email',
-            trim((string) ($input['email'] ?? '')) !== '' || trim((string) ($input['phone'] ?? '')) !== '',
-            __('front.contact.contact_required')
-        );
-        $validator->rule('consent', !empty($input['consent']), __('front.contact.consent_required'));
-
-        return $validator;
-    }
-
     /** @param array<string, mixed> $property */
-    private function createLead(Request $request, int $siteId, array $property, Validator $validator): void
+    private function createLead(Request $request, array $property, Validator $validator): void
     {
-        $leadId = $this->app->db()->insert('leads', [
-            'site_id' => $siteId,
-            'country_id' => (int) site()->country->id,
+        $leadId = $this->insertLead($request, [
             'type' => 'property_contact',
             'property_id' => (int) $property['id'],
             'agency_id' => $property['agency_id'] !== null ? (int) $property['agency_id'] : null,
@@ -216,27 +178,16 @@ final class PropertyController extends Controller
             'email' => $validator->nullableString('email'),
             'phone' => $validator->nullableString('phone'),
             'message' => $validator->nullableString('message'),
-            'consent_at' => gmdate('Y-m-d H:i:s'),
-            'source_url' => mb_substr(absolute_url($this->app->listingPresenter()->url($property)), 0, 255),
-            'ip' => IpAddress::toBinary($request->ip()),
-            'user_agent' => mb_substr($request->userAgent(), 0, 255),
         ]);
 
         $this->app->listings()->recordLead((int) $property['id']);
 
-        $recipients = $this->app->notifier()->propertyRecipients($property);
-        if ($recipients === []) {
-            $recipients = $this->app->notifier()->staffRecipients((int) site()->country->id)['all'];
-        }
-
-        $this->app->notifier()->notify(
-            $recipients,
+        $this->notifyBackOffice(
             'lead.new',
             __('front.contact.notification_title', ['reference' => (string) $property['reference']]),
             __('front.contact.notification_body', ['name' => $validator->string('name'), 'title' => (string) $property['title']]),
             cmsadmin_url('contacts/' . $leadId),
-            site(),
-            $recipients
+            $this->app->notifier()->propertyRecipients($property)
         );
     }
 

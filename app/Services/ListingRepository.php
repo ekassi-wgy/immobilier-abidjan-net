@@ -600,6 +600,161 @@ final class ListingRepository
         };
     }
 
+    /**
+     * Annuaire public des agences partenaires (lot 1.11). Seules les agences actives et non
+     * supprimées y figurent ; le nombre d'annonces est recompté, jamais lu dans le compteur
+     * dénormalisé, pour rester juste après une expiration ou un archivage.
+     *
+     * @param array{q?: string, ville?: string, commune?: string, verifiee?: string} $filters
+     * @return list<array<string, mixed>>
+     */
+    public function agencies(int $countryId, array $filters, int $limit, int $offset): array
+    {
+        $params = ['country' => $countryId];
+        $where = $this->agencyScope($filters, $params);
+
+        return $this->db->select(
+            "SELECT a.id, a.name, a.slug, a.logo_path, a.description, a.is_verified,
+                    ci.name AS city_name, m.name AS commune_name,
+                    (SELECT COUNT(*) FROM properties p WHERE " . $this->publishedScope(':country2') . " AND p.agency_id = a.id) AS listings
+             {$where}
+             ORDER BY listings DESC, a.is_verified DESC, a.name
+             LIMIT :limit OFFSET :offset",
+            $params + ['country2' => $countryId, 'limit' => $limit, 'offset' => $offset]
+        );
+    }
+
+    /** Nombre d'agences de l'annuaire correspondant aux filtres. */
+    public function countAgencies(int $countryId, array $filters): int
+    {
+        $params = ['country' => $countryId];
+        $where = $this->agencyScope($filters, $params);
+
+        return (int) $this->db->scalar("SELECT COUNT(*) {$where}", $params);
+    }
+
+    /**
+     * Clause FROM/WHERE commune à l'annuaire. Une ville ou une commune correspond soit à
+     * l'implantation de l'agence, soit à l'une de ses zones de couverture déclarées.
+     *
+     * @param array<string, mixed> $params Complété par référence
+     */
+    private function agencyScope(array $filters, array &$params): string
+    {
+        $where = "a.country_id = :country AND a.status = 'active' AND a.deleted_at IS NULL";
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $where .= ' AND a.name LIKE :q';
+            $params['q'] = '%' . addcslashes($q, '%_\\') . '%';
+        }
+        if (!empty($filters['ville'])) {
+            $where .= ' AND (ci.slug = :city OR EXISTS (SELECT 1 FROM agency_zones z JOIN communes zm ON zm.id = z.commune_id
+                                JOIN cities zc ON zc.id = zm.city_id WHERE z.agency_id = a.id AND zc.slug = :city2))';
+            $params['city'] = (string) $filters['ville'];
+            $params['city2'] = (string) $filters['ville'];
+        }
+        if (!empty($filters['commune'])) {
+            $where .= ' AND (m.slug = :commune OR EXISTS (SELECT 1 FROM agency_zones z2 JOIN communes zm2 ON zm2.id = z2.commune_id
+                                WHERE z2.agency_id = a.id AND zm2.slug = :commune2))';
+            $params['commune'] = (string) $filters['commune'];
+            $params['commune2'] = (string) $filters['commune'];
+        }
+        if (($filters['verifiee'] ?? '') === 'oui') {
+            $where .= ' AND a.is_verified = 1';
+        }
+
+        return "FROM agencies a
+                LEFT JOIN cities ci ON ci.id = a.city_id
+                LEFT JOIN communes m ON m.id = a.commune_id
+                WHERE {$where}";
+    }
+
+    /**
+     * Profil public d'une agence partenaire.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function agencyBySlug(string $slug, int $countryId): ?array
+    {
+        return $this->db->selectOne(
+            "SELECT a.id, a.name, a.slug, a.logo_path, a.description, a.is_verified, a.verified_at,
+                    a.phone, a.whatsapp, a.website, a.address,
+                    ci.name AS city_name, ci.slug AS city_slug, m.name AS commune_name,
+                    (SELECT COUNT(*) FROM properties p WHERE " . $this->publishedScope(':country2') . " AND p.agency_id = a.id) AS listings
+             FROM agencies a
+             LEFT JOIN cities ci ON ci.id = a.city_id
+             LEFT JOIN communes m ON m.id = a.commune_id
+             WHERE a.slug = :slug AND a.country_id = :country AND a.status = 'active' AND a.deleted_at IS NULL",
+            ['slug' => $slug, 'country' => $countryId, 'country2' => $countryId]
+        );
+    }
+
+    /**
+     * Zones de couverture déclarées par l'agence (communes).
+     *
+     * @return list<array{name: string, slug: string, city_slug: string}>
+     */
+    public function agencyZones(int $agencyId): array
+    {
+        return $this->db->select(
+            'SELECT m.name, m.slug, ci.slug AS city_slug
+             FROM agency_zones z
+             JOIN communes m ON m.id = z.commune_id AND m.is_active = 1
+             JOIN cities ci ON ci.id = m.city_id
+             WHERE z.agency_id = :id
+             ORDER BY m.sort_order, m.name',
+            ['id' => $agencyId]
+        );
+    }
+
+    /**
+     * Annonces en ligne d'une agence, paginées (profil public).
+     *
+     * @return array{rows: list<array<string, mixed>>, total: int}
+     */
+    public function byAgency(int $agencyId, int $countryId, int $limit, int $offset): array
+    {
+        $params = ['country' => $countryId, 'agency' => $agencyId];
+
+        return [
+            'total' => (int) $this->db->scalar(
+                'SELECT COUNT(*) FROM properties p WHERE ' . $this->publishedScope() . ' AND p.agency_id = :agency',
+                $params
+            ),
+            'rows' => $this->db->select(
+                'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . '
+                 WHERE ' . $this->publishedScope() . ' AND p.agency_id = :agency
+                 ORDER BY p.published_at DESC, p.id DESC
+                 LIMIT :limit OFFSET :offset',
+                $params + ['limit' => $limit, 'offset' => $offset]
+            ),
+        ];
+    }
+
+    /**
+     * Villes proposées en filtre de l'annuaire : celles où une agence active est implantée
+     * ou déclare une zone de couverture.
+     *
+     * @return list<array{slug: string, name: string}>
+     */
+    public function agencyCities(int $countryId): array
+    {
+        return $this->db->select(
+            // `sort_order` figure dans le SELECT : un ORDER BY sur une colonne absente est refusé
+            // en présence de DISTINCT (ONLY_FULL_GROUP_BY).
+            "SELECT DISTINCT ci.slug, ci.name, ci.sort_order
+             FROM cities ci
+             WHERE ci.country_id = :country AND ci.is_active = 1
+               AND (EXISTS (SELECT 1 FROM agencies a WHERE a.city_id = ci.id AND a.status = 'active' AND a.deleted_at IS NULL)
+                 OR EXISTS (SELECT 1 FROM agency_zones z JOIN communes m ON m.id = z.commune_id
+                              JOIN agencies a2 ON a2.id = z.agency_id AND a2.status = 'active' AND a2.deleted_at IS NULL
+                             WHERE m.city_id = ci.id))
+             ORDER BY ci.sort_order, ci.name",
+            ['country' => $countryId]
+        );
+    }
+
     /** Annonces en ligne du pays : condition commune à toutes les requêtes publiques. */
     private function publishedScope(string $countryParam = ':country'): string
     {

@@ -11,6 +11,7 @@
  * @var string|null $ogImage        URL absolue de l'image de partage
  * @var array|null  $schema         Données structurées Schema.org (JSON-LD)
  * @var array       $pageScripts    Scripts propres à la page (chemins relatifs à public/assets)
+ * @var array       $pageStyles     Feuilles de style propres à la page (Leaflet sur la vue carte)
  * @var bool        $noindex
  */
 $headerOverlay ??= false;
@@ -19,6 +20,7 @@ $canonical ??= null;
 $ogImage ??= null;
 $schema ??= null;
 $pageScripts ??= [];
+$pageStyles ??= [];
 $noindex ??= false;
 $siteName = site()->name ?? config('app.name');
 ?>
@@ -54,6 +56,9 @@ $siteName = site()->name ?? config('app.name');
   <link rel="preload" as="image" type="image/webp" href="<?= e($preloadImage) ?>" fetchpriority="high">
   <?php endif; ?>
   <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
+  <?php foreach ($pageStyles as $style): ?>
+  <link rel="stylesheet" href="<?= e(asset($style)) ?>">
+  <?php endforeach; ?>
 
   <link rel="icon" type="image/png" sizes="32x32" href="<?= e(asset('img/brand/favicon-32.png')) ?>">
   <link rel="apple-touch-icon" href="<?= e(asset('img/brand/apple-touch-icon.png')) ?>">

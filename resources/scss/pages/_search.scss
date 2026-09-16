@@ -1,0 +1,476 @@
+// =============================================================================
+// Page de résultats : fil d'Ariane, barre d'outils, panneau de filtres, carte, pagination
+// =============================================================================
+
+.im-results {
+  padding-bottom: im-fluid(3rem, 5rem);
+
+  &__top {
+    padding-block: im-fluid(1.5rem, 2.5rem) im-fluid(1.25rem, 1.75rem);
+    border-bottom: 1px solid $im-line;
+    background: $im-snow;
+  }
+
+  &__title { margin: .75rem 0 0; }
+
+  &__count {
+    margin: .4rem 0 0;
+    color: $im-muted;
+    font-size: .9375rem;
+    font-weight: $im-weight-medium;
+  }
+
+  &__layout {
+    display: grid;
+    align-items: start;
+    gap: im-fluid(1.5rem, 2.5rem);
+    padding-top: im-fluid(1.5rem, 2.25rem);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(lg) { grid-template-columns: minmax(0, 19rem) minmax(0, 1fr); }
+  }
+
+  &__main { min-width: 0; }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-top: 1rem;
+  }
+
+  &__reset { margin-left: .25rem; font-size: .875rem; }
+
+  &__list { margin-top: im-fluid(1.5rem, 2rem); }
+
+  &__map { margin-top: 1.25rem; }
+
+  &__map-note {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin: .6rem 0 0;
+
+    .im-icon { width: 1rem; height: 1rem; flex: none; }
+  }
+
+  &__map-empty {
+    margin: 0;
+    padding: 2rem;
+    border: 1px dashed $im-line;
+    border-radius: $im-radius;
+    color: $im-muted;
+    text-align: center;
+  }
+
+  // En vue carte, les annonces listées sous la carte restent compactes
+  &--map .im-results__list { margin-top: 1.5rem; }
+}
+
+// Fil d'Ariane ------------------------------------------------------------------
+.im-breadcrumb {
+  font-size: .8125rem;
+  color: $im-muted;
+
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li { display: inline-flex; align-items: center; gap: .35rem; }
+
+  a { color: inherit; }
+
+  @include im-hover {
+    a { color: $im-navy; }
+  }
+
+  .im-icon { width: .75rem; height: .75rem; color: $im-subtle; }
+
+  [aria-current="page"] { color: $im-ink; font-weight: $im-weight-semibold; }
+}
+
+// Barre d'outils ----------------------------------------------------------------
+.im-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $im-line;
+
+  &__spacer { flex: 1 1 auto; }
+
+  &__filters {
+    &[hidden] { display: none; } // le bouton n'existe que si le tiroir est actif (JavaScript)
+
+    @include im-up(lg) { display: none; }
+  }
+
+  // Sous 768 px : bouton et présentations sur une ligne, tri sur la suivante
+  @include im-down(md) {
+    &__filters { order: 1; }
+    &__spacer { order: 2; }
+    &__views { order: 3; }
+    &__sort { order: 4; flex: 1 1 100%; }
+  }
+
+  &__sort { flex: 0 1 15rem; }
+
+  &__views {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid $im-line;
+    border-radius: $im-radius-sm;
+    background: $im-white;
+  }
+
+  &__view {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 38px;
+    border-radius: $im-radius-xs;
+    color: $im-muted;
+    transition: background-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.15rem; height: 1.15rem; }
+
+    @include im-hover { color: $im-ink; background: $im-snow; }
+
+    &.is-active { background: $im-navy; color: $im-white; }
+  }
+}
+
+.im-control--sm { min-height: 42px; padding-block: .5rem; font-size: .9375rem; }
+
+// Puce retirable (filtre actif)
+.im-chip--removable {
+  padding-right: .6rem;
+
+  .im-icon { width: .85rem; height: .85rem; }
+
+  @include im-hover { border-color: $im-navy; color: $im-navy; .im-icon { color: currentColor; } }
+}
+
+// Panneau de filtres --------------------------------------------------------------
+.im-results__aside {
+  @include im-up(lg) {
+    position: sticky;
+    top: calc(var(--im-header-height) + 1rem);
+    max-height: calc(100vh - var(--im-header-height) - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  // Sous 992 px, `search.js` pose « is-drawer » : le panneau devient un tiroir ouvert depuis
+  // la barre d'outils. Sans JavaScript, il reste simplement affiché au-dessus des résultats.
+  @include im-down(lg) {
+    &.is-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 1060;
+      background: rgba($im-navy-deep, .45);
+
+      &[hidden] { display: none; }
+
+      .im-filters {
+        position: absolute;
+        inset: 0 0 0 auto;
+        width: min(92vw, 26rem);
+        border: 0;
+        border-radius: 0;
+        box-shadow: $im-shadow-lg;
+      }
+
+      .im-filters__footer { border-radius: 0; }
+    }
+  }
+}
+
+.im-filters {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid $im-line;
+
+    // La croix ne sert qu'au tiroir mobile
+    .im-filters__close { display: none; }
+    .is-drawer & .im-filters__close { display: inline-grid; }
+  }
+
+  &__close {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: $im-radius-xs;
+    background: transparent;
+    color: $im-muted;
+    cursor: pointer;
+
+    @include im-hover { background: $im-snow; color: $im-ink; }
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    padding: .25rem 1.25rem 1.25rem;
+    overflow-y: auto;
+  }
+
+  &__group {
+    margin: 0;
+    padding: 1.25rem 0 0;
+    border: 0;
+
+    + .im-filters__group { border-top: 1px solid $im-line-soft; }
+
+    > .im-field + .im-field { margin-top: .85rem; }
+
+    &::after { content: ""; display: table; clear: both; }
+  }
+
+  &__legend {
+    // Une <legend> se place sur la bordure du fieldset et ignore son padding :
+    // la faire flotter sur toute la largeur la remet dans le flux normal.
+    float: left;
+    width: 100%;
+    margin-bottom: .65rem;
+    padding: 0;
+    color: $im-ink;
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+  }
+
+  &__unit { color: $im-subtle; font-weight: $im-weight-regular; }
+
+  &__subtitle {
+    margin: 1rem 0 .5rem;
+    color: $im-subtle;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+
+    &:first-of-type { margin-top: 0; }
+  }
+
+  &__transactions { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+  &__pair {
+    display: grid;
+    align-items: end;
+    gap: .75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__options {
+    display: grid;
+    gap: .6rem;
+  }
+
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid $im-line;
+    background: $im-snow;
+    border-radius: 0 0 $im-radius-lg $im-radius-lg;
+  }
+
+  &__reset { font-size: .875rem; }
+}
+
+// Liste verticale (vue « liste ») ---------------------------------------------------
+.im-stack-cards {
+  display: grid;
+  gap: 1.25rem;
+}
+
+// Carte Leaflet -----------------------------------------------------------------------
+.im-map {
+  height: clamp(20rem, 60vh, 38rem);
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  overflow: hidden;
+  background: $im-mist;
+
+  // Habillage sobre du plugin : ni ombres lourdes ni arrondis excessifs
+  .leaflet-container { font: inherit; }
+
+  .leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: $im-radius;
+    box-shadow: $im-shadow;
+  }
+
+  .leaflet-popup-content { width: 15rem !important; margin: 0; }
+  .leaflet-popup-tip { box-shadow: none; }
+
+  .leaflet-control-zoom a {
+    border-radius: $im-radius-xs;
+    color: $im-ink;
+    border-color: $im-line;
+  }
+}
+
+.im-map-card {
+  display: block;
+  color: inherit;
+
+  &__image {
+    display: block;
+    width: 100%;
+    height: 7.5rem;
+    object-fit: cover;
+  }
+
+  &__body { padding: .75rem .9rem .9rem; }
+
+  &__price {
+    margin: 0;
+    color: $im-navy;
+    font-size: 1rem;
+    font-weight: $im-weight-bold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__title {
+    display: -webkit-box;
+    margin: .25rem 0 0;
+    overflow: hidden;
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  &__location { margin: .3rem 0 0; color: $im-muted; font-size: .8125rem; }
+}
+
+// Agrégats de marqueurs : cercles navy, sans le vert/jaune par défaut du plugin
+.marker-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba($im-navy, .18);
+
+  div {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: $im-navy;
+    color: $im-white;
+    font: #{$im-weight-bold} .8125rem/1 $im-font;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &-large div { width: 40px; height: 40px; font-size: .875rem; }
+}
+
+// Pagination -----------------------------------------------------------------------------
+.im-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem 1rem;
+  margin-top: im-fluid(2rem, 3rem);
+  padding-top: im-fluid(1.5rem, 2rem);
+  border-top: 1px solid $im-line;
+
+  &__list {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__page {
+    display: inline-grid;
+    place-items: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 .5rem;
+    border-radius: $im-radius-sm;
+    color: $im-ink;
+    font-size: .9375rem;
+    font-weight: $im-weight-medium;
+    font-variant-numeric: tabular-nums;
+    transition: background-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    @include im-hover { background: $im-snow; color: $im-navy; }
+
+    &.is-current { background: $im-navy; color: $im-white; }
+  }
+
+  &__gap { color: $im-subtle; }
+
+  &__step {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 44px;
+    padding: 0 .75rem;
+    border-radius: $im-radius-sm;
+    color: $im-navy;
+    font-size: .9375rem;
+    font-weight: $im-weight-semibold;
+
+    .im-icon { width: 1.1rem; height: 1.1rem; }
+
+    @include im-hover { background: $im-snow; }
+  }
+}
+
+// État vide (résultats, favoris) ------------------------------------------------------------
+.im-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  margin-top: im-fluid(1.5rem, 2.5rem);
+  padding: im-fluid(2.5rem, 4rem) 1.5rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+  text-align: center;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: $im-blue-tint;
+    color: $im-navy;
+
+    .im-icon { width: 1.5rem; height: 1.5rem; }
+  }
+
+  .im-lead { max-width: 34rem; }
+
+  .im-btn { margin-top: .5rem; }
+}

@@ -60,6 +60,8 @@
 
   /* Favoris (sans compte : mémorisés dans le navigateur) ------------------------------ */
   var STORAGE_KEY = 'ian.favorites';
+  var FAVORITES_COOKIE = 'ian_fav';
+  var FAVORITES_MAX = 60;
 
   function readFavorites() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { return []; }
@@ -67,6 +69,17 @@
 
   function writeFavorites(list) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) { /* stockage indisponible */ }
+    writeFavoritesCookie(list);
+  }
+
+  /**
+   * Recopie la liste dans un cookie : c'est la seule façon pour le serveur de rendre la page
+   * /favoris. Aucune donnée personnelle, uniquement des références d'annonces publiques.
+   */
+  function writeFavoritesCookie(list) {
+    var value = encodeURIComponent(list.slice(0, FAVORITES_MAX).join(','));
+    var secure = window.location.protocol === 'https:' ? '; secure' : '';
+    document.cookie = FAVORITES_COOKIE + '=' + value + '; path=/; max-age=' + (list.length ? 31536000 : 0) + '; samesite=lax' + secure;
   }
 
   function renderFavorites() {
@@ -88,12 +101,13 @@
     var ref = btn.getAttribute('data-favorite');
     var list = readFavorites();
     var index = list.indexOf(ref);
-    if (index === -1) { list.push(ref); } else { list.splice(index, 1); }
+    if (index === -1) { list.unshift(ref); } else { list.splice(index, 1); }
     writeFavorites(list);
     renderFavorites();
   });
 
   renderFavorites();
+  writeFavoritesCookie(readFavorites()); // le cookie peut expirer alors que le stockage local persiste
 
   /* Recherche : changement de transaction ---------------------------------------------- */
   document.querySelectorAll('[data-search]').forEach(function (form) {

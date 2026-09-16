@@ -19,6 +19,7 @@ use App\Controllers\Cmsadmin\Catalog\AttributeController;
 use App\Controllers\Cmsadmin\Catalog\CategoryController;
 use App\Controllers\Cmsadmin\Catalog\FeatureController;
 use App\Controllers\Cmsadmin\DashboardController;
+use App\Controllers\Cmsadmin\ExportController;
 use App\Controllers\Cmsadmin\Geo\CityController;
 use App\Controllers\Cmsadmin\Geo\CommuneController;
 use App\Controllers\Cmsadmin\Geo\DistrictController;
@@ -28,6 +29,7 @@ use App\Controllers\Cmsadmin\PasswordController;
 use App\Controllers\Cmsadmin\Properties\PropertyActionController;
 use App\Controllers\Cmsadmin\Properties\PropertyController;
 use App\Controllers\Cmsadmin\Properties\PropertyMediaController;
+use App\Controllers\Cmsadmin\SettingsController;
 use App\Controllers\Cmsadmin\SiteController;
 use App\Controllers\Preview\CmsadminPreviewController;
 use App\Core\App;
@@ -131,6 +133,17 @@ return static function (Router $router, App $app): void {
                 $router->get('/demandes-partenariat', [PartnerRequestController::class, 'index'], 'partners.index');
                 $router->get('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'show'], 'partners.show');
                 $router->post('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'update'], 'partners.update');
+
+                // Exports CSV (lot 1.12) : pays du site, jamais un compte agence
+                $router->get('/exports', [ExportController::class, 'index'], 'exports');
+                $router->get('/exports/annonces.csv', [ExportController::class, 'properties'], 'exports.properties');
+                $router->get('/exports/contacts.csv', [ExportController::class, 'leads'], 'exports.leads');
+            });
+
+            // Paramètres de la plateforme (lot 1.12, Super Admin)
+            $router->group(['middleware' => [RequireRole::class . ':super_admin']], static function (Router $router): void {
+                $router->get('/parametres', [SettingsController::class, 'edit'], 'settings');
+                $router->post('/parametres', [SettingsController::class, 'update'], 'settings.update');
             });
 
             // Utilisateurs internes (Super Admin)

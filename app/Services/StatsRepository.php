@@ -146,6 +146,53 @@ final class StatsRepository
         );
     }
 
+    /**
+     * Annonces qui attendent l'équipe (lot 1.12) : dépôts en attente et modifications d'annonces
+     * publiées en attente de validation. La colonne `kind` distingue les deux cas à l'affichage.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function toReview(int $countryId, int $limit = 6): array
+    {
+        return $this->db->select(
+            "SELECT p.id, p.reference, p.title, p.status, p.submitted_at, a.name AS agency_name,
+                    r.id AS revision_id, r.submitted_at AS revision_submitted_at,
+                    IF(r.id IS NULL, 'new', 'revision') AS kind
+             FROM properties p
+             LEFT JOIN agencies a ON a.id = p.agency_id
+             LEFT JOIN property_revisions r ON r.property_id = p.id AND r.status = 'pending'
+             WHERE p.country_id = :country AND p.deleted_at IS NULL
+               AND (p.status = 'pending' OR r.id IS NOT NULL)
+             ORDER BY COALESCE(r.submitted_at, p.submitted_at, p.created_at)
+             LIMIT :limit",
+            ['country' => $countryId, 'limit' => $limit]
+        );
+    }
+
+    /**
+     * Agences les plus consultées sur la période (tableau de bord de l'équipe).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function topAgencies(int $countryId, int $days = 30, int $limit = 5): array
+    {
+        return $this->db->select(
+            "SELECT a.id, a.name, a.slug, a.is_verified,
+                    COUNT(DISTINCT p.id) AS listings,
+                    COALESCE(SUM(s.views), 0) AS views,
+                    COALESCE(SUM(s.leads), 0) AS leads
+             FROM agencies a
+             JOIN properties p ON p.agency_id = a.id AND p.deleted_at IS NULL AND p.country_id = :country
+             LEFT JOIN property_stats_daily s ON s.property_id = p.id AND s.stat_date >= UTC_DATE() - INTERVAL :days DAY
+             WHERE a.country_id = :country2 AND a.deleted_at IS NULL
+             GROUP BY a.id, a.name, a.slug, a.is_verified
+             HAVING views > 0 OR listings > 0
+             ORDER BY views DESC, listings DESC, a.name
+             LIMIT :limit",
+            ['country' => $countryId, 'country2' => $countryId, 'days' => $days - 1, 'limit' => $limit]
+        );
+    }
+
     /** Vues et contacts cumulés des annonces du périmètre depuis toujours (compteurs de properties). */
     public function totals(int $countryId, ?int $agencyId): array
     {

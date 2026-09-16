@@ -16,6 +16,9 @@ final class ListingPresenter
     /** Largeurs générées par ImageUploader pour les photos d'annonces. */
     private const IMAGE_WIDTHS = [400, 800];
 
+    /** Largeurs proposées à la galerie de la fiche (la plus grande sert à la visionneuse). */
+    private const GALLERY_WIDTHS = [400, 800, 1600];
+
     /** Une annonce publiée depuis moins de N jours porte le badge « Nouveau ». */
     private const NEW_DAYS = 7;
 
@@ -92,6 +95,261 @@ final class ListingPresenter
         }
 
         return mb_strlen($text) <= $length ? $text : rtrim(mb_substr($text, 0, $length)) . "\u{2026}";
+    }
+
+    /**
+     * Fiche annonce complète (lot 1.10) : galerie, prix, localisation, critères groupés,
+     * équipements, médias, contacts affichés et bloc agence.
+     *
+     * @param array<string, mixed>       $row      Ligne de ListingRepository::findPublished()
+     * @param list<array<string, mixed>> $images   ListingRepository::publicImages()
+     * @param list<array<string, mixed>> $criteria ListingRepository::criteriaRows()
+     * @param list<array<string, mixed>> $features ListingRepository::publicFeatures()
+     * @return array<string, mixed>
+     */
+    public function detail(array $row, array $images, array $criteria, array $features): array
+    {
+        $phone = $row['contact_phone'] ?? $row['agent_phone'] ?? $row['agency_phone'] ?? null;
+        $whatsapp = $row['contact_whatsapp'] ?? $row['agent_whatsapp'] ?? $row['agency_whatsapp'] ?? null;
+        $groups = $this->criteriaGroups($criteria);
+
+        return [
+            'id' => (int) $row['id'],
+            'reference' => (string) $row['reference'],
+            'url' => $this->url($row),
+            'title' => (string) $row['title'],
+            'description' => (string) $row['description'],
+            'category' => (string) $row['category_name'],
+            'category_slug' => (string) $row['category_slug'],
+            'family' => $row['family_name'] !== null ? (string) $row['family_name'] : null,
+            'family_slug' => $row['family_slug'] !== null ? (string) $row['family_slug'] : null,
+            'transaction' => (string) $row['transaction_name'],
+            'transaction_slug' => (string) $row['transaction_slug'],
+            'price' => $row['price'] !== null ? (float) $row['price'] : null,
+            'price_label' => $row['price'] !== null
+                ? format_price($row['price'], $this->currency($row['currency_code'] ?? null))
+                : __('common.price_on_request'),
+            'period' => (string) ($row['price_period'] ?? 'total'),
+            'negotiable' => (int) ($row['is_negotiable'] ?? 0) === 1,
+            'charges' => $row['charges'] !== null && (float) $row['charges'] > 0 ? (float) $row['charges'] : null,
+            'fee_percent' => $row['agency_fee_percent'] !== null && (float) $row['agency_fee_percent'] > 0 ? (float) $row['agency_fee_percent'] : null,
+            'location' => $this->location($row),
+            'city' => (string) $row['city_name'],
+            'commune' => $row['commune_name'] !== null ? (string) $row['commune_name'] : null,
+            'district' => $row['district_name'] !== null ? (string) $row['district_name'] : null,
+            // L'adresse exacte n'est publiée que si l'annonce l'autorise.
+            'address' => (int) ($row['show_exact_location'] ?? 0) === 1 && !empty($row['address']) ? (string) $row['address'] : null,
+            'map' => $this->map($row),
+            'gallery' => $this->gallery($images, (string) $row['title']),
+            'badges' => $this->badges($row),
+            'specs' => $this->specs($row),
+            'legal' => $groups['legal'] ?? null,
+            'criteria' => array_diff_key($groups, ['legal' => null]),
+            'features' => $this->featureGroups($features),
+            'availability' => (string) ($row['availability'] ?? 'available'),
+            'available_from' => $row['available_from'] !== null ? (string) $row['available_from'] : null,
+            'video' => $this->link($row['video_url'] ?? null),
+            'tour' => $this->link($row['virtual_tour_url'] ?? null),
+            'document' => !empty($row['document_path']) ? url((string) $row['document_path']) : null,
+            'contact_name' => !empty($row['contact_name']) ? (string) $row['contact_name'] : null,
+            'phone' => $phone !== null && $phone !== '' ? (string) $phone : null,
+            'whatsapp' => $whatsapp !== null && $whatsapp !== '' ? (string) $whatsapp : null,
+            'agency' => $this->agency($row),
+            'agent' => $this->agent($row),
+            'published_at' => $row['published_at'] !== null ? (string) $row['published_at'] : null,
+            'updated_at' => $row['updated_at'] !== null ? (string) $row['updated_at'] : null,
+        ];
+    }
+
+    /**
+     * Galerie : chaque photo en trois largeurs WebP. `property_images.path` ne porte pas le
+     * suffixe de taille, il est ajouté ici.
+     *
+     * @param list<array<string, mixed>> $images
+     * @return list<array{src: string, srcset: string, full: string, alt: string}>
+     */
+    private function gallery(array $images, string $title): array
+    {
+        $gallery = [];
+        foreach ($images as $index => $image) {
+            $base = (string) $image['path'];
+            $srcset = [];
+            foreach (self::GALLERY_WIDTHS as $width) {
+                $srcset[] = url("{$base}-{$width}.webp") . " {$width}w";
+            }
+            $alt = trim((string) ($image['alt_text'] ?? ''));
+            $gallery[] = [
+                'src' => url("{$base}-800.webp"),
+                'srcset' => implode(', ', $srcset),
+                'full' => url("{$base}-1600.webp"),
+                'alt' => $alt !== '' ? $alt : __('front.property.photo_alt', ['title' => $title, 'index' => $index + 1]),
+            ];
+        }
+
+        return $gallery;
+    }
+
+    /**
+     * Point de la carte. Quand la localisation exacte n'est pas publique, les coordonnées sont
+     * arrondies au centième de degré (environ 1 km) : le quartier reste lisible, pas l'adresse.
+     *
+     * @return array{lat: float, lng: float, exact: bool}|null
+     */
+    private function map(array $row): ?array
+    {
+        if ($row['latitude'] === null || $row['longitude'] === null) {
+            return null;
+        }
+        $exact = (int) ($row['show_exact_location'] ?? 0) === 1;
+
+        return [
+            'lat' => $exact ? (float) $row['latitude'] : round((float) $row['latitude'], 2),
+            'lng' => $exact ? (float) $row['longitude'] : round((float) $row['longitude'], 2),
+            'exact' => $exact,
+        ];
+    }
+
+    /**
+     * Critères regroupés par section, dans l'ordre du catalogue. Les valeurs multi-choix d'un
+     * même critère sont réunies sur une seule ligne.
+     *
+     * @param list<array<string, mixed>> $rows
+     * @return array<string, array{label: string, items: list<array{label: string, value: string}>}>
+     */
+    private function criteriaGroups(array $rows): array
+    {
+        $byAttribute = [];
+        foreach ($rows as $row) {
+            $value = $this->criterionValue($row);
+            if ($value === null) {
+                continue;
+            }
+            $key = (string) $row['group_code'] . '.' . (string) $row['code'];
+            if (isset($byAttribute[$key])) {
+                $byAttribute[$key]['values'][] = $value;
+                continue;
+            }
+            $byAttribute[$key] = [
+                'group' => (string) $row['group_code'],
+                'group_label' => self::localized($row['group_name'], $row['group_translations']),
+                'label' => self::localized($row['name'], $row['name_translations']),
+                'values' => [$value],
+            ];
+        }
+
+        $groups = [];
+        foreach ($byAttribute as $attribute) {
+            $groups[$attribute['group']]['label'] = $attribute['group_label'];
+            $groups[$attribute['group']]['items'][] = [
+                'label' => $attribute['label'],
+                'value' => implode(', ', $attribute['values']),
+            ];
+        }
+
+        return $groups;
+    }
+
+    /** Valeur lisible d'un critère, selon son type de saisie. */
+    private function criterionValue(array $row): ?string
+    {
+        if ($row['option_label'] !== null) {
+            return self::localized($row['option_label'], $row['option_translations']);
+        }
+
+        $unit = !empty($row['unit']) ? "\u{00A0}" . (string) $row['unit'] : '';
+
+        return match ((string) $row['input_type']) {
+            'boolean' => isset($row['value_boolean']) && $row['value_boolean'] !== null
+                ? __((int) $row['value_boolean'] === 1 ? 'common.yes' : 'common.no')
+                : null,
+            'integer' => $this->number($row['value'] ?? $row['value_integer'], $unit),
+            'year' => isset($row['value_integer']) ? (string) (int) $row['value_integer'] : null,
+            'decimal' => $this->number($row['value'] ?? $row['value_decimal'], $unit),
+            'date' => !empty($row['value_date']) ? format_date((string) $row['value_date']) : null,
+            'select', 'multiselect' => null, // sans option rattachée, il n'y a rien à afficher
+            default => !empty($row['value_text']) ? (string) $row['value_text'] : null,
+        };
+    }
+
+    private function number(mixed $value, string $unit): ?string
+    {
+        if ($value === null || $value === '' || (float) $value <= 0) {
+            return null;
+        }
+
+        return format_decimal((float) $value) . $unit;
+    }
+
+    /**
+     * Équipements groupés par famille (confort, sécurité, extérieurs, réseaux, connectivité).
+     *
+     * @param list<array<string, mixed>> $features
+     * @return array<string, list<array{label: string, icon: ?string}>>
+     */
+    private function featureGroups(array $features): array
+    {
+        $groups = [];
+        foreach ($features as $feature) {
+            $groups[(string) $feature['feature_group']][] = [
+                'label' => self::localized($feature['name'], $feature['name_translations']),
+                'icon' => !empty($feature['icon']) ? (string) $feature['icon'] : null,
+            ];
+        }
+
+        return $groups;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function agency(array $row): ?array
+    {
+        if ($row['agency_name'] === null) {
+            return null;
+        }
+
+        return [
+            'name' => (string) $row['agency_name'],
+            'slug' => (string) $row['agency_slug'],
+            'url' => 'agences/' . $row['agency_slug'],
+            'logo' => !empty($row['agency_logo']) ? url((string) $row['agency_logo']) : null,
+            'verified' => (int) ($row['agency_verified'] ?? 0) === 1,
+            'description' => !empty($row['agency_description']) ? (string) $row['agency_description'] : null,
+            'listings' => (int) ($row['agency_listings'] ?? 0),
+            'phone' => !empty($row['agency_phone']) ? (string) $row['agency_phone'] : null,
+            'whatsapp' => !empty($row['agency_whatsapp']) ? (string) $row['agency_whatsapp'] : null,
+        ];
+    }
+
+    /** @return array{name: string, job: ?string}|null Agent en charge, sans son adresse email */
+    private function agent(array $row): ?array
+    {
+        $name = trim((string) ($row['agent_first_name'] ?? '') . ' ' . (string) ($row['agent_last_name'] ?? ''));
+        if ($name === '') {
+            return null;
+        }
+
+        return ['name' => $name, 'job' => !empty($row['agent_job']) ? (string) $row['agent_job'] : null];
+    }
+
+    /** Lien externe (vidéo, visite 360°) : seuls http(s) sont acceptés. */
+    private function link(mixed $url): ?string
+    {
+        $url = trim((string) ($url ?? ''));
+
+        return preg_match('#^https?://#i', $url) === 1 ? $url : null;
+    }
+
+    /** Libellé dans la langue du site, avec repli sur le libellé français du référentiel. */
+    private static function localized(mixed $name, mixed $translations): string
+    {
+        $locale = locale();
+        if ($locale !== 'fr' && is_string($translations) && $translations !== '') {
+            $decoded = json_decode($translations, true);
+            if (is_array($decoded) && !empty($decoded[$locale])) {
+                return (string) $decoded[$locale];
+            }
+        }
+
+        return (string) $name;
     }
 
     /** Symbole affiché (FCFA) plutôt que le code ISO, quand l'annonce est dans la devise du pays. */

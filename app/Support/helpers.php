@@ -231,6 +231,38 @@ function format_number(int|float $value): string
     return number_format((float) $value, 0, ',', "\u{00A0}");
 }
 
+/**
+ * Nombre décimal sans zéros inutiles : 320 → « 320 », 320.5 → « 320,5 », 3.50 → « 3,5 ».
+ */
+function format_decimal(int|float|string $value, int $decimals = 2): string
+{
+    $formatted = number_format((float) $value, $decimals, ',', "\u{00A0}");
+
+    return str_contains($formatted, ',') ? rtrim(rtrim($formatted, '0'), ',') : $formatted;
+}
+
+/**
+ * Date lisible dans la langue du site : « 16 septembre 2026 ».
+ * Les dates sont stockées en UTC ; la mise en forme reste dans ce fuseau.
+ */
+function format_date(?string $date, string $pattern = 'd MMMM y'): string
+{
+    $timestamp = $date === null || $date === '' ? false : strtotime($date);
+    if ($timestamp === false) {
+        return '';
+    }
+
+    if (class_exists(IntlDateFormatter::class)) {
+        $formatter = new IntlDateFormatter(locale(), IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, $pattern);
+        $formatted = $formatter->format($timestamp);
+        if ($formatted !== false) {
+            return $formatted;
+        }
+    }
+
+    return date('d/m/Y', $timestamp);
+}
+
 /** Libellé de période de prix : « / mois », « / nuit »… */
 function price_period_label(string $period): string
 {

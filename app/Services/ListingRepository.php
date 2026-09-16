@@ -201,6 +201,207 @@ final class ListingRepository
     }
 
     /**
+     * Fiche publique d'une annonce. `property_private_details` (notaire, référence de dossier)
+     * n'est jamais joint, et `internal_reference` comme les compteurs internes restent en base.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findPublished(int $id, int $countryId): ?array
+    {
+        return $this->db->selectOne(
+            "SELECT p.id, p.reference, p.title, p.slug, p.description, p.source,
+                    p.price, p.currency_code, p.price_period, p.is_negotiable, p.charges, p.agency_fee_percent,
+                    p.address, p.latitude, p.longitude, p.show_exact_location,
+                    p.living_area, p.land_area, p.rooms, p.bedrooms, p.bathrooms,
+                    p.availability, p.available_from, p.video_url, p.virtual_tour_url, p.document_path,
+                    p.contact_name, p.contact_phone, p.contact_whatsapp,
+                    p.published_at, p.updated_at, p.is_featured, p.featured_until,
+                    p.meta_title, p.meta_description,
+                    p.category_id, p.transaction_type_id, p.city_id, p.commune_id, p.district_id,
+                    p.agency_id, p.agent_user_id,
+                    c.name AS category_name, c.slug AS category_slug, c.parent_id AS category_parent_id,
+                    f.name AS family_name, f.slug AS family_slug,
+                    t.name AS transaction_name, t.slug AS transaction_slug,
+                    ci.name AS city_name, ci.slug AS city_slug,
+                    m.name AS commune_name, m.slug AS commune_slug,
+                    d.name AS district_name, d.slug AS district_slug,
+                    a.name AS agency_name, a.slug AS agency_slug, a.logo_path AS agency_logo,
+                    a.is_verified AS agency_verified, a.phone AS agency_phone, a.whatsapp AS agency_whatsapp,
+                    a.description AS agency_description, a.published_properties_count AS agency_listings,
+                    u.first_name AS agent_first_name, u.last_name AS agent_last_name, u.job_title AS agent_job,
+                    u.phone AS agent_phone, u.whatsapp AS agent_whatsapp
+             FROM properties p
+             JOIN property_categories c ON c.id = p.category_id
+             LEFT JOIN property_categories f ON f.id = c.parent_id
+             JOIN transaction_types t ON t.id = p.transaction_type_id
+             JOIN cities ci ON ci.id = p.city_id
+             LEFT JOIN communes m ON m.id = p.commune_id
+             LEFT JOIN districts d ON d.id = p.district_id
+             LEFT JOIN agencies a ON a.id = p.agency_id AND a.deleted_at IS NULL
+             LEFT JOIN users u ON u.id = p.agent_user_id AND u.is_active = 1 AND u.deleted_at IS NULL
+             WHERE p.id = :id AND " . $this->publishedScope(),
+            ['id' => $id, 'country' => $countryId]
+        );
+    }
+
+    /**
+     * Galerie publique : une photo de révision en attente (`revision_id`) n'apparaît jamais.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function publicImages(int $propertyId): array
+    {
+        return $this->db->select(
+            'SELECT path, alt_text, width, height FROM property_images
+             WHERE property_id = :id AND revision_id IS NULL ORDER BY sort_order, id',
+            ['id' => $propertyId]
+        );
+    }
+
+    /**
+     * Critères affichés sur la fiche : ceux rangés dans une colonne indexée de `properties`
+     * (surface, pièces…) et ceux de `property_attribute_values`, tous limités aux critères
+     * publics (`is_public`) de la catégorie et de sa famille. Un multi-choix produit une ligne
+     * par option : le présentateur les regroupe.
+     *
+     * @param array<string, mixed> $property Ligne de findPublished(), pour les valeurs en colonne
+     * @return list<array<string, mixed>>
+     */
+    public function criteriaRows(int $propertyId, int $categoryId, ?int $parentId, array $property): array
+    {
+        $scope = array_values(array_filter([$categoryId, $parentId]));
+        $placeholders = implode(', ', array_map(static fn (int $i): string => ":cat{$i}", array_keys($scope)));
+        $params = [];
+        foreach ($scope as $index => $id) {
+            $params["cat{$index}"] = $id;
+        }
+
+        $columns = "a.id, a.code, a.name, a.name_translations, a.input_type, a.unit, a.storage, a.column_name,
+                    g.code AS group_code, g.name AS group_name, g.name_translations AS group_translations,
+                    g.sort_order AS group_sort, a.sort_order";
+        $joins = "FROM property_attributes a
+                  JOIN attribute_groups g ON g.id = a.group_id
+                  WHERE a.is_active = 1 AND a.is_public = 1";
+
+        // Critères rangés dans une colonne : leur valeur est déjà dans la ligne de l'annonce.
+        $rows = [];
+        foreach ($this->db->select(
+            "SELECT {$columns} {$joins} AND a.storage = 'column'
+               AND a.id IN (SELECT ca.attribute_id FROM category_attributes ca WHERE ca.category_id IN ({$placeholders}))
+             ORDER BY g.sort_order, a.sort_order",
+            $params
+        ) as $row) {
+            $value = $property[(string) $row['column_name']] ?? null;
+            if ($value !== null && $value !== '' && (float) $value > 0) {
+                $rows[] = $row + ['value' => $value, 'option_label' => null, 'option_translations' => null];
+            }
+        }
+
+        // Critères EAV : une ligne par valeur enregistrée.
+        foreach ($this->db->select(
+            "SELECT {$columns}, v.value_integer, v.value_decimal, v.value_text, v.value_boolean, v.value_date,
+                    o.label AS option_label, o.label_translations AS option_translations, o.sort_order AS option_sort
+             FROM property_attribute_values v
+             JOIN property_attributes a ON a.id = v.attribute_id
+             JOIN attribute_groups g ON g.id = a.group_id
+             LEFT JOIN property_attribute_options o ON o.id = v.value_option_id
+             WHERE v.property_id = :property AND a.is_active = 1 AND a.is_public = 1
+             ORDER BY g.sort_order, a.sort_order, o.sort_order",
+            ['property' => $propertyId]
+        ) as $row) {
+            $rows[] = $row;
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Équipements de l'annonce, groupés par famille par le présentateur.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function publicFeatures(int $propertyId): array
+    {
+        return $this->db->select(
+            'SELECT f.code, f.name, f.name_translations, f.feature_group, f.icon
+             FROM property_features pf
+             JOIN features f ON f.id = pf.feature_id AND f.is_active = 1
+             WHERE pf.property_id = :id
+             ORDER BY f.feature_group, f.sort_order, f.name',
+            ['id' => $propertyId]
+        );
+    }
+
+    /**
+     * Biens similaires : même transaction, même famille de catégorie, même ville, prix proche.
+     * Les plus proches géographiquement (commune identique) remontent en premier.
+     *
+     * @param array<string, mixed> $property Ligne de findPublished()
+     * @return list<array<string, mixed>>
+     */
+    public function similar(array $property, int $countryId, int $limit = 3): array
+    {
+        $familyId = $property['category_parent_id'] !== null ? (int) $property['category_parent_id'] : (int) $property['category_id'];
+        $price = $property['price'] !== null ? (float) $property['price'] : null;
+
+        $params = [
+            'country' => $countryId,
+            'self' => (int) $property['id'],
+            'family' => $familyId,
+            'family2' => $familyId,
+            'transaction' => (int) $property['transaction_type_id'],
+            'city' => (int) $property['city_id'],
+            'commune' => (int) ($property['commune_id'] ?? 0),
+            'limit' => $limit,
+        ];
+
+        $priceScope = '';
+        if ($price !== null) {
+            $priceScope = ' AND p.price BETWEEN :price_low AND :price_high';
+            $params['price_low'] = $price * 0.6;
+            $params['price_high'] = $price * 1.6;
+        }
+
+        return $this->db->select(
+            'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . '
+             WHERE ' . $this->publishedScope() . '
+               AND p.id <> :self
+               AND p.transaction_type_id = :transaction
+               AND p.city_id = :city
+               AND p.category_id IN (SELECT c2.id FROM property_categories c2 WHERE c2.id = :family OR c2.parent_id = :family2)'
+               . $priceScope . '
+             ORDER BY (p.commune_id = :commune) DESC, p.published_at DESC
+             LIMIT :limit',
+            $params
+        );
+    }
+
+    /**
+     * Une consultation de plus. Le compteur dénormalisé de l'annonce et la statistique du jour
+     * (tableaux de bord des lots 1.7 et 1.12) sont mis à jour ensemble.
+     */
+    public function recordView(int $propertyId): void
+    {
+        $this->db->execute('UPDATE properties SET views_count = views_count + 1 WHERE id = :id', ['id' => $propertyId]);
+        $this->db->execute(
+            'INSERT INTO property_stats_daily (property_id, stat_date, views) VALUES (:id, UTC_DATE(), 1)
+             ON DUPLICATE KEY UPDATE views = views + 1',
+            ['id' => $propertyId]
+        );
+    }
+
+    /** Une demande de contact de plus sur l'annonce (compteur et statistique du jour). */
+    public function recordLead(int $propertyId): void
+    {
+        $this->db->execute('UPDATE properties SET leads_count = leads_count + 1 WHERE id = :id', ['id' => $propertyId]);
+        $this->db->execute(
+            'INSERT INTO property_stats_daily (property_id, stat_date, leads) VALUES (:id, UTC_DATE(), 1)
+             ON DUPLICATE KEY UPDATE leads = leads + 1',
+            ['id' => $propertyId]
+        );
+    }
+
+    /**
      * Page de résultats : annonces correspondant aux critères, triées et paginées.
      *
      * @return list<array<string, mixed>>

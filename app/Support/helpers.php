@@ -58,6 +58,21 @@ function __(string $key, array $replace = []): string
     return app()->translator()->get($key, $replace);
 }
 
+/**
+ * Chaîne au singulier ou au pluriel : __n('front.home.families_count', $n).
+ * La traduction porte les deux formes séparées par « | » (« :count annonce|:count annonces ») ;
+ * en français, 0 et 1 prennent le singulier. :count est remplacé par le nombre formaté.
+ *
+ * @param array<string, string|int|float> $replace
+ */
+function __n(string $key, int $count, array $replace = []): string
+{
+    $line = __($key, $replace + ['count' => format_number($count)]);
+    $forms = explode('|', $line);
+
+    return count($forms) > 1 ? ($count > 1 ? $forms[1] : $forms[0]) : $line;
+}
+
 function locale(): string
 {
     return app()->translator()->locale();
@@ -106,7 +121,12 @@ function absolute_url(string $path = ''): string
         return rtrim((string) config('app.url'), '/') . url($path);
     }
 
-    return ($request->isSecure() ? 'https://' : 'http://') . $site->host . url($path);
+    // Port conservé hors ports standard (développement : localhost:8888)
+    $port = (int) ($request->server('SERVER_PORT', 0) ?: 0);
+    $scheme = $request->isSecure() ? 'https' : 'http';
+    $suffix = ($port > 0 && $port !== ($request->isSecure() ? 443 : 80)) ? ':' . $port : '';
+
+    return $scheme . '://' . $site->host . $suffix . url($path);
 }
 
 /**

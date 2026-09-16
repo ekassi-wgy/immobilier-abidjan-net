@@ -17,6 +17,8 @@ use App\Services\Notifier;
 use App\Services\PasswordHasher;
 use App\Services\ImageUploader;
 use App\Services\LeadRepository;
+use App\Services\ListingPresenter;
+use App\Services\ListingRepository;
 use App\Services\PartnerRequestRepository;
 use App\Services\PasswordReset;
 use App\Services\PendingUploads;
@@ -24,6 +26,7 @@ use App\Services\PropertyForm;
 use App\Services\PropertyRepository;
 use App\Services\PropertyWorkflow;
 use App\Services\RateLimiter;
+use App\Services\SearchOptions;
 use App\Services\Settings;
 use App\Services\StatsRepository;
 use App\Services\SiteRepository;
@@ -196,6 +199,21 @@ final class App
     public function stats(): StatsRepository
     {
         return $this->service(StatsRepository::class, fn () => new StatsRepository($this->db()));
+    }
+
+    public function listings(): ListingRepository
+    {
+        return $this->service(ListingRepository::class, fn () => new ListingRepository($this->db()));
+    }
+
+    public function listingPresenter(): ListingPresenter
+    {
+        return $this->service(ListingPresenter::class, fn () => new ListingPresenter());
+    }
+
+    public function searchOptions(): SearchOptions
+    {
+        return $this->service(SearchOptions::class, fn () => new SearchOptions($this->db()));
     }
 
     public function images(): ImageUploader

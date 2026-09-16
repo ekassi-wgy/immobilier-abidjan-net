@@ -188,12 +188,12 @@ INSERT INTO transaction_types (code, slug, name, name_translations, default_pric
 -- Catégories (§3.2) — racines puis sous-catégories
 -- -----------------------------------------------------------------------------
 INSERT INTO property_categories (parent_id, code, slug, name, name_plural, name_translations, icon, sort_order) VALUES
-  (NULL, 'residential',   'residentiel',          'Résidentiel',             'Résidentiel',             '{"en": "Residential"}',          'home',      1),
+  (NULL, 'residential',   'residentiel',          'Résidentiel',             'Résidentiel',             '{"en": "Residential"}',          'house',     1),
   (NULL, 'land',          'terrains',             'Terrains',                'Terrains',                '{"en": "Land"}',                 'land',      2),
-  (NULL, 'commercial',    'commercial-bureaux',   'Commercial & Bureaux',    'Commercial & Bureaux',    '{"en": "Commercial & offices"}', 'shop',      3),
+  (NULL, 'commercial',    'commercial-bureaux',   'Commercial & Bureaux',    'Commercial & Bureaux',    '{"en": "Commercial & offices"}', 'store',     3),
   (NULL, 'industrial',    'industriel',           'Industriel',              'Industriel',              '{"en": "Industrial"}',           'factory',   4),
-  (NULL, 'hospitality',   'hotellerie-tourisme',  'Hôtellerie & Tourisme',   'Hôtellerie & Tourisme',   '{"en": "Hospitality"}',          'hotel',     5),
-  (NULL, 'institutional', 'institutionnel',       'Institutionnel / Spécial','Institutionnel / Spécial','{"en": "Institutional"}',        'building',  6);
+  (NULL, 'hospitality',   'hotellerie-tourisme',  'Hôtellerie & Tourisme',   'Hôtellerie & Tourisme',   '{"en": "Hospitality"}',          'bed',       5),
+  (NULL, 'institutional', 'institutionnel',       'Institutionnel / Spécial','Institutionnel / Spécial','{"en": "Institutional"}',        'buildings', 6);
 
 INSERT INTO property_categories (parent_id, code, slug, name, name_plural, name_translations, sort_order)
 SELECT p.id, s.code, s.slug, s.name, s.name_plural, s.translations, s.sort_order

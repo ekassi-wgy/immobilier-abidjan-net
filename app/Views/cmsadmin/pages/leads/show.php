@@ -55,7 +55,8 @@ $payload = $lead['payload'] !== null ? json_decode((string) $lead['payload'], tr
       <h3 class="im-subtitle"><?= e(__('leads.details')) ?></h3>
       <dl class="im-detail-list">
         <?php foreach ($payload as $key => $detail): ?>
-        <div><dt><?= e((string) $key) ?></dt><dd><?= e(is_scalar($detail) ? (string) $detail : json_encode($detail, JSON_UNESCAPED_UNICODE)) ?></dd></div>
+        <?php $label = 'leads.payload.' . $key; ?>
+        <div><dt><?= e(app()->translator()->has($label) ? __($label) : (string) $key) ?></dt><dd><?= e(is_scalar($detail) ? (string) $detail : json_encode($detail, JSON_UNESCAPED_UNICODE)) ?></dd></div>
         <?php endforeach; ?>
       </dl>
       <?php endif; ?>

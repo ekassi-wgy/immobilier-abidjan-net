@@ -17,6 +17,9 @@ use App\Core\Database;
  */
 final class ListingRepository
 {
+    /** Longueur minimale d'un mot indexé par InnoDB (innodb_ft_min_token_size). */
+    private const FULLTEXT_MIN_WORD = 3;
+
     /** Colonnes nécessaires à une carte annonce (jamais SELECT *). */
     private const CARD_COLUMNS = "p.id, p.reference, p.title, p.slug, p.price, p.currency_code, p.price_period,
         p.living_area, p.land_area, p.rooms, p.bedrooms, p.bathrooms, p.is_featured, p.published_at,
@@ -195,6 +198,200 @@ final class ListingRepository
         );
 
         return ['low' => $row['low'] !== null ? (float) $row['low'] : null, 'high' => $row['high'] !== null ? (float) $row['high'] : null];
+    }
+
+    /**
+     * Page de résultats : annonces correspondant aux critères, triées et paginées.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function search(int $countryId, SearchCriteria $criteria, int $limit, int $offset): array
+    {
+        $params = ['country' => $countryId, 'limit' => $limit, 'offset' => $offset];
+
+        return $this->db->select(
+            'SELECT ' . self::CARD_COLUMNS . ', p.description ' . self::CARD_JOINS . '
+             WHERE ' . $this->publishedScope() . $this->conditions($criteria, $params) . '
+             ORDER BY ' . $this->order($criteria->sort) . '
+             LIMIT :limit OFFSET :offset',
+            $params
+        );
+    }
+
+    /** Nombre total de résultats (pagination et titre de la page). */
+    public function countSearch(int $countryId, SearchCriteria $criteria): int
+    {
+        $params = ['country' => $countryId];
+
+        return (int) $this->db->scalar(
+            'SELECT COUNT(*) FROM properties p
+             WHERE ' . $this->publishedScope() . $this->conditions($criteria, $params),
+            $params
+        );
+    }
+
+    /**
+     * Points de la vue carte. Les annonces dont la localisation exacte n'est pas publique sont
+     * arrondies au centième de degré (environ 1 km) : le quartier reste lisible, pas l'adresse.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function mapPoints(int $countryId, SearchCriteria $criteria, int $limit): array
+    {
+        $params = ['country' => $countryId, 'limit' => $limit];
+
+        return $this->db->select(
+            'SELECT ' . self::CARD_COLUMNS . ',
+                    IF(p.show_exact_location = 1, p.latitude, ROUND(p.latitude, 2))  AS latitude,
+                    IF(p.show_exact_location = 1, p.longitude, ROUND(p.longitude, 2)) AS longitude
+             ' . self::CARD_JOINS . '
+             WHERE ' . $this->publishedScope() . '
+               AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL' . $this->conditions($criteria, $params) . '
+             ORDER BY ' . $this->order($criteria->sort) . '
+             LIMIT :limit',
+            $params
+        );
+    }
+
+    /**
+     * Annonces reprises depuis les favoris du visiteur (références mémorisées par le navigateur).
+     * L'ordre du cookie est conservé : la dernière annonce ajoutée reste en tête côté vue.
+     *
+     * @param list<string> $references
+     * @return list<array<string, mixed>>
+     */
+    public function byReferences(int $countryId, array $references): array
+    {
+        $references = array_slice(array_values(array_unique($references)), 0, 60);
+        if ($references === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = ['country' => $countryId];
+        foreach ($references as $index => $reference) {
+            $placeholders[] = ":r{$index}";
+            $params["r{$index}"] = $reference;
+        }
+
+        return $this->db->select(
+            'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . '
+             WHERE ' . $this->publishedScope() . ' AND p.reference IN (' . implode(', ', $placeholders) . ')',
+            $params
+        );
+    }
+
+    /**
+     * Conditions SQL des critères de recherche. Chaque valeur passe par un paramètre préparé ;
+     * seuls des noms de colonnes construits ici entrent dans la requête.
+     *
+     * @param array<string, mixed> $params Paramètres de la requête, complétés par référence
+     */
+    private function conditions(SearchCriteria $criteria, array &$params): string
+    {
+        $sql = ' AND p.transaction_type_id = :transaction';
+        $params['transaction'] = $criteria->transaction['id'];
+
+        if ($criteria->category !== null) {
+            $params['category'] = $criteria->category['id'];
+            $sql .= $criteria->category['family']
+                ? ' AND p.category_id IN (SELECT c2.id FROM property_categories c2 WHERE c2.id = :category OR c2.parent_id = :category)'
+                : ' AND p.category_id = :category';
+        }
+        foreach (['city' => 'city_id', 'commune' => 'commune_id', 'district' => 'district_id'] as $level => $column) {
+            if ($criteria->{$level} !== null) {
+                $sql .= " AND p.{$column} = :{$level}";
+                $params[$level] = $criteria->{$level}['id'];
+            }
+        }
+
+        foreach ([
+            'price >= :price_min' => ['price_min', $criteria->priceMin],
+            'price <= :price_max' => ['price_max', $criteria->priceMax],
+            'living_area >= :area_min' => ['area_min', $criteria->areaMin],
+            'land_area >= :land_min' => ['land_min', $criteria->landMin],
+            'rooms >= :rooms' => ['rooms', $criteria->rooms],
+            'bedrooms >= :bedrooms' => ['bedrooms', $criteria->bedrooms],
+            'bathrooms >= :bathrooms' => ['bathrooms', $criteria->bathrooms],
+        ] as $condition => [$name, $value]) {
+            if ($value !== null) {
+                $sql .= " AND p.{$condition}";
+                $params[$name] = $value;
+            }
+        }
+
+        foreach (array_keys($criteria->features) as $index => $code) {
+            $sql .= " AND EXISTS (SELECT 1 FROM property_features pf JOIN features f2 ON f2.id = pf.feature_id
+                                   WHERE pf.property_id = p.id AND f2.code = :feature{$index})";
+            $params["feature{$index}"] = $code;
+        }
+
+        $index = 0;
+        foreach ($criteria->attributes as $attribute) {
+            $params["attr{$index}"] = $attribute['id'];
+            if (array_key_exists('1', $attribute['values']) && count($attribute['values']) === 1) {
+                $sql .= " AND EXISTS (SELECT 1 FROM property_attribute_values v WHERE v.property_id = p.id
+                                       AND v.attribute_id = :attr{$index} AND v.value_boolean = 1)";
+            } else {
+                $codes = [];
+                foreach (array_keys($attribute['values']) as $position => $code) {
+                    $codes[] = ":attr{$index}_{$position}";
+                    $params["attr{$index}_{$position}"] = $code;
+                }
+                $sql .= " AND EXISTS (SELECT 1 FROM property_attribute_values v
+                                        JOIN property_attribute_options o ON o.id = v.value_option_id
+                                       WHERE v.property_id = p.id AND v.attribute_id = :attr{$index}
+                                         AND o.code IN (" . implode(', ', $codes) . '))';
+            }
+            $index++;
+        }
+
+        return $sql . $this->keywordCondition($criteria->keyword, $params);
+    }
+
+    /**
+     * Mot-clé : recherche plein texte sur le titre et la description, ou référence exacte.
+     * Les mots trop courts pour l'index plein texte retombent sur un LIKE sur le titre.
+     *
+     * @param array<string, mixed> $params
+     */
+    private function keywordCondition(string $keyword, array &$params): string
+    {
+        if ($keyword === '') {
+            return '';
+        }
+
+        $params['keyword_reference'] = $keyword;
+
+        $tokens = [];
+        foreach (preg_split('/[^\p{L}\p{N}]+/u', $keyword, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $word) {
+            if (mb_strlen($word) >= self::FULLTEXT_MIN_WORD) {
+                $tokens[] = '+' . $word . '*';
+            }
+        }
+
+        if ($tokens === []) {
+            $params['keyword_like'] = '%' . str_replace(['%', '_'], ['\%', '\_'], $keyword) . '%';
+
+            return ' AND (p.title LIKE :keyword_like OR p.reference = :keyword_reference)';
+        }
+
+        $params['keyword'] = implode(' ', $tokens);
+
+        return ' AND (MATCH (p.title, p.description) AGAINST (:keyword IN BOOLEAN MODE) OR p.reference = :keyword_reference)';
+    }
+
+    /** Ordre SQL d'un tri de la page de résultats (valeur déjà validée par SearchFilters). */
+    private function order(string $sort): string
+    {
+        return match ($sort) {
+            'prix-asc' => 'p.price IS NULL, p.price ASC, p.id DESC',
+            'prix-desc' => 'p.price DESC, p.id DESC',
+            'surface-desc' => 'COALESCE(p.living_area, p.land_area) DESC, p.id DESC',
+            // Par défaut, les annonces mises en avant (et non expirées) ouvrent la liste.
+            default => '(p.is_featured = 1 AND (p.featured_until IS NULL OR p.featured_until > UTC_TIMESTAMP())) DESC,
+                        p.published_at DESC, p.id DESC',
+        };
     }
 
     /** Annonces en ligne du pays : condition commune à toutes les requêtes publiques. */

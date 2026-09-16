@@ -56,7 +56,42 @@ final class ListingPresenter
             'verified' => (int) ($row['agency_verified'] ?? 0) === 1,
             'phone' => $phone !== null && $phone !== '' ? (string) $phone : null,
             'whatsapp' => $whatsapp !== null && $whatsapp !== '' ? (string) $whatsapp : null,
+            'description' => $this->excerpt($row['description'] ?? null),
         ];
+    }
+
+    /**
+     * Points de la vue carte : coordonnées et carte annonce complète, affichée dans l'infobulle.
+     *
+     * @param list<array<string, mixed>> $rows Lignes de ListingRepository::mapPoints()
+     * @return list<array{lat: float, lng: float, card: array<string, mixed>}>
+     */
+    public function points(array $rows): array
+    {
+        $points = [];
+        foreach ($rows as $row) {
+            if ($row['latitude'] === null || $row['longitude'] === null) {
+                continue;
+            }
+            $points[] = [
+                'lat' => (float) $row['latitude'],
+                'lng' => (float) $row['longitude'],
+                'card' => $this->card($row),
+            ];
+        }
+
+        return $points;
+    }
+
+    /** Début de la description, affiché sur la carte annonce en vue liste. */
+    private function excerpt(mixed $description, int $length = 180): ?string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $description)) ?? '');
+        if ($text === '') {
+            return null;
+        }
+
+        return mb_strlen($text) <= $length ? $text : rtrim(mb_substr($text, 0, $length)) . "\u{2026}";
     }
 
     /** Symbole affiché (FCFA) plutôt que le code ISO, quand l'annonce est dans la devise du pays. */

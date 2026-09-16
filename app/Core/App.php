@@ -26,6 +26,7 @@ use App\Services\PropertyForm;
 use App\Services\PropertyRepository;
 use App\Services\PropertyWorkflow;
 use App\Services\RateLimiter;
+use App\Services\SearchFilters;
 use App\Services\SearchOptions;
 use App\Services\Settings;
 use App\Services\StatsRepository;
@@ -214,6 +215,11 @@ final class App
     public function searchOptions(): SearchOptions
     {
         return $this->service(SearchOptions::class, fn () => new SearchOptions($this->db()));
+    }
+
+    public function searchFilters(): SearchFilters
+    {
+        return $this->service(SearchFilters::class, fn () => new SearchFilters($this->db()));
     }
 
     public function images(): ImageUploader

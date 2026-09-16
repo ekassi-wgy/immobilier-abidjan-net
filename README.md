@@ -101,9 +101,12 @@ tout le site public (accueil, résultats avec filtres / tri / pagination / carte
 profil des agences, pages éditoriales, formulaires publics, favoris, bandeau cookies), et le back-office
 complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plus aucun écran à données
 fictives**, et la recette par rôle est passée ([`docs/tests.md`](docs/tests.md)). **La phase 1 est
-terminée**, et le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robots.txt`, redirections gérées
-en base) et le lot 2.2 (pages, actualités, bannières) sont livrés. Lot suivant : **2.3, audit de
-sécurité et performance**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+terminée**. En phase 2, le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robots.txt`, redirections
+gérées en base), le lot 2.2 (pages, actualités, bannières) et le lot 2.3 (audit) sont livrés.
+L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
+n'a relevé aucune vulnérabilité exploitable ; sous 10 000 annonces, toutes les pages publiques répondent
+en moins de 125 ms et le back-office en moins de 85 ms. Lot suivant : **3.1, mise en production**.
+Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 > **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)
 > sont rédigés au nom de Weblogy et publiés — une relecture juridique est recommandée et quatre mentions

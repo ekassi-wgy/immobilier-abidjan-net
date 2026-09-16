@@ -16,7 +16,9 @@ use App\Support\Paginator;
  * @var array          $breadcrumb [['label', 'path', 'current']]
  * @var array          $sorts      [clé => libellé]
  * @var array          $transactions
+ * @var string|null    $seoIntro   Texte d'introduction saisi dans « Balises méta » (lot 2.1)
  */
+$seoIntro ??= null;
 $chips = $criteria->chips();
 $filterCount = $criteria->filterCount();
 $isMap = $criteria->view === 'carte';
@@ -43,6 +45,9 @@ $cardVariant = $criteria->view === 'liste' ? 'row' : 'grid';
 
       <h1 class="im-h2 im-results__title"><?= e($heading) ?></h1>
       <p class="im-results__count im-num"><?= e(__n('front.results.count', $total)) ?></p>
+      <?php if ($seoIntro !== null): ?>
+      <p class="im-results__intro"><?= e($seoIntro) ?></p>
+      <?php endif; ?>
     </div>
   </div>
 

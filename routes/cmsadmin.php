@@ -29,6 +29,7 @@ use App\Controllers\Cmsadmin\PasswordController;
 use App\Controllers\Cmsadmin\Properties\PropertyActionController;
 use App\Controllers\Cmsadmin\Properties\PropertyController;
 use App\Controllers\Cmsadmin\Properties\PropertyMediaController;
+use App\Controllers\Cmsadmin\SeoController;
 use App\Controllers\Cmsadmin\SettingsController;
 use App\Controllers\Cmsadmin\SiteController;
 use App\Controllers\Preview\CmsadminPreviewController;
@@ -138,6 +139,23 @@ return static function (Router $router, App $app): void {
                 $router->get('/exports', [ExportController::class, 'index'], 'exports');
                 $router->get('/exports/annonces.csv', [ExportController::class, 'properties'], 'exports.properties');
                 $router->get('/exports/contacts.csv', [ExportController::class, 'leads'], 'exports.leads');
+            });
+
+            // Référencement (lot 2.1, Super Admin) : balises méta et redirections du site courant
+            $router->group(['prefix' => '/seo', 'as' => 'seo.', 'middleware' => [RequireRole::class . ':super_admin']], static function (Router $router): void {
+                $router->get('/redirections', [SeoController::class, 'redirects'], 'redirects');
+                $router->get('/redirections/ajouter', [SeoController::class, 'createRedirect'], 'redirects.create');
+                $router->post('/redirections', [SeoController::class, 'storeRedirect'], 'redirects.store');
+                $router->get('/redirections/{id:\\d+}/modifier', [SeoController::class, 'editRedirect'], 'redirects.edit');
+                $router->post('/redirections/{id:\\d+}', [SeoController::class, 'updateRedirect'], 'redirects.update');
+                $router->post('/redirections/{id:\\d+}/supprimer', [SeoController::class, 'destroyRedirect'], 'redirects.destroy');
+
+                $router->get('/', [SeoController::class, 'index'], 'index');
+                $router->get('/ajouter', [SeoController::class, 'create'], 'create');
+                $router->post('/', [SeoController::class, 'store'], 'store');
+                $router->get('/{id:\\d+}/modifier', [SeoController::class, 'edit'], 'edit');
+                $router->post('/{id:\\d+}', [SeoController::class, 'update'], 'update');
+                $router->post('/{id:\\d+}/supprimer', [SeoController::class, 'destroy'], 'destroy');
             });
 
             // Paramètres de la plateforme (lot 1.12, Super Admin)

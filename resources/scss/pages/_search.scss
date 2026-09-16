@@ -20,6 +20,15 @@
     font-weight: $im-weight-medium;
   }
 
+  // Texte d'introduction saisi dans « Balises méta » (lot 2.1)
+  &__intro {
+    max-width: 52rem;
+    margin: .85rem 0 0;
+    color: $im-muted;
+    font-size: .9375rem;
+    line-height: 1.6;
+  }
+
   &__layout {
     display: grid;
     align-items: start;

@@ -7,6 +7,7 @@ namespace App\Controllers\Front;
 use App\Controllers\Controller as BaseController;
 use App\Core\Exceptions\HttpException;
 use App\Core\Request;
+use App\Core\Response;
 use App\Models\Site;
 use App\Services\IpAddress;
 use App\Support\Validator;
@@ -26,6 +27,47 @@ abstract class Controller extends BaseController
     /** Envois acceptés par adresse IP sur une heure glissante, tous formulaires confondus. */
     protected const MAX_SUBMISSIONS = 5;
     protected const WINDOW = 3600;
+
+    /**
+     * Rendu d'une page publique, avec les surcharges de référencement de son URL (lot 2.1).
+     *
+     * `seo_meta` permet à l'équipe de reprendre le titre, la description, l'image de partage et
+     * l'indexation d'une page précise sans toucher au code, et d'y ajouter un texte
+     * d'introduction. Les valeurs calculées par le contrôleur restent la valeur par défaut :
+     * une surcharge vide ne remplace rien.
+     *
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $layoutData
+     */
+    protected function page(string $layout, string $view, array $data = [], array $layoutData = [], int $status = 200): Response
+    {
+        $site = site();
+        $request = $this->app->request();
+        if ($site === null || $request === null || $layout !== 'front/layouts/app') {
+            return parent::page($layout, $view, $data, $layoutData, $status);
+        }
+
+        $meta = $this->app->seo()->meta($request->path(), $site->id);
+        if ($meta === null) {
+            return parent::page($layout, $view, $data, $layoutData, $status);
+        }
+
+        if ($meta['meta_title'] !== null) {
+            $layoutData['title'] = $meta['meta_title'];
+        }
+        if ($meta['meta_description'] !== null) {
+            $layoutData['description'] = $meta['meta_description'];
+        }
+        if ($meta['og_image_path'] !== null) {
+            $layoutData['ogImage'] = absolute_url(ltrim($meta['og_image_path'], '/'));
+        }
+        if ($meta['noindex']) {
+            $layoutData['noindex'] = true;
+        }
+        $data['seoIntro'] = $meta['intro_text'];
+
+        return parent::page($layout, $view, $data, $layoutData, $status);
+    }
 
     /** Site courant, ou 404 : aucune page publique n'existe hors d'un site résolu. */
     protected function site(): Site

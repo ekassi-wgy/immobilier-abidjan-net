@@ -588,7 +588,7 @@ final class PropertyWorkflow
     }
 
     /** Publication sans validation préalable, selon le rôle et les paramètres de Weblogy. */
-    private function publishesDirectly(User $user): bool
+    public function publishesDirectly(User $user): bool
     {
         return ($user->isSuperAdmin() && (bool) $this->settings->get('workflow.auto_publish_super_admin', true))
             || ($user->isCountryAdmin() && (bool) $this->settings->get('workflow.auto_publish_country_admin', false))

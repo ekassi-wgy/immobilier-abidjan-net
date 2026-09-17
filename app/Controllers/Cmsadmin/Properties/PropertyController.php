@@ -308,6 +308,7 @@ final class PropertyController extends Controller
             'errors' => $errors,
             'revision' => $revision,
             'isStaff' => $user->isStaff(),
+            'publishesDirectly' => $this->app->workflow()->publishesDirectly($user),
             'schema' => $schema,
             'categories' => $catalog->categoryChoices($countryId),
             'features' => $catalog->featureChoices(),

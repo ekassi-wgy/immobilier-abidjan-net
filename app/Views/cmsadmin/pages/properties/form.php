@@ -8,6 +8,7 @@
  * @var array<string,string>      $errors
  * @var array<string,mixed>|null  $revision  Révision en cours (agence)
  * @var bool                      $isStaff
+ * @var bool                      $publishesDirectly  Une soumission de ce compte est publiée sans validation
  * @var array<string,mixed>|null  $schema
  * @var array<string, array<int,string>> $categories
  * @var array<string, array<int,string>> $features
@@ -32,13 +33,14 @@ foreach ($schema['transactions'] ?? [] as $id => $transaction) {
 }
 $sections = ['bien' => __('properties.sections.property'), 'prix' => __('properties.sections.price'), 'localisation' => __('properties.sections.location'), 'criteres' => __('properties.sections.criteria'), 'equipements' => __('properties.sections.features'), 'photos' => __('properties.sections.photos'), 'contact' => __('properties.sections.contact'), 'interne' => __('properties.sections.private')];
 // Publication directe des partenaires (Paramètres) : sans elle, toute modification d'une annonce en ligne est une révision.
-$directPublish = !$isStaff && (bool) settings('workflow.auto_publish_partner', false);
+$publishesDirectly ??= false;
+$directPublish = !$isStaff && $publishesDirectly;
 $publishedByAgency = $isEdit && !$isStaff && !$directPublish && $property['status'] === 'published';
 $canDraft = !$isEdit || $property['status'] === 'draft';
 $submitLabel = match (true) {
     $publishedByAgency => 'properties.actions.submit_revision',
     $isEdit && $property['status'] !== 'draft' => 'cmsadmin.save',
-    $directPublish => 'properties.actions.submit_publish',
+    $publishesDirectly => 'properties.actions.submit_publish',
     default => 'properties.actions.submit',
 };
 ?>

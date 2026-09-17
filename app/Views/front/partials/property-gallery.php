@@ -16,7 +16,7 @@ $tiles = array_slice($gallery, 1, 4);
   <p class="im-muted"><?= e(__('front.property.no_photo')) ?></p>
 </div>
 <?php else: ?>
-<div class="im-gallery<?= $tiles === [] ? ' im-gallery--single' : '' ?>" data-gallery aria-label="<?= e(__('front.property.gallery_label')) ?>">
+<div class="im-gallery<?= $tiles === [] ? ' im-gallery--single' : (count($tiles) < 4 ? ' im-gallery--tiles-' . count($tiles) : '') ?>" data-gallery aria-label="<?= e(__('front.property.gallery_label')) ?>">
   <a class="im-gallery__main" href="<?= e($gallery[0]['full']) ?>" data-gallery-item="0" aria-label="<?= e(__('front.property.gallery_open', ['index' => 1])) ?>">
     <img src="<?= e($gallery[0]['src']) ?>" srcset="<?= e($gallery[0]['srcset']) ?>"
          sizes="(min-width: 992px) 60vw, 100vw" alt="<?= e($gallery[0]['alt']) ?>"

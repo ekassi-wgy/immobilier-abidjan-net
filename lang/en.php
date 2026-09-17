@@ -241,7 +241,7 @@ return [
             'open_filters' => 'Filters',
             'close_filters' => 'Close filters',
             'active_filters' => 'Active filters',
-            'remove_filter' => 'Remove the “:label” filter',
+            'remove_filter' => 'Remove filter: :label',
             'reset' => 'Clear all',
             'empty_title' => 'No listing matches this search',
             'empty_text' => 'Widen the area or remove a few filters: new listings are published every week.',

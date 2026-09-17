@@ -242,7 +242,7 @@ return [
             'open_filters' => 'Filtres',
             'close_filters' => 'Fermer les filtres',
             'active_filters' => 'Filtres actifs',
-            'remove_filter' => 'Retirer le filtre « :label »',
+            'remove_filter' => 'Retirer le filtre : :label',
             'reset' => 'Tout effacer',
             'empty_title' => 'Aucune annonce ne correspond à cette recherche',
             'empty_text' => 'Élargissez la zone ou retirez quelques filtres : de nouvelles annonces sont publiées chaque semaine.',

@@ -22,6 +22,7 @@ $schema ??= null;
 $pageScripts ??= [];
 $pageStyles ??= [];
 $noindex ??= false;
+$description ??= '';
 $siteName = site()->name ?? config('app.name');
 // Pages éditoriales et légales publiées : les liens absents ne sont pas affichés (lot 1.11).
 $cmsPages = site() !== null
@@ -34,7 +35,7 @@ $cmsPages = site() !== null
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title><?= e($title) ?> · <?= e($siteName) ?></title>
-  <meta name="description" content="<?= e($description) ?>">
+  <?php if ($description !== ''): ?><meta name="description" content="<?= e($description) ?>"><?php endif; ?>
   <?php if ($noindex): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
   <?php if ($canonical !== null): ?><link rel="canonical" href="<?= e($canonical) ?>"><?php endif; ?>
   <meta name="theme-color" content="#0B2358">

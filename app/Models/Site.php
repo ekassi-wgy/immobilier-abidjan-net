@@ -53,6 +53,8 @@ final class Site
         public readonly ?float $longitude = null,
         /** @var array<string, string> Réseau => URL, uniquement les réseaux renseignés, dans l'ordre de SOCIAL_NETWORKS */
         public readonly array $socialLinks = [],
+        /** Tag Google (« G-… » ou « UA-… ») ; null = aucune mesure d'audience */
+        public readonly ?string $analyticsId = null,
     ) {
     }
 
@@ -88,6 +90,15 @@ final class Site
     public function isInMaintenance(): bool
     {
         return $this->status === self::STATUS_MAINTENANCE;
+    }
+
+    /**
+     * Tag de mesure d'audience à proposer au visiteur : jamais hors production, pour que la
+     * pré-production et le développement ne faussent pas les statistiques.
+     */
+    public function analyticsTag(): ?string
+    {
+        return $this->isProductionHost() ? $this->analyticsId : null;
     }
 
     public function isProductionHost(): bool

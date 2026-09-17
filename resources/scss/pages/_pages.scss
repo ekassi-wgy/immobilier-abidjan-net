@@ -290,6 +290,26 @@
     font-size: .8125rem;
     line-height: 1.55;
   }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+}
+
+// Lien « Gestion des cookies » du pied de page : un bouton (il rouvre le bandeau) habillé en lien.
+.im-footer__cookies {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  @include im-hover { color: $im-white; }
+
+  &:focus-visible { outline: 2px solid $im-white; outline-offset: 2px; }
 }
 
 .im-footer__legal a + a { margin-left: 0; }

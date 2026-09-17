@@ -411,6 +411,11 @@ return [
         'cookies' => [
             'text' => 'This site only uses cookies required to run it (session, favourites, listing statistics). No advertising tracker.',
             'accept' => 'Got it',
+            'consent_text' => 'We use cookies required to run the site and, with your consent, Google Analytics to measure its audience. No advertising tracker.',
+            'consent_accept' => 'Accept',
+            'consent_refuse' => 'Decline',
+            'manage' => 'Cookie settings',
+            'label' => 'Cookie choices',
         ],
         'agencies' => [
             'meta_title' => 'Our real estate partners in :country',
@@ -903,6 +908,13 @@ return [
             'wrong_domain' => 'This link must point to :domain.',
             'networks' => ['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'x' => 'X (Twitter)', 'youtube' => 'YouTube', 'tiktok' => 'TikTok'],
             'placeholders' => ['facebook' => 'https://www.facebook.com/…', 'instagram' => 'https://www.instagram.com/…', 'linkedin' => 'https://www.linkedin.com/company/…', 'x' => 'https://x.com/…', 'youtube' => 'https://www.youtube.com/@…', 'tiktok' => 'https://www.tiktok.com/@…'],
+        ],
+        'analytics' => [
+            'title' => 'Audience measurement',
+            'hint' => 'Google tag ID for the site. It is only loaded on the production domain, and only if the visitor accepts audience measurement cookies. Empty: no measurement, the cookie banner is informational only.',
+            'label' => 'Google Analytics ID',
+            'invalid' => 'Expected format: G-XXXXXXXXXX (Google Analytics 4) or UA-000000-0.',
+            'ua_warning' => 'Universal Analytics ID: Google stopped processing these properties in 2023. It still measures something only if the tag is linked to a Google Analytics 4 property — check it in Google Analytics, or enter the “G-” ID directly.',
         ],
         'domains' => 'Domains',
         'domains_hint' => 'Host names the site answers on. A non-primary production domain redirects to the primary one; staging and local domains are never indexed.',

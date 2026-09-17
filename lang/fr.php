@@ -412,6 +412,11 @@ return [
         'cookies' => [
             'text' => 'Ce site n’utilise que des cookies nécessaires à son fonctionnement (session, favoris, statistiques d’annonces). Aucun traceur publicitaire.',
             'accept' => 'J’ai compris',
+            'consent_text' => 'Nous utilisons des cookies nécessaires au site et, avec votre accord, Google Analytics pour mesurer sa fréquentation. Aucun traceur publicitaire.',
+            'consent_accept' => 'Accepter',
+            'consent_refuse' => 'Refuser',
+            'manage' => 'Gestion des cookies',
+            'label' => 'Choix des cookies',
         ],
         'agencies' => [
             'meta_title' => 'Nos partenaires immobiliers en :country',
@@ -904,6 +909,13 @@ return [
             'wrong_domain' => 'Ce lien doit pointer vers :domain.',
             'networks' => ['facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'x' => 'X (Twitter)', 'youtube' => 'YouTube', 'tiktok' => 'TikTok'],
             'placeholders' => ['facebook' => 'https://www.facebook.com/…', 'instagram' => 'https://www.instagram.com/…', 'linkedin' => 'https://www.linkedin.com/company/…', 'x' => 'https://x.com/…', 'youtube' => 'https://www.youtube.com/@…', 'tiktok' => 'https://www.tiktok.com/@…'],
+        ],
+        'analytics' => [
+            'title' => 'Mesure d’audience',
+            'hint' => 'Identifiant du tag Google du site. Il n’est chargé que sur le domaine de production, et seulement si le visiteur accepte les cookies de mesure d’audience. Vide : aucune mesure, bandeau cookies simplement informatif.',
+            'label' => 'Identifiant Google Analytics',
+            'invalid' => 'Format attendu : G-XXXXXXXXXX (Google Analytics 4) ou UA-000000-0.',
+            'ua_warning' => 'Identifiant Universal Analytics : Google ne traite plus ces propriétés depuis 2023. Il ne mesure encore quelque chose que si le tag est relié à une propriété Google Analytics 4 — vérifiez-le dans Google Analytics, ou saisissez directement l’identifiant « G- ».',
         ],
         'domains' => 'Domaines',
         'domains_hint' => 'Noms d’hôte sur lesquels le site répond. Un domaine de production non principal redirige vers le principal ; les domaines de pré-production et locaux ne sont jamais indexés.',

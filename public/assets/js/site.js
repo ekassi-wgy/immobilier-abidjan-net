@@ -109,21 +109,107 @@
   renderFavorites();
   writeFavoritesCookie(readFavorites()); // le cookie peut expirer alors que le stockage local persiste
 
-  /* Bandeau cookies : information, pas consentement (aucun traceur sur le site) ---------- */
+  /* Bandeau cookies ----------------------------------------------------------------------
+   * Sans tag Google : simple information (aucun traceur).
+   * Avec tag Google (data-analytics-id) : consentement. Le script Google n'est chargé qu'après
+   * « Accepter » ; le choix est gardé six mois ; « Gestion des cookies » rouvre le bandeau. */
   var cookies = document.querySelector('[data-cookies]');
   if (cookies) {
-    var COOKIES_KEY = 'ian.cookies';
-    var seen = false;
-    try { seen = localStorage.getItem(COOKIES_KEY) === '1'; } catch (e) { seen = false; }
+    var analyticsId = cookies.getAttribute('data-analytics-id');
 
-    if (!seen) {
-      cookies.hidden = false;
+    if (!analyticsId) {
+      var COOKIES_KEY = 'ian.cookies';
+      var seen = false;
+      try { seen = localStorage.getItem(COOKIES_KEY) === '1'; } catch (e) { seen = false; }
+      if (!seen) {
+        cookies.hidden = false;
+        cookies.querySelectorAll('[data-cookies-accept]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            cookies.hidden = true;
+            try { localStorage.setItem(COOKIES_KEY, '1'); } catch (e) { /* stockage indisponible */ }
+          });
+        });
+      }
+    } else {
+      var CONSENT_KEY = 'ian.consent';
+      var CONSENT_MAX_AGE = 1000 * 60 * 60 * 24 * 182; // six mois
+      var analyticsLoaded = false;
+
+      var readConsent = function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem(CONSENT_KEY) || 'null');
+          if (stored && (stored.value === 'granted' || stored.value === 'denied') && Date.now() - stored.at < CONSENT_MAX_AGE) {
+            return stored.value;
+          }
+        } catch (e) { /* stockage indisponible ou valeur illisible */ }
+        return null;
+      };
+
+      var saveConsent = function (value) {
+        try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ value: value, at: Date.now() })); } catch (e) { /* choix valable pour cette page seulement */ }
+      };
+
+      var loadAnalytics = function () {
+        window['ga-disable-' + analyticsId] = false;
+        if (analyticsLoaded) { return; }
+        analyticsLoaded = true;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        // Mesure d'audience seulement : le tag du site principal est relié à Google Ads, dont le
+        // cookie publicitaire (_gcl_au) et les signaux de personnalisation restent refusés.
+        window.gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+        window.gtag('js', new Date());
+        // Cookies limités à 13 mois ; IP anonymisée (Universal Analytics, sans effet en GA4 qui ne la conserve pas).
+        window.gtag('config', analyticsId, { anonymize_ip: true, cookie_expires: 60 * 60 * 24 * 395, allow_google_signals: false, allow_ad_personalization_signals: false });
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(analyticsId);
+        document.head.appendChild(script);
+      };
+
+      // Retrait du consentement : Google ne mesure plus rien et ses cookies sont supprimés, sur
+      // l'hôte comme sur les domaines parents (Google les pose sur « .abidjan.net »).
+      var removeAnalytics = function () {
+        window['ga-disable-' + analyticsId] = true;
+        var parts = location.hostname.split('.');
+        var domains = [''];
+        for (var i = 0; i < parts.length - 1; i++) { domains.push('; domain=.' + parts.slice(i).join('.')); }
+        document.cookie.split(';').forEach(function (cookie) {
+          var name = cookie.split('=')[0].trim();
+          if (/^_ga($|_)|^_gid$|^_gat|^_gcl_/.test(name)) {
+            domains.forEach(function (domain) {
+              document.cookie = name + '=; path=/; max-age=0' + domain;
+            });
+          }
+        });
+      };
+
+      var choose = function (value) {
+        saveConsent(value);
+        cookies.hidden = true;
+        if (value === 'granted') { loadAnalytics(); } else { removeAnalytics(); }
+      };
+
       cookies.querySelectorAll('[data-cookies-accept]').forEach(function (btn) {
+        btn.addEventListener('click', function () { choose('granted'); });
+      });
+      cookies.querySelectorAll('[data-cookies-refuse]').forEach(function (btn) {
+        btn.addEventListener('click', function () { choose('denied'); });
+      });
+      document.querySelectorAll('[data-cookies-manage]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          cookies.hidden = true;
-          try { localStorage.setItem(COOKIES_KEY, '1'); } catch (e) { /* stockage indisponible */ }
+          cookies.hidden = false;
+          var first = cookies.querySelector('button');
+          if (first) { first.focus(); }
         });
       });
+
+      var consent = readConsent();
+      if (consent === 'granted') {
+        loadAnalytics();
+      } else if (consent === null) {
+        cookies.hidden = false;
+      }
     }
   }
 

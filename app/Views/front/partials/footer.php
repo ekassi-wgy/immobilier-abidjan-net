@@ -110,11 +110,14 @@ $socialIcons = ['facebook' => 'facebook', 'instagram' => 'instagram', 'linkedin'
 
     <div class="im-footer__bottom">
       <span>© <?= e(date('Y')) ?> <?= e($siteName) ?></span>
-      <?php if ($legal !== []): ?>
+      <?php if ($legal !== [] || !empty($cookieSettings)): ?>
       <span class="im-footer__legal">
         <?php foreach ($legal as $index => [$label, $href]): ?>
         <?= $index > 0 ? ' · ' : '' ?><a href="<?= e(url($href)) ?>"><?= e($label) ?></a>
         <?php endforeach; ?>
+        <?php if (!empty($cookieSettings)): ?>
+        <?= $legal !== [] ? ' · ' : '' ?><button class="im-footer__cookies" type="button" data-cookies-manage><?= e(__('front.cookies.manage')) ?></button>
+        <?php endif; ?>
       </span>
       <?php endif; ?>
     </div>

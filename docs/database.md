@@ -125,6 +125,7 @@ erDiagram
 - **Paramètre** `workflow.auto_publish_partner` (défaut `false`).
 - **Textes publics** (0009) : pages À propos, Comment ça marche, CGU, confidentialité, cookies et mentions légales réécrites ; page `faq` créée et publiée.
 - **Identité légale** (0010) : mentions légales et confidentialité complétées pour Weblogy Tech S.A (forme juridique, capital, adresse postale, RCCM, NCC, directeur de la publication, hébergeur), par remplacements ciblés qui respectent une page retouchée dans le back-office.
+- **Mesure d'audience** (0011) : `sites.analytics_id` (tag Google `G-…`/`UA-…`, saisi dans Pays & sites, servi en production après consentement) ; pages « Politique cookies » et « Confidentialité » mises à jour.
 
 ## Conventions
 

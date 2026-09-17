@@ -341,6 +341,7 @@ final class SiteController extends Controller
             'contact_whatsapp' => $v->nullableString('contact_whatsapp'),
             'address' => $v->nullableString('address'),
             'social_links' => $this->socialLinks($v),
+            'analytics_id' => $this->analyticsId($v),
             'latitude' => $v->nullableDecimal('latitude'),
             'longitude' => $v->nullableDecimal('longitude'),
             'status' => $v->string('status'),
@@ -350,6 +351,25 @@ final class SiteController extends Controller
         }
 
         return [$data, $v->errors()];
+    }
+
+    /**
+     * Tag Google : « G-… » (Google Analytics 4), « GT-… » (tag Google) ou « UA-… » (Universal Analytics,
+     * que Google ne traite plus). Il est injecté dans une URL et un script : format strict, rien d'autre.
+     */
+    private function analyticsId(Validator $v): ?string
+    {
+        $id = strtoupper($v->string('analytics_id'));
+        if ($id === '') {
+            return null;
+        }
+        if (preg_match('/^(G|GT)-[A-Z0-9]{4,20}$|^UA-\d{4,10}-\d{1,4}$/', $id) !== 1) {
+            $v->add('analytics_id', __('sites.analytics.invalid'));
+
+            return null;
+        }
+
+        return $id;
     }
 
     /**

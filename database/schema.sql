@@ -46,6 +46,7 @@ CREATE TABLE sites (
   latitude           DECIMAL(10,7) NULL COMMENT 'Position de l''éditeur (carte de la page Contact)',
   longitude          DECIMAL(10,7) NULL,
   social_links       JSON          NULL COMMENT '{"facebook": "https://…", …} — réseaux affichés dans le pied de page',
+  analytics_id       VARCHAR(40)   NULL COMMENT 'Tag Google (G-… ou UA-…), chargé après consentement, production uniquement',
   status             ENUM('active','maintenance','disabled') NOT NULL DEFAULT 'disabled',
   created_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         DATETIME      NULL ON UPDATE CURRENT_TIMESTAMP,

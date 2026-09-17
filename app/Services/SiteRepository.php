@@ -71,6 +71,7 @@ final class SiteRepository
             isset($site['latitude']) && $site['latitude'] !== null ? (float) $site['latitude'] : null,
             isset($site['longitude']) && $site['longitude'] !== null ? (float) $site['longitude'] : null,
             self::socialLinks($site['social_links'] ?? null),
+            trim((string) ($site['analytics_id'] ?? '')) ?: null,
         );
     }
 

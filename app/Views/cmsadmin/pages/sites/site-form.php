@@ -110,11 +110,26 @@ $domainValues = (array) ($domainErrors['_values'] ?? []);
           <?php endforeach; ?>
         </div>
       </section>
+
+      <section class="card im-panel im-form-section">
+        <header class="im-form-section__head"><span class="im-form-section__index">04</span><h2 class="im-panel__title"><?= e(__('sites.analytics.title')) ?></h2></header>
+        <p class="im-panel__subtitle"><?= e(__('sites.analytics.hint')) ?></p>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <?= cmsadmin_partial('field', ['name' => 'analytics_id', 'label' => __('sites.analytics.label'), 'value' => $value('analytics_id'), 'optional' => true, 'error' => $errors['analytics_id'] ?? null, 'class' => '', 'attributes' => ['maxlength' => 40, 'placeholder' => 'G-XXXXXXXXXX', 'autocomplete' => 'off', 'spellcheck' => 'false']]) ?>
+          </div>
+          <?php if (str_starts_with(strtoupper((string) $value('analytics_id')), 'UA-')): ?>
+          <div class="col-md-6 d-flex align-items-end">
+            <p class="im-note mb-2"><span class="mdi mdi-alert-outline" aria-hidden="true"></span> <?= e(__('sites.analytics.ua_warning')) ?></p>
+          </div>
+          <?php endif; ?>
+        </div>
+      </section>
     </form>
 
     <?php if ($isEdit): ?>
     <section class="card im-panel im-form-section" id="domaines">
-      <header class="im-form-section__head"><span class="im-form-section__index">04</span><h2 class="im-panel__title"><?= e(__('sites.domains')) ?></h2></header>
+      <header class="im-form-section__head"><span class="im-form-section__index">05</span><h2 class="im-panel__title"><?= e(__('sites.domains')) ?></h2></header>
       <p class="im-panel__subtitle"><?= e(__('sites.domains_hint')) ?></p>
 
       <?php if ($domains === []): ?>

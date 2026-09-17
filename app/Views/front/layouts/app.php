@@ -24,6 +24,8 @@ $pageStyles ??= [];
 $noindex ??= false;
 $description ??= '';
 $siteName = site()->name ?? config('app.name');
+// Tag Google : production uniquement, chargé par site.js après consentement (jamais ici en dur).
+$analyticsId = site()?->analyticsTag();
 // Pages éditoriales et légales publiées : les liens absents ne sont pas affichés (lot 1.11).
 $cmsPages = site() !== null
     ? app()->pages()->byCodes(['about', 'how_it_works', 'faq', 'legal_notice', 'terms', 'privacy', 'cookies'], site()->id, locale())
@@ -80,9 +82,9 @@ $cmsPages = site() !== null
     <?= $content ?>
   </main>
 
-  <?= render_view('front/partials/footer', ['pages' => $cmsPages]) ?>
+  <?= render_view('front/partials/footer', ['pages' => $cmsPages, 'cookieSettings' => $analyticsId !== null]) ?>
 
-  <?= render_view('front/partials/cookie-banner', ['pages' => $cmsPages]) ?>
+  <?= render_view('front/partials/cookie-banner', ['pages' => $cmsPages, 'analyticsId' => $analyticsId]) ?>
 
   <script src="<?= e(asset('js/site.js')) ?>" defer></script>
   <?php foreach ($pageScripts as $script): ?>

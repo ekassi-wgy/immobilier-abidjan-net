@@ -3,6 +3,17 @@
 # CAHIER DES CHARGES
 Plateforme d'annonces immobilières multisite — Afrique (Côte d'Ivoire, puis extension panafricaine)
 
+> ## Avenant n° 1 — Weblogy intermédiaire exclusif (17/09/2026)
+>
+> **Cet avenant prime sur les points contraires du cahier ci-dessous** (§ 1.3, § 2, § 5.1, § 5.3), signalés par « → avenant n° 1 ».
+>
+> 1. **Modèle** : *Partenaire → Weblogy → Prospect* et *Particulier → Weblogy → annonce*. Weblogy est l'interlocuteur exclusif des prospects : aucune annonce publique n'affiche l'identité ni les coordonnées du partenaire ou du propriétaire, seulement celles de Weblogy. Le rattachement au partenaire (ou au propriétaire) reste connu en interne.
+> 2. **Demandes des prospects** : reçues par l'équipe Weblogy uniquement, qui les qualifie puis sollicite le partenaire ou le propriétaire. Le partenaire ne voit que le nombre de demandes reçues sur ses biens.
+> 3. **Partenaires professionnels** (agences, promoteurs, gestionnaires, autres professionnels habilités) : dossier « Devenir partenaire » avec informations légales et pièces justificatives, validation par Weblogy, puis console (back-office existant, rôles agence) pour gérer leurs biens : création, brouillon, modification, photos, désactivation / réactivation. Publication soumise à la validation de Weblogy par défaut, publication directe activable dans Paramètres ; Weblogy garde en toutes circonstances le contrôle (modifier, désactiver, supprimer).
+> 4. **Particuliers** : **compte obligatoire** (email confirmé) pour « Confier un bien » à Weblogy depuis un espace propriétaire public (`/mon-espace`, jamais le back-office). Le particulier ne publie pas : l'équipe étudie le dossier et crée l'annonce ; il suit l'avancement.
+> 5. **Annuaire des agences** remplacé par une vitrine « Nos partenaires » (logo, nom, type, implantation) sans coordonnées, sans formulaire ni liste d'annonces.
+> 6. **Header** : « Devenir partenaire » (professionnels) et « Confiez-nous votre bien » (particuliers) ; plus aucun « Déposer un bien ».
+
 ## 1. Présentation du projet
 
 ### 1.1 Contexte
@@ -26,7 +37,7 @@ La société perçoit une commission sur chaque transaction générée via la mi
 - Rester en PHP natif + PDO, sans framework lourd, pour un contrôle total du code et des performances, mais avec une architecture propre (MVC maison).
 
 ### 1.3 Ce que le site n'est PAS
-- Pas d'inscription publique ni de compte client.
+- Pas d'inscription publique ni de compte client. → **avenant n° 1** : compte obligatoire pour un particulier qui confie un bien (espace propriétaire, sans aucun droit de publication).
 - Pas de paiement en ligne dans une v1 (à prévoir en évolution : paiement de la commission, boost d'annonce, etc.).
 - Pas une simple vitrine : c'est un moteur de recherche + back-office de gestion multi-acteurs.
 
@@ -170,12 +181,12 @@ Chaque site :
 ## 5. Fonctionnalités détaillées
 
 ### 5.1 Front-office (site public)
-- Page d'accueil : recherche rapide, biens à la une, dernières annonces, catégories phares, chiffres clés, agences partenaires en vedette
+- Page d'accueil : recherche rapide, biens à la une, dernières annonces, catégories phares, chiffres clés, partenaires en vedette (vitrine sans lien ni coordonnées → avenant n° 1)
 - Page listing/résultats avec filtres avancés + pagination + vue grille/liste + vue carte
-- Page détail annonce : galerie photo (lightbox), description complète, tous les critères, carte de localisation, informations agence/agent, formulaire de contact, bouton WhatsApp direct, biens similaires, partage réseaux sociaux
-- Page annuaire des agences partenaires (profil public de chaque agence avec ses annonces)
+- Page détail annonce : galerie photo (lightbox), description complète, tous les critères, carte de localisation, ~~informations agence/agent~~ coordonnées de Weblogy seul interlocuteur (→ avenant n° 1), formulaire de contact adressé à Weblogy, bouton WhatsApp Weblogy, biens similaires, partage réseaux sociaux
+- ~~Page annuaire des agences partenaires (profil public de chaque agence avec ses annonces)~~ → avenant n° 1 : vitrine « Nos partenaires » sans coordonnées ni annonces
 - Pages statiques : À propos, Comment ça marche, Devenir partenaire (formulaire de demande de compte), Contact, Blog/Actualités immobilières (bonus SEO), Mentions légales, CGU, Politique de confidentialité
-- Formulaire "Déposer un bien" pour les visiteurs souhaitant vendre/louer via vous (lead entrant, traité manuellement, ne crée pas de compte)
+- ~~Formulaire "Déposer un bien" (lead anonyme)~~ → avenant n° 1 : « Confiez-nous votre bien », compte propriétaire obligatoire, dossier structuré avec photos et documents, suivi de l'avancement ; FAQ
 - Responsive complet (mobile first, la majorité du trafic africain est mobile)
 
 ### 5.2 Back-office Super Admin
@@ -186,7 +197,9 @@ Chaque site :
 - Gestion des utilisateurs internes (admin pays, modérateurs) avec rôles et permissions
 - Gestion des pays/sites (multisite)
 - Gestion du référentiel géographique (villes, communes, quartiers)
-- Gestion des leads/contacts (messages reçus via les formulaires)
+- Gestion des leads/contacts (messages reçus via les formulaires) — réservée à l'équipe (→ avenant n° 1)
+- Biens confiés par les particuliers : étude, décision, création de l'annonce (→ avenant n° 1)
+- Dossiers de partenariat avec pièces justificatives (→ avenant n° 1)
 - Gestion du contenu (pages statiques, blog, bannières publicitaires)
 - Gestion SEO (méta-titres, méta-descriptions, sitemap, redirections)
 - Journal d'activité (logs des actions : qui a validé/modifié/supprimé quoi)
@@ -199,7 +212,8 @@ Chaque site :
 - Gestion de la galerie photo (upload multiple, réorganisation, compression automatique)
 - Historique des annonces (publiées, en attente, rejetées, archivées)
 - Gestion du profil de l'agence (logo, description, coordonnées, zones de couverture)
-- Messagerie interne simple (recevoir les demandes de contact des visiteurs pour ses biens) ou simple redirection email/WhatsApp
+- ~~Messagerie interne simple (recevoir les demandes de contact des visiteurs pour ses biens)~~ → avenant n° 1 : les demandes sont traitées par Weblogy, qui sollicite le partenaire ; la console affiche le nombre de demandes reçues
+- Brouillons, désactivation / réactivation de ses propres biens (→ avenant n° 1)
 
 ## 6. Spécifications techniques
 

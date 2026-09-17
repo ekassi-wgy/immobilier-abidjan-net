@@ -70,7 +70,7 @@ cd ~/httpdocs
 git clone git@github.com:ekassi-wgy/immobilier-abidjan-net.git .
 composer install --no-dev --optimize-autoloader
 cp .env.example .env    # puis éditer (voir § 4)
-mkdir -p storage/logs storage/cache storage/mail public/uploads
+mkdir -p storage/logs storage/cache storage/mail storage/private public/uploads
 chmod -R u+rwX storage public/uploads
 ```
 
@@ -152,8 +152,9 @@ Les deux acceptent `--dry-run` pour un essai sans écriture. Faire un premier pa
 ## 8. Sauvegardes
 
 Plesk → **Sauvegardes** : sauvegarde quotidienne, rétention 7 jours minimum, **base de données et
-fichiers**. `public/uploads/` contient les photos des annonces et n'est dans aucun dépôt Git : sans
-sauvegarde, elles sont définitivement perdues.
+fichiers**. `public/uploads/` (photos des annonces) et `storage/private/` (pièces justificatives des
+partenaires, photos et documents des biens confiés) ne sont dans aucun dépôt Git : sans sauvegarde, ils
+sont définitivement perdus.
 
 Vérifier une fois qu'une restauration fonctionne réellement — une sauvegarde jamais testée n'est pas
 une sauvegarde.

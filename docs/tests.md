@@ -35,12 +35,12 @@ que le code fait réellement aujourd'hui.
 | 1.9 | Chercher les données confidentielles dans le code source d'une fiche | Ni propriétaire, ni notaire, ni référence de dossier, ni adresse exacte si `show_exact_location = 0` |
 | 1.10 | Annonce avec une modification en attente | La **version en ligne** s'affiche ; ni le titre proposé, ni les photos de la révision |
 | 1.11 | Mettre une annonce en favori puis ouvrir `/favoris` | L'annonce y figure, sans compte ; une annonce retirée de la vente disparaît d'elle-même |
-| 1.12 | Annuaire `/agences`, filtres ville et « vérifiées » | Seules les agences **actives** ; le nombre d'annonces est juste |
-| 1.13 | Profil d'agence | Présentation, zones, annonces en ligne ; **jamais** RCCM, NCC ni email de gestion |
+| 1.12 | Vitrine `/partenaires`, filtres ville et « vérifiés » | Seuls les partenaires **actifs** ; cartes **sans lien**, sans coordonnée ni annonce (lot 2.5) |
+| 1.13 | `/agences` et `/agences/{slug}` (anciennes adresses) | **301** vers `/partenaires` |
 | 1.14 | Pages éditoriales publiées / non publiées | Publiée **200** ; non publiée **404** et **absente du pied de page** |
 | 1.15 | Bandeau cookies | S'affiche une fois, se referme, ne revient pas |
 
-### Formulaires publics (contact d'annonce, contact d'agence, contact, partenaire, dépôt de bien)
+### Formulaires publics (contact d'annonce, contact, partenaire)
 
 | # | Scénario | Attendu |
 |---|---|---|
@@ -64,7 +64,7 @@ que le code fait réellement aujourd'hui.
 | 2.6 | Modifier une annonce **publiée** | Crée une **révision** ; la version en ligne reste inchangée |
 | 2.7 | Valider ou rejeter une annonce | **403** (réservé à l'équipe) |
 | 2.8 | Mettre une annonce en avant | **403** |
-| 2.9 | Ses demandes de contact | Seules les siennes ; celle d'une autre agence → **404** |
+| 2.9 | `/cmsadmin/contacts` (toute demande) | **403** : les demandes sont traitées par Weblogy ; le tableau de bord n'affiche qu'un nombre (lot 2.5) |
 | 2.10 | Modifier le profil de l'agence | **200**, journalisé, notification à l'équipe |
 | 2.11 | `/cmsadmin/agences`, `/demandes-partenariat`, `/exports`, `/geo/villes` | **403** |
 | 2.12 | `/cmsadmin/categories`, `/utilisateurs`, `/pays-sites`, `/parametres` | **403** |
@@ -126,11 +126,62 @@ que le code fait réellement aujourd'hui.
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 7.1 | Accueil, résultats, fiche, annuaire, contact à **375 px** | Aucun débordement horizontal, cibles tactiles ≥ 44 px |
+| 7.1 | Accueil, résultats, fiche, vitrine partenaires, contact, espace propriétaire à **375 px** | Aucun débordement horizontal, cibles tactiles ≥ 44 px |
 | 7.2 | Page de résultats à 375 px | Le panneau de filtres s'ouvre en tiroir et se referme (Échap, clic à côté) |
 | 7.3 | Galerie d'une fiche à 375 px | La visionneuse s'ouvre, se parcourt au clavier et se referme |
 | 7.4 | Safari iOS, Chrome Android, Firefox, Edge | Rendu et formulaires identiques |
 | 7.5 | Connexion 3G simulée | LCP < 2,5 s sur l'accueil |
+
+---
+
+## 8. Weblogy intermédiaire exclusif (lot 2.5)
+
+### Public
+
+| # | Scénario | Attendu |
+|---|---|---|
+| 8.1 | Fiche et carte d'une annonce de partenaire ou de particulier | Téléphone, WhatsApp et formulaire **de Weblogy** ; aucune identité, coordonnée ni adresse privée du partenaire ou du propriétaire ; JSON-LD `provider` = le site |
+| 8.2 | Demande envoyée depuis une fiche | Notification **à l'équipe seule** ; le partenaire ne reçoit rien |
+| 8.3 | En-tête 1440, 1280, 1200, 1024 px | « Devenir partenaire » visible ; « Confiez-nous votre bien » dans la barre dès 1200 px, sinon dans le menu ; aucun débordement |
+| 8.4 | `/deposer-un-bien` | **301** vers `/confiez-nous-votre-bien` |
+| 8.5 | Pages À propos, Comment ça marche, FAQ, CGU, confidentialité, cookies, mentions légales | **200**, textes du modèle intermédiaire, FAQ dans le pied de page |
+
+### Dossier « Devenir partenaire »
+
+| # | Scénario | Attendu |
+|---|---|---|
+| 8.6 | Envoi sans extrait RCCM ni pièce d'identité | **422**, pièces signalées obligatoires |
+| 8.7 | Faux PDF (contenu PHP) | **422**, format refusé |
+| 8.8 | Dossier complet | **303**, pièces dans `storage/private` ; `/storage/private/…` → **403** ; téléchargement par l'équipe **200**, par un partenaire **403** |
+| 8.9 | « Créer l'agence » depuis le dossier | Type, forme juridique, raison sociale, NCC, site et adresse pré-remplis |
+
+### Particulier (espace propriétaire)
+
+| # | Scénario | Attendu |
+|---|---|---|
+| 8.10 | Inscription avec mot de passe faible | **422** |
+| 8.11 | Inscription valide | **303** vers `/mon-espace`, email de confirmation ; formulaire du bien **bloqué** tant que l'adresse n'est pas confirmée |
+| 8.12 | Session particulier sur `/cmsadmin` ; identifiants particulier sur la connexion du back-office | Redirection vers la connexion ; **422** (refus générique) |
+| 8.13 | Identifiants partenaire sur `/mon-espace/connexion` ; session partenaire sur `/mon-espace` | **422** ; redirection vers la connexion de l'espace |
+| 8.14 | Confier un bien (2 photos, 1 document) | **303**, dossier `submitted`, fichiers privés, email « reçu », notification à l'équipe |
+| 8.15 | Autre particulier sur le dossier ou ses photos ; anonyme | **404** ; redirection vers la connexion |
+
+### Équipe et console partenaire
+
+| # | Scénario | Attendu |
+|---|---|---|
+| 8.16 | Refus d'un bien confié sans motif | **422** |
+| 8.17 | Passage « en cours » | Email « à l'étude » au propriétaire |
+| 8.18 | « Créer l'annonce » depuis le dossier | Annonce `draft`, `source = private_owner`, photos 400/800/1600, propriétaire en données privées, titre de propriété repris |
+| 8.19 | Publication de cette annonce | Dossier « publié », email « en ligne » au propriétaire, statut « En ligne » + lien dans son espace ; **pas** de notification « publiée par un partenaire » |
+| 8.20 | Partenaire : `/cmsadmin/contacts`, `/biens-confies`, `/journal`, pièces d'un dossier | **403** |
+| 8.21 | Partenaire : brouillon sans photo ni critère obligatoire | **303**, statut `draft`, absent de la file de validation ; envoi incomplet → **422** ; envoi complet → `pending` + notification |
+| 8.22 | Partenaire : désactiver puis réactiver une annonce publiée | `unpublished` (page publique **404**) puis `published` |
+| 8.23 | Annonce dépubliée par Weblogy | Pas de bouton « Réactiver » ; réactivation forcée refusée (statut inchangé) |
+| 8.24 | Partenaire sur « Republier » ; équipe sur « Désactiver » | **403** dans les deux cas |
+| 8.25 | Paramètre « publication directe des partenaires » activé, modification d'une annonce en ligne | Appliquée sans révision, notification à l'équipe ; paramètre remis à « désactivé » après le test |
+
+Exécution du 17/09/2026 : **tous les scénarios 8.1 à 8.25 conformes**. Deux défauts corrigés pendant la recette : notification « publiée par un partenaire » envoyée quand l'équipe publiait son propre brouillon, et validation complète imposée aux brouillons.
 
 ---
 

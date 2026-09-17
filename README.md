@@ -104,7 +104,11 @@ complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plu
 fictives**, et la recette par rôle est passée ([`docs/tests.md`](docs/tests.md)). **La phase 1 est
 terminée**. En phase 2, le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robots.txt`, redirections
 gérées en base), le lot 2.2 (pages, actualités, bannières) et le lot 2.3 (audit) sont livrés.
-Le **journal d'activité** (`/cmsadmin/journal`) rend enfin consultable la table `activity_logs` alimentée depuis le lot 1.3 : qui a validé, modifié ou supprimé quoi, avec les différences avant/après. L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
+Depuis le lot 2.5 (avenant n° 1 du cahier des charges), **Weblogy est l'intermédiaire exclusif** : les
+annonces n'affichent que les coordonnées de Weblogy, les demandes des prospects arrivent à l'équipe, les
+professionnels déposent un **dossier de partenariat** (pièces justificatives) puis gèrent leurs biens depuis
+la console partenaire, et les particuliers **confient leur bien** depuis un espace propriétaire
+(`/mon-espace`, compte obligatoire) que l'équipe transforme en annonce. Le **journal d'activité** (`/cmsadmin/journal`) rend enfin consultable la table `activity_logs` alimentée depuis le lot 1.3 : qui a validé, modifié ou supprimé quoi, avec les différences avant/après. L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
 n'a relevé aucune vulnérabilité exploitable ; sous 10 000 annonces, toutes les pages publiques répondent
 en moins de 125 ms et le back-office en moins de 85 ms. Pour le lot **3.1 (mise en production)**, la
 préparation est livrée — [`docs/deploiement.md`](docs/deploiement.md) et `bin/check-deploy.php` — mais
@@ -123,6 +127,10 @@ production**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 - Jeton CSRF sur chaque formulaire, échappement de sortie systématique (`e()`), contrôle d'accès côté
   serveur sur chaque action (rôle + pays + agence propriétaire) — l'interface n'est jamais une protection.
 - `property_private_details` (notaire, référence de dossier) n'est **jamais** joint à une requête publique.
+- **Weblogy seul interlocuteur** : aucune page publique n'affiche l'identité ou les coordonnées d'un partenaire
+  ou d'un propriétaire ; les demandes des prospects vont à l'équipe uniquement.
+- Pièces justificatives et fichiers des biens confiés : **`storage/private`** uniquement (hors racine web),
+  transmis par un contrôleur qui vérifie les droits.
 - Toute évolution du schéma passe par une migration numérotée dans `database/migrations/`, répercutée
   dans `schema.sql` et documentée dans `docs/database.md`.
 - Travail par lots directement sur `main`, commits atomiques en français.

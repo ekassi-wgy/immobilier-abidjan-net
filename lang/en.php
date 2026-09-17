@@ -408,6 +408,9 @@ return [
         'pages' => [
             'updated_at' => 'Updated on :date',
         ],
+        'demo' => [
+            'badge' => 'Preview: fictitious listings and partners',
+        ],
         'cookies' => [
             'text' => 'This site only uses cookies required to run it (session, favourites, listing statistics). No advertising tracker.',
             'accept' => 'Got it',
@@ -620,6 +623,7 @@ return [
             'see_requests' => 'View requests',
             'partner_requests' => ':count partnership request is awaiting a reply.|:count partnership requests are awaiting a reply.',
             'commission_undefined' => 'The commission mode has not been set yet.',
+            'demo_active' => 'Demo data is active: fictitious partners, listings, contacts and news. The public site is a preview (not indexed, no audience measurement). Purge before launch: php bin/reset-before-launch.php.',
             'set_commission' => 'Set it up',
             'audience_subtitle_staff' => 'Views and contact requests across every listing in the country, over :days days.',
             'audience_empty_staff' => 'Views are counted as soon as a listing is published and visited on the site.',

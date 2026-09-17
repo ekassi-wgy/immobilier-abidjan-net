@@ -38,6 +38,13 @@ $chartData = ['labels' => $audience['labels'], 'views' => $audience['views'], 'l
   </div>
 </section>
 
+<?php if (demo_mode()): ?>
+<div class="im-flash im-flash--info" role="status">
+  <span class="mdi mdi-flask-outline" aria-hidden="true"></span>
+  <p><?= e(__('dashboard.demo_active')) ?></p>
+</div>
+<?php endif; ?>
+
 <?php if ($newRequests > 0): ?>
 <div class="im-flash im-flash--info" role="status">
   <span class="mdi mdi-handshake-outline" aria-hidden="true"></span>

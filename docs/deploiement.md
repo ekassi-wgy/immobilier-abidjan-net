@@ -218,6 +218,54 @@ concurrencer le site réel.
 Une pré-production se déploie exactement comme la production, avec sa **propre base** et
 `APP_ENV=staging`. Ne jamais la faire pointer sur la base de production.
 
+## 12. Aperçu avant ouverture, puis ouverture
+
+### Aperçu avec des données de démonstration
+
+Pour montrer le site en ligne avant son ouverture (partenaires, commanditaires, recette) :
+
+```bash
+php bin/seed-demo.php --yes     # --yes obligatoire quand APP_ENV=production
+```
+
+Le script crée 6 partenaires fictifs, 22 annonces avec photos (toutes les transactions, plusieurs
+villes), des demandes de contact, deux dossiers de partenariat, 30 jours de statistiques et
+3 actualités. Aucun email n'est envoyé, aucun compte n'est créé (adresses en `@demo.invalid`).
+
+Tant que ces données existent, le site est en **mode démonstration** : pastille « Aperçu : annonces
+et partenaires fictifs » en bas de chaque page, toutes les pages en `noindex`, `robots.txt` en
+`Disallow: /`, **aucune mesure d'audience**, et un bandeau d'alerte sur le tableau de bord du
+back-office. `bin/check-deploy.php` le signale aussi.
+
+### Jour de l'ouverture (en SSH)
+
+```bash
+cd ~/httpdocs
+
+# 1. Sauvegarde
+mysqldump -u <utilisateur> -p <base> > sauvegarde-avant-ouverture.sql
+tar czf fichiers-avant-ouverture.tar.gz public/uploads storage/private
+
+# 2. Simulation : affiche ce qui sera supprimé, ne modifie rien
+php bin/reset-before-launch.php            # données de démonstration seulement
+php bin/reset-before-launch.php --all      # ou remise à zéro complète
+
+# 3. Exécution
+php bin/reset-before-launch.php --confirm          # ou : --all --confirm
+php bin/check-deploy.php --host=immobilier.abidjan.net
+```
+
+| Mode | Supprime | Conserve |
+|---|---|---|
+| *(défaut)* | exactement ce que `seed-demo.php` a créé (registre `demo.registry`) | tout le reste, y compris les partenaires et annonces réels déjà saisis |
+| `--all` | en plus : **toutes** les annonces et leurs photos, contacts, statistiques, partenaires et leurs comptes, dossiers et pièces, comptes particuliers et biens confiés, notifications, journal d'activité, tentatives de connexion ; numérotation remise à zéro (première annonce `IAN-10001`) | pays, sites, domaines, paramètres, référentiels, pages, bannières, actualités réelles, référencement, comptes Super Admin et Admin Pays |
+
+Le mode par défaut refuse de s'exécuter si une annonce ou un compte réel a été rattaché à un
+partenaire fictif (plutôt que de le supprimer) : le réaffecter d'abord, ou utiliser `--all`.
+
+Après la purge, le mode démonstration est levé : indexation, `robots.txt` de production et mesure
+d'audience (après consentement) reprennent automatiquement.
+
 ---
 
 ## Rappel des pièges

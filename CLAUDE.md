@@ -25,6 +25,7 @@ Langue du projet : **français** (code en anglais, textes, commentaires métier 
 - **Lot 3.1 — mise en production : préparation livrée, exécution bloquée.** `docs/deploiement.md` (runbook) et `bin/check-deploy.php` (contrôle de l'environnement sur le serveur) sont prêts. **Il manque les accès Plesk, le DNS du sous-domaine et le moteur de base de production** : rien de plus ne peut être fait tant que le client ne les fournit pas. Piège principal du déploiement : la racine des documents doit pointer sur `httpdocs/public`, jamais sur la racine du dépôt.
 - **Règles de performance issues du lot 2.3** (à ne pas défaire) : une requête publique qui trie sur `published_at` avec une `LIMIT` ne doit porter **que sur `properties`** — les jointures de la carte annonce dans le même `SELECT` font perdre `idx_properties_published` à l'optimiseur, qui trie alors toutes les annonces du pays (`ListingRepository::latest()` puis `cardsByIds()`, 88 → 2 ms). Jamais de requête par URL dans une boucle : charger la liste en une fois (`SeoRepository::noindexPaths()` pour le sitemap). Compression gzip et `Cache-Control` d'un an sont posés dans `public/.htaccess` — les URL de ressources sont versionnées par `asset()`/`cmsadmin_asset()`, ne jamais servir un CSS ou un JS sans `?v=`.
 - **Audit de pré-production (17/09/2026)** : `docs/audit-securite-performance.md` § 6 — verdict « prêt », 9 défauts corrigés. Règles à ne pas défaire : diapositives du hero après la première en `data-srcset`/`data-src` (hero.js ne charge que la suivante ; `loading="lazy"` est sans effet sur des images empilées) ; le sitemap liste aussi Contact, Confiez-nous votre bien, Devenir partenaire et les actualités publiées ; la vérification « email déjà utilisé » de l'inscription particulier garde son propre quota.
+- **Mode démonstration** : `bin/seed-demo.php` crée des données fictives inscrites dans le registre `settings.demo.registry` et pose `demo.active` ; `demo_mode()` (helpers) → pastille « Aperçu » (`.im-demo-badge`), `noindex` forcé dans le layout public, `robots.txt` en `Disallow: /`, **aucune mesure d'audience**, alerte sur le tableau de bord équipe, alerte de `check-deploy.php`. `bin/reset-before-launch.php` supprime exactement le registre (refuse si des données réelles sont rattachées à un partenaire fictif) ; `--all` vide toutes les données d'exploitation et remet les compteurs à 1. **La base locale contient actuellement la démo** (à purger avant d'y faire des tests qui supposent une base vide). Toute nouvelle donnée de démonstration doit être ajoutée au registre, sinon la purge ne la verra pas.
 - **Reprise d'une session** : `git log --oneline -5` pour le contexte, MAMP démarré (http://localhost:8888), se connecter à `/cmsadmin` avec son compte. **Avant tout test créant des comptes, agences ou annonces : `MAIL_MAILER=log` dans `.env`**, puis rétablir `smtp` et supprimer ses données de test à la fin.
 - **Décisions en attente du client** (ne pas trancher seul) :
   - durée de vie d’une annonce (défaut 90 j), photos d’Abidjan libres de droits, accès Plesk/DNS, relecture du référentiel des quartiers ;
@@ -91,6 +92,8 @@ bin/
   expire-listings.php ✅ CRON quotidien : expiration des annonces + relance avant échéance (--dry-run)
   cleanup-uploads.php ✅ CRON quotidien : supprime les photos envoyées jamais rattachées (uploads/*/tmp)
   cache-clear.php     ✅ vide storage/cache (après déploiement ou modification directe en base)
+  seed-demo.php       ✅ données de démonstration (6 partenaires, 22 annonces avec photos, contacts, statistiques, actualités) → mode démonstration
+  reset-before-launch.php ✅ avant ouverture, en SSH : purge de la démo (registre) ou --all (toutes les données d'exploitation) ; simulation par défaut
   check-deploy.php    ✅ contrôle de l’environnement de production (PHP, extensions, .env, droits, base, domaines) — code 1 si un contrôle bloquant échoue
   dev-server.php      ✅ routeur pour le serveur PHP intégré (alternative à MAMP)
 config/
@@ -131,6 +134,8 @@ php bin/expire-listings.php      # expiration + relances (CRON quotidien) · --d
 php bin/cleanup-uploads.php      # purge des photos temporaires (CRON quotidien) · --hours=24 --dry-run
 php bin/mail-test.php --to=…     # email de test avec la configuration courante
 php bin/check-deploy.php --host=immobilier.abidjan.net   # contrôle de l'environnement (à lancer SUR LE SERVEUR ; échoue volontairement en local)
+php bin/seed-demo.php [--country=CI] [--yes]   # données de démonstration (aperçu avant ouverture) ; --yes si APP_ENV=production
+php bin/reset-before-launch.php [--all] [--confirm]   # purge de la démo (défaut) ou remise à zéro complète ; simulation sans --confirm
 php -l <fichier>                 # vérif syntaxe avant commit
 ```
 

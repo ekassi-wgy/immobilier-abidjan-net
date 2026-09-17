@@ -46,6 +46,15 @@ function settings(string $key, mixed $default = null): mixed
     return app()->settings()->get($key, $default);
 }
 
+/**
+ * Données de démonstration présentes (bin/seed-demo.php) : le site public est un aperçu —
+ * pastille « Aperçu », noindex, robots.txt fermé, aucune mesure d'audience. Purge : bin/reset-before-launch.php.
+ */
+function demo_mode(): bool
+{
+    return (bool) settings('demo.active', false);
+}
+
 // Traductions ----------------------------------------------------------------------
 
 /**

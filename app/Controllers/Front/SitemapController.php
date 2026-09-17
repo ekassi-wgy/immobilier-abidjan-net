@@ -79,7 +79,8 @@ final class SitemapController extends Controller
         $site = $this->site();
         $lines = ['User-agent: *'];
 
-        if ($site->isProductionHost()) {
+        // Données de démonstration présentes : aperçu avant ouverture, rien ne doit être exploré.
+        if ($site->isProductionHost() && !demo_mode()) {
             // Aucune ligne vide dans le groupe : certains robots y voient la fin du bloc User-agent.
             array_push(
                 $lines,

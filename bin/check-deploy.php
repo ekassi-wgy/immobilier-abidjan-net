@@ -176,6 +176,14 @@ try {
     $admins = (int) $app->db()->scalar("SELECT COUNT(*) FROM users WHERE role = 'super_admin' AND is_active = 1");
     $check("Super Admin actif ({$admins})", $admins > 0, 'Créer un compte avec « php bin/create-user.php --role=super_admin … ».');
 
+    $demo = $app->db()->scalar("SELECT value FROM settings WHERE site_id IS NULL AND setting_key = 'demo.active'");
+    $check(
+        'Aucune donnée de démonstration',
+        $demo === null || json_decode((string) $demo) !== true,
+        'Données fictives présentes (bin/seed-demo.php) : site non indexé et sans mesure d\'audience. Avant l\'ouverture : php bin/reset-before-launch.php --confirm.',
+        false
+    );
+
     $sites = $app->db()->select('SELECT s.id, s.name, s.status FROM sites s');
     $check('Au moins un site déclaré', $sites !== [], 'Renseigner la table sites et ses domaines.');
 

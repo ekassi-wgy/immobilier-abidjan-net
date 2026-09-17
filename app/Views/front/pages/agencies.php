@@ -63,7 +63,7 @@ use App\Support\Paginator;
     </div>
     <?php else: ?>
     <ul class="im-agency-grid">
-      <?php foreach ($agencies as $agency): $place = trim(implode(', ', array_filter([$agency['commune_name'], $agency['city_name']]))); ?>
+      <?php foreach ($agencies as $agency): $place = implode(', ', array_unique(array_filter([$agency['commune_name'], $agency['city_name']]))); ?>
       <li class="im-agency im-agency--static">
         <span class="im-agency__logo">
           <?php if (!empty($agency['logo_path'])): ?>

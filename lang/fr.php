@@ -409,6 +409,9 @@ return [
         'pages' => [
             'updated_at' => 'Mise à jour le :date',
         ],
+        'demo' => [
+            'badge' => 'Aperçu : annonces et partenaires fictifs',
+        ],
         'cookies' => [
             'text' => 'Ce site n’utilise que des cookies nécessaires à son fonctionnement (session, favoris, statistiques d’annonces). Aucun traceur publicitaire.',
             'accept' => 'J’ai compris',
@@ -621,6 +624,7 @@ return [
             'see_requests' => 'Voir les demandes',
             'partner_requests' => ':count demande de partenariat attend une réponse.|:count demandes de partenariat attendent une réponse.',
             'commission_undefined' => 'Le mode de commission n’est pas encore défini.',
+            'demo_active' => 'Données de démonstration actives : partenaires, annonces, contacts et actualités fictifs. Le site public est un aperçu (non indexé, sans mesure d’audience). À purger avant l’ouverture : php bin/reset-before-launch.php.',
             'set_commission' => 'Le paramétrer',
             'audience_subtitle_staff' => 'Vues et demandes de contact de toutes les annonces du pays, sur :days jours.',
             'audience_empty_staff' => 'Les consultations sont comptées dès qu’une annonce est publiée et visitée sur le site.',

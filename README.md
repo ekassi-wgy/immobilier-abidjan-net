@@ -69,6 +69,8 @@ php bin/expire-listings.php     # CRON quotidien : expiration des annonces + rel
 php bin/cleanup-uploads.php     # CRON quotidien : purge des photos jamais rattachées (--hours=24)
 php bin/mail-test.php --to=…    # vérification de la configuration SMTP
 php bin/check-deploy.php        # contrôle de l'environnement de production (à lancer sur le serveur)
+php bin/seed-demo.php           # données de démonstration pour un aperçu réaliste (--yes en production)
+php bin/reset-before-launch.php # avant ouverture : purge de la démo (--all : remise à zéro complète) · simulation sans --confirm
 php -l <fichier>                # contrôle de syntaxe avant commit
 ```
 

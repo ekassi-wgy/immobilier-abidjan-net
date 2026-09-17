@@ -25,7 +25,10 @@ $noindex ??= false;
 $description ??= '';
 $siteName = site()->name ?? config('app.name');
 // Tag Google : production uniquement, chargé par site.js après consentement (jamais ici en dur).
-$analyticsId = site()?->analyticsTag();
+// Mode démonstration : aperçu avant ouverture, ni indexé ni mesuré.
+$demo = demo_mode();
+$noindex = $noindex || $demo;
+$analyticsId = $demo ? null : site()?->analyticsTag();
 // Pages éditoriales et légales publiées : les liens absents ne sont pas affichés (lot 1.11).
 $cmsPages = site() !== null
     ? app()->pages()->byCodes(['about', 'how_it_works', 'faq', 'legal_notice', 'terms', 'privacy', 'cookies'], site()->id, locale())
@@ -85,6 +88,10 @@ $cmsPages = site() !== null
   <?= render_view('front/partials/footer', ['pages' => $cmsPages, 'cookieSettings' => $analyticsId !== null]) ?>
 
   <?= render_view('front/partials/cookie-banner', ['pages' => $cmsPages, 'analyticsId' => $analyticsId]) ?>
+
+  <?php if ($demo): ?>
+  <p class="im-demo-badge" role="note"><?= icon('info') ?> <span><?= e(__('front.demo.badge')) ?></span></p>
+  <?php endif; ?>
 
   <script src="<?= e(asset('js/site.js')) ?>" defer></script>
   <?php foreach ($pageScripts as $script): ?>

@@ -1,0 +1,232 @@
+// Page Contact ---------------------------------------------------------------------------
+// En-tête sobre, coordonnées en liste éditoriale (filets fins, actions directes), formulaire
+// dans un panneau, puis carte pleine largeur avec la fiche des bureaux posée dessus.
+
+.im-contact-hero {
+  padding-block: im-fluid(2.75rem, 5rem) im-fluid(1.25rem, 2rem);
+  border-bottom: 1px solid $im-line;
+  background: $im-snow;
+
+  &__title {
+    max-width: 16ch;
+    margin: .9rem 0 0;
+
+    span { color: $im-blue; }
+  }
+
+  &__lead { max-width: 38rem; margin: 1rem 0 0; }
+}
+
+.im-contact-page {
+  &__grid {
+    display: grid;
+    align-items: start;
+    gap: im-fluid(2.5rem, 4.5rem);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(lg) { grid-template-columns: minmax(0, 25rem) minmax(0, 1fr); }
+  }
+
+  &__hint {
+    margin: .5rem 0 0;
+    color: $im-muted;
+    font-size: .9375rem;
+    line-height: 1.55;
+  }
+
+  &__channels {
+    @include im-up(lg) { position: sticky; top: calc(#{$im-header-height} + 1.5rem); }
+
+    .im-h4 { margin: 0; }
+  }
+
+  &__partner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem .5rem;
+    margin: 1.75rem 0 0;
+    color: $im-muted;
+    font-size: .875rem;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      color: $im-navy;
+      font-weight: $im-weight-semibold;
+      text-decoration: none;
+
+      .im-icon { width: .95rem; height: .95rem; transition: transform $im-duration-fast $im-ease; }
+
+      @include im-hover { .im-icon { transform: translateX(3px); } }
+    }
+  }
+
+  &__form {
+    padding: im-fluid(1.5rem, 2.5rem);
+    border: 1px solid $im-line;
+    border-radius: $im-radius-xl;
+    background: $im-white;
+    box-shadow: $im-shadow;
+
+    .im-h3 { margin: 0; }
+    .im-contact-page__hint { margin-bottom: 1.5rem; }
+  }
+}
+
+// Coordonnées : une ligne par canal, action à droite
+.im-channels {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border-top: 1px solid $im-line;
+  list-style: none;
+}
+
+.im-channel {
+  display: grid;
+  align-items: center;
+  gap: .25rem 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid $im-line;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: $im-radius;
+    background: $im-blue-tint;
+    color: $im-navy;
+
+    .im-icon { width: 1.3rem; height: 1.3rem; }
+
+    &--whatsapp { background: rgba($im-whatsapp, .12); color: $im-whatsapp; }
+  }
+
+  &__body { display: grid; gap: .15rem; min-width: 0; }
+
+  &__label {
+    color: $im-subtle;
+    font-size: .75rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  &__value {
+    color: $im-ink;
+    font-size: .9875rem;
+    font-weight: $im-weight-medium;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__action {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: 44px;
+    padding: 0 .9rem;
+    border: 1px solid $im-line;
+    border-radius: 999px;
+    color: $im-navy;
+    font-size: .8125rem;
+    font-weight: $im-weight-semibold;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: border-color $im-duration-fast $im-ease, background-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: .9rem; height: .9rem; }
+
+    @include im-hover { border-color: $im-navy; background: $im-navy; color: $im-white; }
+    &:focus-visible { @include im-focus-ring; }
+  }
+
+  // Adresse : trop longue pour partager la ligne avec son action
+  &--stacked {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    align-items: start;
+
+    .im-channel__action { grid-column: 2; justify-self: start; margin-top: .5rem; }
+  }
+
+  // Très petits écrans : l'action passe sous la valeur plutôt que d'écraser l'adresse
+  @include im-down(sm) {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+
+    &__action { grid-column: 2; justify-self: start; margin-top: .4rem; }
+  }
+}
+
+// Objet du message : boutons radio présentés en puces (aucun JavaScript)
+.im-choices {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  &__list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+
+  &__item {
+    position: relative;
+
+    input { position: absolute; opacity: 0; pointer-events: none; }
+
+    input:checked + .im-chip { border-color: $im-navy; background: $im-navy; color: $im-white; }
+    input:focus-visible + .im-chip { @include im-focus-ring; }
+  }
+}
+
+// Carte des bureaux
+.im-contact-map {
+  padding-bottom: im-fluid(3rem, 6rem);
+
+  &__frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid $im-line;
+    border-radius: $im-radius-xl;
+    background: $im-mist;
+
+    @include im-down(lg) { display: flex; flex-direction: column-reverse; }
+  }
+
+  &__canvas {
+    height: clamp(18rem, 48vh, 30rem);
+
+    .leaflet-container { font: inherit; }
+    .leaflet-control-zoom { border: 1px solid $im-line; border-radius: $im-radius-sm; box-shadow: none; overflow: hidden; }
+    .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; color: $im-navy; }
+  }
+
+  &__card {
+    position: relative;
+    z-index: 500; // au-dessus des volets de Leaflet (400)
+    padding: im-fluid(1.5rem, 2rem);
+    background: $im-white;
+
+    @include im-up(lg) {
+      position: absolute;
+      top: 50%;
+      left: 2rem;
+      width: 22rem;
+      border: 1px solid $im-line;
+      border-radius: $im-radius-lg;
+      box-shadow: $im-shadow-lg;
+      transform: translateY(-50%);
+    }
+
+    @include im-down(lg) { border-bottom: 1px solid $im-line; }
+
+    .im-h4 { margin: .6rem 0 0; }
+    .im-btn { margin-top: 1.25rem; }
+  }
+
+  &__address {
+    margin: .6rem 0 0;
+    color: $im-muted;
+    font-size: .9375rem;
+    line-height: 1.55;
+  }
+}

@@ -87,6 +87,15 @@ $domainValues = (array) ($domainErrors['_values'] ?? []);
           <div class="col-12">
             <?= cmsadmin_partial('field', ['name' => 'address', 'label' => __('sites.address'), 'value' => $value('address'), 'optional' => true, 'error' => $errors['address'] ?? null, 'class' => '', 'attributes' => ['maxlength' => 255]]) ?>
           </div>
+          <div class="col-md-4">
+            <?= cmsadmin_partial('field', ['name' => 'latitude', 'label' => __('sites.latitude'), 'value' => $value('latitude'), 'optional' => true, 'error' => $errors['latitude'] ?? null, 'class' => '', 'attributes' => ['inputmode' => 'decimal', 'placeholder' => '5.3322343']]) ?>
+          </div>
+          <div class="col-md-4">
+            <?= cmsadmin_partial('field', ['name' => 'longitude', 'label' => __('sites.longitude'), 'value' => $value('longitude'), 'optional' => true, 'error' => $errors['longitude'] ?? null, 'class' => '', 'attributes' => ['inputmode' => 'decimal', 'placeholder' => '-4.0002405']]) ?>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <p class="form-text mb-2"><?= e(__('sites.coordinates_hint')) ?></p>
+          </div>
         </div>
       </section>
     </form>

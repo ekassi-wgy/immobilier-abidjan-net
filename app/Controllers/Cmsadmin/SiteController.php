@@ -299,7 +299,14 @@ final class SiteController extends Controller
             ->maxLength('contact_email', 190)->email('contact_email')
             ->maxLength('contact_phone', 30)->phone('contact_phone')
             ->maxLength('contact_whatsapp', 30)->phone('contact_whatsapp')
-            ->maxLength('address', 255);
+            ->maxLength('address', 255)
+            ->decimal('latitude', -90, 90)
+            ->decimal('longitude', -180, 180);
+
+        // Une position sans son autre moitié ne place rien sur la carte.
+        if (($v->string('latitude') === '') !== ($v->string('longitude') === '')) {
+            $v->add($v->string('latitude') === '' ? 'latitude' : 'longitude', __('sites.coordinates_pair'));
+        }
 
         if ($site === null) {
             $v->required('country_id')->in('country_id', array_keys($this->app->countries()->options()))
@@ -327,6 +334,8 @@ final class SiteController extends Controller
             'contact_phone' => $v->nullableString('contact_phone'),
             'contact_whatsapp' => $v->nullableString('contact_whatsapp'),
             'address' => $v->nullableString('address'),
+            'latitude' => $v->nullableDecimal('latitude'),
+            'longitude' => $v->nullableDecimal('longitude'),
             'status' => $v->string('status'),
         ];
         if ($site === null) {

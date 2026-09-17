@@ -36,7 +36,15 @@ final class Site
         public readonly string $host,
         public readonly string $environment,
         public readonly ?string $primaryHost,
+        public readonly ?float $latitude = null,
+        public readonly ?float $longitude = null,
     ) {
+    }
+
+    /** Position de l'éditeur connue : la page Contact affiche une carte. */
+    public function hasLocation(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
     }
 
     public function isActive(): bool

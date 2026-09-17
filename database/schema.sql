@@ -43,6 +43,8 @@ CREATE TABLE sites (
   contact_phone      VARCHAR(30)   NULL,
   contact_whatsapp   VARCHAR(30)   NULL,
   address            VARCHAR(255)  NULL,
+  latitude           DECIMAL(10,7) NULL COMMENT 'Position de l''éditeur (carte de la page Contact)',
+  longitude          DECIMAL(10,7) NULL,
   status             ENUM('active','maintenance','disabled') NOT NULL DEFAULT 'disabled',
   created_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         DATETIME      NULL ON UPDATE CURRENT_TIMESTAMP,

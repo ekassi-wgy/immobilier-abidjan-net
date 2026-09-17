@@ -198,6 +198,28 @@ $typeScale = [
               <button class="im-chip" type="button">Budget <?= icon('caret-down') ?></button>
               <button class="im-chip" type="button"><?= icon('filters') ?> Filtres <span class="im-chip__count">3</span></button>
             </div>
+            <p class="sg__label" style="margin-top: 2.5rem">Choix unique en puces (radio, sans JavaScript) — <code>.im-choices</code></p>
+            <fieldset class="im-choices">
+              <legend class="visually-hidden">Objet</legend>
+              <div class="im-choices__list">
+                <label class="im-choices__item"><input type="radio" name="sg-choice" checked><span class="im-chip">Acheter un bien</span></label>
+                <label class="im-choices__item"><input type="radio" name="sg-choice"><span class="im-chip">Louer un bien</span></label>
+                <label class="im-choices__item"><input type="radio" name="sg-choice"><span class="im-chip">Autre demande</span></label>
+              </div>
+            </fieldset>
+            <p class="sg__label" style="margin-top: 2.5rem">Coordonnées avec action directe — <code>.im-channels</code> (page Contact)</p>
+            <ul class="im-channels" style="max-width: 26rem">
+              <li class="im-channel">
+                <span class="im-channel__icon"><?= icon('phone') ?></span>
+                <span class="im-channel__body"><span class="im-channel__label">Téléphone</span><span class="im-channel__value">+225 05 64 00 00 80</span></span>
+                <a class="im-channel__action" href="#">Appeler <?= icon('arrow-right') ?></a>
+              </li>
+              <li class="im-channel">
+                <span class="im-channel__icon im-channel__icon--whatsapp"><?= icon('whatsapp') ?></span>
+                <span class="im-channel__body"><span class="im-channel__label">WhatsApp</span><span class="im-channel__value">+225 05 64 00 00 80</span></span>
+                <a class="im-channel__action" href="#">Écrire <?= icon('arrow-up-right') ?></a>
+              </li>
+            </ul>
             <p class="sg__label" style="margin-top: 2.5rem">Onglets</p>
             <div class="im-tabs" role="tablist" style="border-bottom: 1px solid var(--im-line)">
               <button class="im-tabs__tab" role="tab" aria-selected="true" type="button">Présentation</button>

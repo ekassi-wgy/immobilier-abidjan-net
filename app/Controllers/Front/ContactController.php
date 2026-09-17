@@ -194,6 +194,9 @@ final class ContactController extends Controller
             'title' => __('front.contact.page_title'),
             'description' => __('front.contact.page_description', ['site' => $site->name]),
             'canonical' => absolute_url('contact'),
+            // Leaflet n'est chargé que si le site a une position à montrer.
+            'pageScripts' => $site->hasLocation() ? ['vendors/leaflet/leaflet.js', 'js/contact.js'] : [],
+            'pageStyles' => $site->hasLocation() ? ['vendors/leaflet/leaflet.css'] : [],
         ]);
     }
 

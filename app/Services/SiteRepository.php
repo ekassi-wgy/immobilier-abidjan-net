@@ -68,6 +68,8 @@ final class SiteRepository
             $host,
             $domain['environment'],
             $site['primary_host'],
+            isset($site['latitude']) && $site['latitude'] !== null ? (float) $site['latitude'] : null,
+            isset($site['longitude']) && $site['longitude'] !== null ? (float) $site['longitude'] : null,
         );
     }
 

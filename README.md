@@ -104,7 +104,7 @@ complet : tableau de bord de l'équipe, exports CSV et écran Paramètres. **Plu
 fictives**, et la recette par rôle est passée ([`docs/tests.md`](docs/tests.md)). **La phase 1 est
 terminée**. En phase 2, le lot 2.1 (SEO : balises par URL, `sitemap.xml`, `robots.txt`, redirections
 gérées en base), le lot 2.2 (pages, actualités, bannières) et le lot 2.3 (audit) sont livrés.
-L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
+Le **journal d'activité** (`/cmsadmin/journal`) rend enfin consultable la table `activity_logs` alimentée depuis le lot 1.3 : qui a validé, modifié ou supprimé quoi, avec les différences avant/après. L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
 n'a relevé aucune vulnérabilité exploitable ; sous 10 000 annonces, toutes les pages publiques répondent
 en moins de 125 ms et le back-office en moins de 85 ms. Pour le lot **3.1 (mise en production)**, la
 préparation est livrée — [`docs/deploiement.md`](docs/deploiement.md) et `bin/check-deploy.php` — mais

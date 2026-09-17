@@ -77,6 +77,7 @@ que le code fait réellement aujourd'hui.
 | 3.1 | Tableau de bord et annonces de l'agence | **200** |
 | 3.2 | Ouvrir le profil de l'agence | **200**, en lecture seule |
 | 3.3 | **Enregistrer** le profil de l'agence | **403** |
+| 3.4 | `/cmsadmin/journal` | **403** — le journal contient les décisions de modération et les actions des autres agences |
 
 ---
 
@@ -93,6 +94,7 @@ que le code fait réellement aujourd'hui.
 | 4.7 | Exports CSV | **200** |
 | 4.8 | `/cmsadmin/categories`, `/utilisateurs`, `/pays-sites`, `/parametres` | **403** |
 | 4.9 | Se connecter sur le site d'**un autre pays** | Accès refusé |
+| 4.10 | `/cmsadmin/journal` | **200**, mais **uniquement les actions de son pays** — aucune action d'un autre pays, aucune action système, pas de colonne « Pays » |
 
 ## 5. Super Admin
 
@@ -104,6 +106,9 @@ que le code fait réellement aujourd'hui.
 | 5.4 | Valeur hors bornes (ex. 999 tentatives de connexion) | **422** |
 | 5.5 | Export CSV annonces et contacts | Fichier ouvert directement par Excel, accents corrects, énumérations en clair |
 | 5.6 | Dans un export, une valeur commençant par `=`, `+`, `-` ou `@` | Préfixée d'une apostrophe (aucune formule exécutée) |
+| 5.7 | `/cmsadmin/journal` | **200**, actions de tous les pays, colonne « Pays » affichée, actions système visibles |
+| 5.8 | Modifier une balise SEO puis rouvrir le journal | L'action apparaît ; « n champs modifiés » déplie les valeurs avant/après |
+| 5.9 | Filtres du journal (module, action, auteur, du/au, recherche) | Chaque filtre restreint la liste, « Réinitialiser » la rétablit |
 
 ---
 

@@ -124,6 +124,7 @@ erDiagram
 - **Fichiers** : les colonnes `path` de `partner_request_files` et `property_submission_files` sont **relatives à `storage/private`** (hors racine web) et ne sont servies que par un contrôleur qui vérifie les droits.
 - **Paramètre** `workflow.auto_publish_partner` (défaut `false`).
 - **Textes publics** (0009) : pages À propos, Comment ça marche, CGU, confidentialité, cookies et mentions légales réécrites ; page `faq` créée et publiée.
+- **Identité légale** (0010) : mentions légales et confidentialité complétées pour Weblogy Tech S.A (forme juridique, adresse postale, RCCM, NCC), par remplacements ciblés qui respectent une page retouchée dans le back-office.
 
 ## Conventions
 

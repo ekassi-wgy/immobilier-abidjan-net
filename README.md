@@ -117,9 +117,9 @@ préparation est livrée — [`docs/deploiement.md`](docs/deploiement.md) et `bi
 production**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 > **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)
-> sont rédigés au nom de Weblogy et publiés — une relecture juridique est recommandée et quatre mentions
-> obligatoires restent à compléter dans les mentions légales (forme juridique, capital, RCCM, directeur de
-> publication, hébergeur). La **commission** est proposée à 25 % des honoraires d'agence, plancher
+> sont rédigés au nom de Weblogy Tech S.A (RCCM CI-BAS-01-2010-B12-01601) et publiés — une relecture
+> juridique est recommandée et il reste à compléter dans les mentions légales le capital social, le
+> directeur de la publication, l'hébergeur et l'autorisation d'intermédiation immobilière. La **commission** est proposée à 25 % des honoraires d'agence, plancher
 > 50 000 FCFA, modifiable dans Paramètres.
 
 ## Règles à respecter

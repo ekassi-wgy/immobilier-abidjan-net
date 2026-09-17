@@ -1,0 +1,39 @@
+-- =============================================================================
+-- 0010 — Identité légale de l'éditeur : Weblogy Tech S.A
+--
+-- Informations reprises du cachet de la société transmis par le client (17/09/2026) :
+--  - dénomination : WEBLOGY TECH S.A (société anonyme) ;
+--  - adresse postale : BP 652 Grand-Bassam ;
+--  - RCCM : CI-BAS-01-2010-B12-01601 ;
+--  - compte contribuable (NCC) : 1020168 E ;
+--  - régime d'imposition : réel normal (non repris : ce n'est pas une mention du site).
+--
+-- Restent à compléter : capital social, directeur de la publication, hébergeur, autorisation
+-- d'exercer l'intermédiation immobilière.
+--
+-- Remplacements ciblés sur les textes de la migration 0009 : une page déjà retouchée dans le
+-- back-office garde ses modifications, et rejouer la migration ne change plus rien.
+-- =============================================================================
+
+UPDATE pages SET
+  content = REPLACE(REPLACE(REPLACE(REPLACE(content,
+    'est édité par <strong>Weblogy</strong>, également éditeur d’Abidjan.net.',
+    'est édité par <strong>Weblogy Tech S.A</strong> (« Weblogy »), également éditeur d’Abidjan.net.'),
+    '<li><strong>Siège social :</strong> Rue Washington Booker, Cocody-Ambassades, 01 BP 12324 01 Abidjan, Côte d’Ivoire</li>',
+    '<li><strong>Adresse postale :</strong> BP 652 Grand-Bassam, Côte d’Ivoire</li>\n<li><strong>Bureaux :</strong> Rue Washington Booker, Cocody-Ambassades, 01 BP 12324 01 Abidjan, Côte d’Ivoire</li>'),
+    '<li><strong>Forme juridique et capital social :</strong> à compléter avant la mise en ligne</li>',
+    '<li><strong>Forme juridique :</strong> société anonyme (S.A)</li>\n<li><strong>Capital social :</strong> à compléter avant la mise en ligne</li>'),
+    '<li><strong>Registre du commerce (RCCM) :</strong> à compléter avant la mise en ligne</li>',
+    '<li><strong>Registre du commerce et du crédit mobilier (RCCM) :</strong> CI-BAS-01-2010-B12-01601</li>\n<li><strong>Compte contribuable (NCC) :</strong> 1020168 E</li>'),
+  updated_at = UTC_TIMESTAMP()
+WHERE slug = 'mentions-legales'
+  AND content LIKE '%à compléter avant la mise en ligne</li>%'
+  AND content NOT LIKE '%CI-BAS-01-2010-B12-01601%';
+
+UPDATE pages SET
+  content = REPLACE(content,
+    '<p>Weblogy — Rue Washington Booker',
+    '<p>Weblogy Tech S.A (RCCM CI-BAS-01-2010-B12-01601) — Rue Washington Booker'),
+  updated_at = UTC_TIMESTAMP()
+WHERE slug = 'politique-de-confidentialite'
+  AND content LIKE '%<p>Weblogy — Rue Washington Booker%';

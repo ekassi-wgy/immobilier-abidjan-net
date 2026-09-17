@@ -44,7 +44,7 @@ Légende statut : ⬜ à faire · 🟨 en cours · ✅ terminé · ⏸ en attent
 | Accès SMTP | 1.6 / 1.11 | ✅ Gmail (compte `abidjan.net@weblogy.com`), configuré dans `.env` |
 | Dépôt Git distant | 3.1 | ✅ GitHub `ekassi-wgy/immobilier-abidjan-net` |
 | Accès Plesk, DNS du sous-domaine, moteur BDD de production (MySQL 8 ou MariaDB) | 3.1 | ⬜ |
-| Textes légaux (mentions, CGU, confidentialité, cookies) | 1.11 / 2.5 | 🟡 rédigés au nom de Weblogy et publiés (migrations `0005`, `0009`) — **relecture juridique à faire** ; mentions obligatoires à compléter (forme juridique, capital, RCCM, directeur de publication, hébergeur, statut d'intermédiaire) |
+| Textes légaux (mentions, CGU, confidentialité, cookies) | 1.11 / 2.5 | 🟡 rédigés au nom de Weblogy et publiés (migrations `0005`, `0009`) — **relecture juridique à faire** ; identité de Weblogy Tech S.A renseignée (S.A, RCCM, NCC — migration `0010`) ; restent le capital social, le directeur de publication, l'hébergeur et l'autorisation d'intermédiation |
 | Rémunération des propriétaires particuliers, liens des réseaux sociaux | 2.5 | ⬜ |
 | Modification d'une annonce publiée : retrait du site pendant revalidation, ou révision en parallèle | 1.6 | ✅ Révision : la version en ligne reste visible jusqu'à validation (15/09/2026) |
 | Relecture du référentiel des quartiers | 1.4 | ⬜ |

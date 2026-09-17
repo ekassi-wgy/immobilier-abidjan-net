@@ -23,6 +23,8 @@ final class SitemapController extends Controller
     /** Limite volontairement basse au regard des 50 000 URL admises : elle suffit largement en v1. */
     private const MAX_PROPERTIES = 20000;
 
+    private const MAX_POSTS = 5000;
+
     public function sitemap(Request $request): Response
     {
         $site = $this->site();
@@ -41,6 +43,18 @@ final class SitemapController extends Controller
         // Vitrine des partenaires : une seule page (les profils d'agence ne sont plus publics).
         if ($listings->countAgencies($site->country->id, []) > 0) {
             $urls[] = ['loc' => 'partenaires', 'lastmod' => null, 'priority' => '0.4', 'changefreq' => 'monthly'];
+        }
+        // Pages de service indexables : les parcours d'acquisition (contact, partenaires, biens confiés).
+        foreach (['contact', 'confiez-nous-votre-bien', 'devenir-partenaire'] as $path) {
+            $urls[] = ['loc' => $path, 'lastmod' => null, 'priority' => '0.5', 'changefreq' => 'monthly'];
+        }
+        // Actualités : la liste n'est indexable que si elle contient au moins un article publié.
+        $posts = $this->app->content()->publishedPosts($site->id, locale(), self::MAX_POSTS, 0);
+        if ($posts['total'] > 0) {
+            $urls[] = ['loc' => 'actualites', 'lastmod' => null, 'priority' => '0.5', 'changefreq' => 'weekly'];
+            foreach ($posts['rows'] as $post) {
+                $urls[] = ['loc' => 'actualites/' . $post['slug'], 'lastmod' => $post['published_at'], 'priority' => '0.5', 'changefreq' => 'monthly'];
+            }
         }
         foreach ($this->app->pages()->publishedSlugs() as $slug) {
             $urls[] = ['loc' => $slug, 'lastmod' => null, 'priority' => '0.3', 'changefreq' => 'yearly'];

@@ -18,12 +18,17 @@ $country = site()?->country->localizedName(locale()) ?? '';
     <figure class="im-hero__slide<?= $index === 0 ? ' is-active' : '' ?>"
             role="group" aria-roledescription="diapositive" aria-label="<?= e(__('front.hero.slide_label', ['index' => $index + 1, 'total' => $total])) ?>"
             data-caption="<?= e($slide['caption'] ?? '') ?>"<?= $index === 0 ? '' : ' aria-hidden="true"' ?>>
+      <?php
+      // Diapositives suivantes : adresses en data-* (les images empilées sont toutes « dans la
+      // fenêtre », loading="lazy" ne retarderait rien). hero.js ne charge que la suivante.
+      $deferred = $index > 0 ? 'data-' : '';
+      ?>
       <picture>
-        <source media="(max-width: 767px)" type="image/webp" srcset="<?= e($slide['mobile']) ?>">
-        <source type="image/webp" srcset="<?= e($slide['desktop']) ?>">
-        <img class="im-hero__image" src="<?= e($slide['fallback']) ?>" alt=""
+        <source media="(max-width: 767px)" type="image/webp" <?= $deferred ?>srcset="<?= e($slide['mobile']) ?>">
+        <source type="image/webp" <?= $deferred ?>srcset="<?= e($slide['desktop']) ?>">
+        <img class="im-hero__image" <?= $index > 0 ? 'src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" ' : '' ?><?= $deferred ?>src="<?= e($slide['fallback']) ?>" alt=""
              width="1920" height="1080" decoding="async"
-             <?= $index === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+             <?= $index === 0 ? 'fetchpriority="high"' : '' ?>
              style="--im-hero-origin: <?= e($slide['origin'] ?? '50% 50%') ?>">
       </picture>
     </figure>

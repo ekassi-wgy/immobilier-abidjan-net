@@ -43,8 +43,22 @@
     el.classList.add('is-active');
   }
 
+  function warm(index) {
+    slides[index].querySelectorAll('[data-srcset]').forEach(function (source) {
+      source.srcset = source.getAttribute('data-srcset');
+      source.removeAttribute('data-srcset');
+    });
+    var img = slides[index].querySelector('img[data-src]');
+    if (img) {
+      img.src = img.getAttribute('data-src');
+      img.removeAttribute('data-src');
+    }
+  }
+
   function show(index) {
     if (index === current) { return; }
+    warm(index);
+    if (pageLoaded) { warm((index + 1) % total); }
     var previous = slides[current];
     var next = slides[index];
 
@@ -145,12 +159,13 @@
     sync();
   });
 
-  // Préchargement discret des diapositives suivantes après le chargement de la page
+  // Préchargement de la seule diapositive suivante, une fois la page chargée puis à chaque
+  // changement : sur mobile en 3G, charger d'emblée tout le diaporama coûterait ~0,5 Mo pour
+  // des photos que beaucoup de visiteurs ne verront jamais.
+  var pageLoaded = document.readyState === 'complete';
   window.addEventListener('load', function () {
-    slides.forEach(function (slide) {
-      var img = slide.querySelector('img[loading="lazy"]');
-      if (img) { img.loading = 'eager'; }
-    });
+    pageLoaded = true;
+    warm((current + 1) % total);
   });
 
   sync();

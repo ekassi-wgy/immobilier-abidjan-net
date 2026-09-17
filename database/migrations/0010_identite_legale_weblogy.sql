@@ -8,9 +8,10 @@
 --  - compte contribuable (NCC) : 1020168 E ;
 --  - capital social : 10 000 000 FCFA (communiqué par le client) ;
 --  - directeur de la publication : M. Robert KRA (communiqué par le client) ;
+--  - hébergeur : Weblogy Tech S.A (communiqué par le client) ;
 --  - régime d'imposition : réel normal (non repris : ce n'est pas une mention du site).
 --
--- Restent à compléter : hébergeur, autorisation
+-- Reste à compléter : autorisation
 -- d'exercer l'intermédiation immobilière.
 --
 -- Remplacements ciblés sur les textes de la migration 0009 : une page déjà retouchée dans le
@@ -57,3 +58,12 @@ UPDATE pages SET
   updated_at = UTC_TIMESTAMP()
 WHERE slug = 'mentions-legales'
   AND content LIKE '%<li><strong>Directeur de la publication :</strong> à compléter avant la mise en ligne</li>%';
+
+-- Hébergeur : Weblogy Tech S.A (communiqué par le client).
+UPDATE pages SET
+  content = REPLACE(content,
+    '<p>Le site est hébergé sur une infrastructure mutualisée administrée par Weblogy. Les coordonnées complètes de l’hébergeur sont à compléter avant la mise en ligne.</p>',
+    '<p>Le site est hébergé par <strong>Weblogy Tech S.A</strong>, société anonyme au capital de 10&nbsp;000&nbsp;000 FCFA — BP 652 Grand-Bassam, Côte d’Ivoire — bureaux : Rue Washington Booker, Cocody-Ambassades, Abidjan — téléphone : +225 05 64 00 00 80 — courriel : <a href="mailto:info@weblogy.com">info@weblogy.com</a>.</p>'),
+  updated_at = UTC_TIMESTAMP()
+WHERE slug = 'mentions-legales'
+  AND content LIKE '%Les coordonnées complètes de l’hébergeur sont à compléter avant la mise en ligne.</p>%';

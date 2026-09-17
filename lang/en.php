@@ -1912,7 +1912,7 @@ return [
         ],
         503 => [
             'title' => 'Coming soon',
-            'text' => 'immobilier.abidjan.net opens soon. Please come back in a few days.',
+            'text' => ':site opens soon. Please come back in a few days.',
         ],
     ],
     'owner' => [

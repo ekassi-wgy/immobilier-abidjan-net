@@ -25,7 +25,7 @@ SET @ci = (SELECT id FROM countries WHERE iso2 = 'CI');
 -- Site & domaines
 -- -----------------------------------------------------------------------------
 INSERT INTO sites (country_id, code, name, theme, default_locale, supported_locales, status)
-VALUES (@ci, 'ci', 'immobilier.abidjan.net', 'default', 'fr', '["fr"]', 'active');
+VALUES (@ci, 'ci', 'Abidjan.net Immobilier', 'default', 'fr', '["fr"]', 'active');
 
 SET @site = (SELECT id FROM sites WHERE code = 'ci');
 

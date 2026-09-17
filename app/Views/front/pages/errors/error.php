@@ -12,7 +12,7 @@ $key = in_array($code, $known, true) ? $code : 500;
     <div class="im-error-page__text">
       <p class="im-eyebrow"><?= e(__('errors.eyebrow', ['code' => $code])) ?></p>
       <h1 class="im-h1 im-error-page__title" id="erreur-titre"><?= e(__("errors.{$key}.title")) ?></h1>
-      <p class="im-lead im-error-page__lead"><?= e(__("errors.{$key}.text")) ?></p>
+      <p class="im-lead im-error-page__lead"><?= e(__("errors.{$key}.text", ['site' => site()->name ?? config('app.name')])) ?></p>
 
       <?php if ($code !== 503): ?>
       <div class="im-error-page__actions">

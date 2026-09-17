@@ -8,7 +8,7 @@ $key = in_array($code, [401, 403, 404, 405, 419, 429, 500, 503], true) ? $code :
 ?>
 <main class="im-error">
   <a href="<?= e(cmsadmin_url()) ?>" class="im-error__logo">
-    <?= logo_picture('cmsadmin/assets/images/logo-immobilier-abidjan-net.png', ['alt' => 'immobilier.abidjan.net', 'width' => 178, 'height' => 40]) ?>
+    <?= logo_picture('cmsadmin/assets/images/logo-immobilier-abidjan-net.png', ['alt' => 'Abidjan.net Immobilier', 'width' => 178, 'height' => 40]) ?>
   </a>
   <p class="im-error__code" aria-hidden="true"><?= e($code) ?></p>
   <h1 class="im-error__title"><?= e(__("errors.{$key}.title")) ?></h1>

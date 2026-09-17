@@ -1913,7 +1913,7 @@ return [
         ],
         503 => [
             'title' => 'Site en préparation',
-            'text' => 'immobilier.abidjan.net ouvre bientôt. Revenez dans quelques jours.',
+            'text' => ':site ouvre bientôt. Revenez dans quelques jours.',
         ],
     ],
     'owner' => [

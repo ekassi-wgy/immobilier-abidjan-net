@@ -9,7 +9,7 @@ declare(strict_types=1);
 $env = (string) env('APP_ENV', 'production');
 
 return [
-    'name' => 'immobilier.abidjan.net',
+    'name' => 'Abidjan.net Immobilier',
     'env' => $env,
     // Le détail des erreurs n'est jamais affiché en production, même si APP_DEBUG=true
     'debug' => $env !== 'production' && (bool) env('APP_DEBUG', false),

@@ -24,10 +24,10 @@ $initials = mb_strtoupper(implode('', array_map(
 <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row im-topbar">
   <div class="navbar-brand-wrapper d-flex align-items-center justify-content-start">
     <a class="navbar-brand brand-logo" href="<?= e(cmsadmin_url()) ?>">
-      <?= logo_picture('cmsadmin/assets/images/logo-immobilier-abidjan-net.png', ['alt' => 'immobilier.abidjan.net', 'width' => 192, 'height' => 43]) ?>
+      <?= logo_picture('cmsadmin/assets/images/logo-immobilier-abidjan-net.png', ['alt' => 'Abidjan.net Immobilier', 'width' => 192, 'height' => 43]) ?>
     </a>
     <a class="navbar-brand brand-logo-mini" href="<?= e(cmsadmin_url()) ?>">
-      <?= logo_picture('cmsadmin/assets/images/logo-symbole.png', ['alt' => 'immobilier.abidjan.net', 'width' => 36, 'height' => 35]) ?>
+      <?= logo_picture('cmsadmin/assets/images/logo-symbole.png', ['alt' => 'Abidjan.net Immobilier', 'width' => 36, 'height' => 35]) ?>
     </a>
   </div>
 

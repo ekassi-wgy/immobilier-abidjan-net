@@ -1,0 +1,189 @@
+// =============================================================================
+// Page FAQ : accordéon en noir, gris et blanc
+// Question fermée : bande sombre ; question ouverte : panneau blanc. <details> natifs, sans JS.
+// =============================================================================
+
+.im-faq-page {
+  &__container { max-width: calc(58rem + 2 * var(--im-gutter)); }
+
+  &__head {
+    .im-eyebrow { color: $im-gray; }
+    .im-lead { max-width: 40rem; margin-top: 1rem; color: $im-gray; }
+  }
+
+  &__title { margin: .75rem 0 0; color: $im-black; }
+
+  &__topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: 1.75rem;
+
+    .im-chip {
+      border-color: $im-line;
+      color: $im-black;
+      text-decoration: none;
+
+      @include im-hover { border-color: $im-black; background: $im-black; color: $im-white; }
+    }
+  }
+}
+
+.im-faq-group {
+  margin-top: im-fluid(2.5rem, 3.75rem);
+  scroll-margin-top: calc(#{$im-header-height} + 1.5rem);
+
+  &__title {
+    display: flex;
+    align-items: baseline;
+    gap: .75rem;
+    margin: 0 0 1rem;
+    color: $im-black;
+    font-size: im-fluid(1.25rem, 1.5rem);
+    font-weight: $im-weight-semibold;
+    letter-spacing: -.01em;
+  }
+
+  &__index { color: $im-gray-soft; font-size: .875rem; font-weight: $im-weight-medium; }
+}
+
+.im-faq {
+  // Hauteur « auto » animable là où le navigateur le permet (ouverture douce), sinon ouverture sèche.
+  interpolate-size: allow-keywords;
+  overflow: hidden;
+  border: 1px solid $im-black;
+  border-radius: $im-radius-lg;
+  background: $im-black;
+  box-shadow: 0 24px 48px -32px rgba($im-black, .45);
+
+  &__item {
+    background: $im-black;
+    transition: background-color $im-duration $im-ease;
+
+    & + & { border-top: 1px solid rgba($im-white, .08); }
+
+    &::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition: block-size $im-duration $im-ease, content-visibility $im-duration allow-discrete;
+    }
+
+    &[open] {
+      background: $im-white;
+
+      &::details-content { block-size: auto; }
+    }
+
+    &[open] + & { border-top-color: transparent; }
+  }
+
+  &__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: im-fluid(1.1rem, 1.45rem) im-fluid(1.15rem, 2rem);
+    color: $im-white;
+    font-size: im-fluid(1rem, 1.125rem);
+    font-weight: $im-weight-semibold;
+    line-height: 1.4;
+    letter-spacing: -.005em;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color $im-duration-fast $im-ease, color $im-duration $im-ease;
+
+    &::-webkit-details-marker { display: none; }
+
+    @include im-hover { background: $im-graphite; }
+
+    &:focus-visible { outline: 2px solid $im-white; outline-offset: -4px; border-radius: $im-radius-sm; }
+
+    .im-faq__item[open] > & {
+      color: $im-black;
+
+      @include im-hover { background: transparent; }
+      &:focus-visible { outline-color: $im-black; }
+    }
+  }
+
+  &__toggle {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    color: $im-gray-soft;
+    transition: transform $im-duration $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.35rem; height: 1.35rem; }
+
+    .im-faq__question:hover & { color: $im-white; }
+
+    // Ouverte : le « + » pivote en « × »
+    .im-faq__item[open] & { color: $im-gray; transform: rotate(45deg); }
+    .im-faq__item[open] .im-faq__question:hover & { color: $im-black; }
+  }
+
+  &__answer {
+    padding: 0 im-fluid(1.15rem, 2rem) im-fluid(1.25rem, 1.6rem);
+    color: $im-gray;
+    font-size: .9875rem;
+    line-height: 1.75;
+
+    > :first-child { margin-top: 0; }
+    > :last-child { margin-bottom: 0; }
+    p + p { margin-top: .75rem; }
+
+    a { color: $im-black; font-weight: $im-weight-medium; text-decoration: underline; text-underline-offset: 3px; }
+    strong { color: $im-black; }
+  }
+
+  @include im-reduced-motion {
+    &__item, &__item::details-content, &__question, &__toggle { transition: none; }
+  }
+}
+
+// Bandeau d'aide final
+.im-faq-help {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  margin-top: im-fluid(2.5rem, 4rem);
+  padding: im-fluid(1.5rem, 2.25rem);
+  border-radius: $im-radius-lg;
+  background: $im-gray-tint;
+
+  &__title { margin: 0; color: $im-black; font-size: 1.125rem; font-weight: $im-weight-semibold; }
+  &__text { margin: .35rem 0 0; color: $im-gray; }
+
+  &__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+
+  .im-btn {
+    --im-btn-bg: #{$im-black};
+    --im-btn-bg-hover: #{$im-graphite};
+    --im-btn-color: #{$im-white};
+  }
+
+  &__whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 44px;
+    padding: 0 1.1rem;
+    border: 1px solid $im-line;
+    border-radius: 999px;
+    background: $im-white;
+    color: $im-black;
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+    text-decoration: none;
+    transition: border-color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.1rem; height: 1.1rem; color: $im-whatsapp; }
+
+    @include im-hover { border-color: $im-black; color: $im-black; }
+  }
+}

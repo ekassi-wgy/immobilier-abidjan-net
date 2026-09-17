@@ -435,6 +435,14 @@ return [
                 'other' => 'Professionnel de l’immobilier',
             ],
         ],
+        'faq' => [
+            'eyebrow' => 'Aide',
+            'lead' => ':count réponse aux questions posées à :site.|:count réponses aux questions les plus fréquentes posées à :site.',
+            'topics' => 'Thèmes de la FAQ',
+            'help_title' => 'Vous n’avez pas trouvé votre réponse ?',
+            'help_text' => 'L’équipe de :site vous répond par message, par téléphone ou sur WhatsApp.',
+            'help_contact' => 'Nous contacter',
+        ],
         'partner' => [
             'page_title' => 'Devenir partenaire',
             'page_description' => 'Agences, promoteurs, gestionnaires de biens : confiez la présentation de vos biens à Weblogy. Déposez votre dossier, il est étudié par notre équipe.',

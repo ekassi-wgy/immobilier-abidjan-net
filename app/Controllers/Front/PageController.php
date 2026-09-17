@@ -7,6 +7,7 @@ namespace App\Controllers\Front;
 use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
+use App\Services\FaqContent;
 
 /**
  * Pages éditoriales et légales (lot 1.11) : /a-propos, /mentions-legales…
@@ -24,9 +25,15 @@ final class PageController extends Controller
 
         $title = (string) $page['title'];
 
-        return $this->page('front/layouts/app', 'front/pages/page', [
+        // FAQ : questions (h3) et réponses présentées en accordéon, avec données structurées FAQPage.
+        // Un contenu sans question reconnue s'affiche comme une page ordinaire.
+        $faq = ($page['code'] ?? null) === 'faq' ? FaqContent::parse((string) $page['content']) : [];
+
+        return $this->page('front/layouts/app', $faq !== [] ? 'front/pages/faq' : 'front/pages/page', [
             'page' => $page,
+            'groups' => $faq,
         ], [
+            'schema' => $faq !== [] ? FaqContent::schema($faq) : null,
             'title' => !empty($page['meta_title']) ? (string) $page['meta_title'] : $title,
             'description' => !empty($page['meta_description'])
                 ? (string) $page['meta_description']

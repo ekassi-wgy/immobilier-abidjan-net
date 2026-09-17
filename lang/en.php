@@ -434,6 +434,14 @@ return [
                 'other' => 'Real estate professional',
             ],
         ],
+        'faq' => [
+            'eyebrow' => 'Help',
+            'lead' => ':count answer to questions asked to :site.|:count answers to the questions most often asked to :site.',
+            'topics' => 'FAQ topics',
+            'help_title' => 'Didn’t find your answer?',
+            'help_text' => 'The :site team answers by message, phone or WhatsApp.',
+            'help_contact' => 'Contact us',
+        ],
         'partner' => [
             'page_title' => 'Become a partner',
             'page_description' => 'Agencies, developers, property managers: let Weblogy present your properties. Submit your application, our team reviews it.',

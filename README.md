@@ -118,7 +118,7 @@ production**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
 
 > **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)
 > sont rédigés au nom de Weblogy Tech S.A (RCCM CI-BAS-01-2010-B12-01601) et publiés — une relecture
-> juridique est recommandée et il reste à compléter dans les mentions légales le capital social, le
+> juridique est recommandée et il reste à compléter dans les mentions légales le
 > directeur de la publication, l'hébergeur et l'autorisation d'intermédiation immobilière. La **commission** est proposée à 25 % des honoraires d'agence, plancher
 > 50 000 FCFA, modifiable dans Paramètres.
 

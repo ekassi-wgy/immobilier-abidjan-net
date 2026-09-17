@@ -20,13 +20,6 @@ $im-muted:       #5E6B85;
 $im-subtle:      #8A94A8;
 $im-white:       #FFFFFF;
 
-// Neutres graphite (FAQ : noir, gris, blanc)
-$im-black:       #111316;
-$im-graphite:    #1D2024;
-$im-gray:        #5F646C;
-$im-gray-soft:   #9BA0A8;
-$im-gray-tint:   #F3F4F5;
-
 // Sémantique
 $im-success:      #1B7A4B;
 $im-success-tint: #E4F4EB;
@@ -45,11 +38,6 @@ $im-colors: (
   "line-soft": $im-line-soft,
   "red": $im-red,
   "ink": $im-ink,
-  "black": $im-black,
-  "graphite": $im-graphite,
-  "gray": $im-gray,
-  "gray-soft": $im-gray-soft,
-  "gray-tint": $im-gray-tint,
   "muted": $im-muted,
   "subtle": $im-subtle,
   "white": $im-white,

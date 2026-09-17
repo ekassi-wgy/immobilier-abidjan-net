@@ -1,17 +1,17 @@
 // =============================================================================
-// Page FAQ : accordéon en noir, gris et blanc
-// Question fermée : bande sombre ; question ouverte : panneau blanc. <details> natifs, sans JS.
+// Page FAQ : accordéon en gris clair et blanc, dans les neutres du site
+// Question fermée : fond gris clair ; question ouverte : panneau blanc. <details> natifs, sans JS.
 // =============================================================================
 
 .im-faq-page {
   &__container { max-width: calc(58rem + 2 * var(--im-gutter)); }
 
   &__head {
-    .im-eyebrow { color: $im-gray; }
-    .im-lead { max-width: 40rem; margin-top: 1rem; color: $im-gray; }
+    .im-eyebrow { color: $im-muted; }
+    .im-lead { max-width: 40rem; margin-top: 1rem; }
   }
 
-  &__title { margin: .75rem 0 0; color: $im-black; }
+  &__title { margin: .75rem 0 0; }
 
   &__topics {
     display: flex;
@@ -21,10 +21,10 @@
 
     .im-chip {
       border-color: $im-line;
-      color: $im-black;
+      color: $im-ink;
       text-decoration: none;
 
-      @include im-hover { border-color: $im-black; background: $im-black; color: $im-white; }
+      @include im-hover { border-color: $im-ink; background: $im-ink; color: $im-white; }
     }
   }
 }
@@ -38,29 +38,28 @@
     align-items: baseline;
     gap: .75rem;
     margin: 0 0 1rem;
-    color: $im-black;
+    color: $im-ink;
     font-size: im-fluid(1.25rem, 1.5rem);
     font-weight: $im-weight-semibold;
     letter-spacing: -.01em;
   }
 
-  &__index { color: $im-gray-soft; font-size: .875rem; font-weight: $im-weight-medium; }
+  &__index { color: $im-subtle; font-size: .875rem; font-weight: $im-weight-medium; }
 }
 
 .im-faq {
   // Hauteur « auto » animable là où le navigateur le permet (ouverture douce), sinon ouverture sèche.
   interpolate-size: allow-keywords;
   overflow: hidden;
-  border: 1px solid $im-black;
+  border: 1px solid $im-line;
   border-radius: $im-radius-lg;
-  background: $im-black;
-  box-shadow: 0 24px 48px -32px rgba($im-black, .45);
+  background: $im-snow;
 
   &__item {
-    background: $im-black;
+    background: $im-snow;
     transition: background-color $im-duration $im-ease;
 
-    & + & { border-top: 1px solid rgba($im-white, .08); }
+    & + & { border-top: 1px solid $im-line; }
 
     &::details-content {
       block-size: 0;
@@ -68,13 +67,13 @@
       transition: block-size $im-duration $im-ease, content-visibility $im-duration allow-discrete;
     }
 
+    // Ouverte : panneau blanc, légèrement détaché du fond gris
     &[open] {
       background: $im-white;
+      box-shadow: inset 3px 0 0 $im-ink;
 
       &::details-content { block-size: auto; }
     }
-
-    &[open] + & { border-top-color: transparent; }
   }
 
   &__question {
@@ -82,8 +81,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
-    padding: im-fluid(1.1rem, 1.45rem) im-fluid(1.15rem, 2rem);
-    color: $im-white;
+    padding: im-fluid(1.1rem, 1.4rem) im-fluid(1.15rem, 2rem);
+    color: $im-ink;
     font-size: im-fluid(1rem, 1.125rem);
     font-weight: $im-weight-semibold;
     line-height: 1.4;
@@ -91,19 +90,16 @@
     list-style: none;
     cursor: pointer;
     user-select: none;
-    transition: background-color $im-duration-fast $im-ease, color $im-duration $im-ease;
+    transition: background-color $im-duration-fast $im-ease;
 
     &::-webkit-details-marker { display: none; }
 
-    @include im-hover { background: $im-graphite; }
+    @include im-hover { background: $im-line-soft; }
 
-    &:focus-visible { outline: 2px solid $im-white; outline-offset: -4px; border-radius: $im-radius-sm; }
+    &:focus-visible { outline: 2px solid $im-ink; outline-offset: -4px; border-radius: $im-radius-sm; }
 
     .im-faq__item[open] > & {
-      color: $im-black;
-
       @include im-hover { background: transparent; }
-      &:focus-visible { outline-color: $im-black; }
     }
   }
 
@@ -113,21 +109,23 @@
     place-items: center;
     width: 2rem;
     height: 2rem;
-    color: $im-gray-soft;
-    transition: transform $im-duration $im-ease, color $im-duration-fast $im-ease;
+    border-radius: 50%;
+    background: $im-white;
+    color: $im-muted;
+    box-shadow: 0 0 0 1px $im-line;
+    transition: transform $im-duration $im-ease, color $im-duration-fast $im-ease, background-color $im-duration-fast $im-ease;
 
-    .im-icon { width: 1.35rem; height: 1.35rem; }
+    .im-icon { width: 1.1rem; height: 1.1rem; }
 
-    .im-faq__question:hover & { color: $im-white; }
+    .im-faq__question:hover & { color: $im-ink; }
 
     // Ouverte : le « + » pivote en « × »
-    .im-faq__item[open] & { color: $im-gray; transform: rotate(45deg); }
-    .im-faq__item[open] .im-faq__question:hover & { color: $im-black; }
+    .im-faq__item[open] & { background: $im-snow; color: $im-ink; transform: rotate(45deg); }
   }
 
   &__answer {
     padding: 0 im-fluid(1.15rem, 2rem) im-fluid(1.25rem, 1.6rem);
-    color: $im-gray;
+    color: $im-muted;
     font-size: .9875rem;
     line-height: 1.75;
 
@@ -135,8 +133,8 @@
     > :last-child { margin-bottom: 0; }
     p + p { margin-top: .75rem; }
 
-    a { color: $im-black; font-weight: $im-weight-medium; text-decoration: underline; text-underline-offset: 3px; }
-    strong { color: $im-black; }
+    a { color: $im-ink; font-weight: $im-weight-medium; text-decoration: underline; text-underline-offset: 3px; }
+    strong { color: $im-ink; }
   }
 
   @include im-reduced-motion {
@@ -154,16 +152,17 @@
   margin-top: im-fluid(2.5rem, 4rem);
   padding: im-fluid(1.5rem, 2.25rem);
   border-radius: $im-radius-lg;
-  background: $im-gray-tint;
+  border: 1px solid $im-line;
+  background: $im-snow;
 
-  &__title { margin: 0; color: $im-black; font-size: 1.125rem; font-weight: $im-weight-semibold; }
-  &__text { margin: .35rem 0 0; color: $im-gray; }
+  &__title { margin: 0; color: $im-ink; font-size: 1.125rem; font-weight: $im-weight-semibold; }
+  &__text { margin: .35rem 0 0; color: $im-muted; }
 
   &__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 
   .im-btn {
-    --im-btn-bg: #{$im-black};
-    --im-btn-bg-hover: #{$im-graphite};
+    --im-btn-bg: #{$im-ink};
+    --im-btn-bg-hover: #{$im-navy-deep};
     --im-btn-color: #{$im-white};
   }
 
@@ -176,7 +175,7 @@
     border: 1px solid $im-line;
     border-radius: 999px;
     background: $im-white;
-    color: $im-black;
+    color: $im-ink;
     font-size: .875rem;
     font-weight: $im-weight-semibold;
     text-decoration: none;
@@ -184,6 +183,6 @@
 
     .im-icon { width: 1.1rem; height: 1.1rem; color: $im-whatsapp; }
 
-    @include im-hover { border-color: $im-black; color: $im-black; }
+    @include im-hover { border-color: $im-ink; color: $im-ink; }
   }
 }

@@ -39,7 +39,7 @@ UPDATE pages SET
   content = '<h2>Éditeur du site</h2>
 <p>Le site <strong>immobilier.abidjan.net</strong> est édité par <strong>Weblogy</strong>, également éditeur d’Abidjan.net.</p>
 <ul>
-<li><strong>Siège social :</strong> Cocody Ambassade, 10 Rue Washington Booker, Abidjan, Côte d’Ivoire</li>
+<li><strong>Siège social :</strong> Rue Washington Booker, Cocody-Ambassades, 01 BP 12324 01 Abidjan, Côte d’Ivoire</li>
 <li><strong>Téléphone :</strong> +225 05 64 00 00 80</li>
 <li><strong>Courriel :</strong> info@weblogy.com</li>
 <li><strong>Site institutionnel :</strong> <a href="https://www.weblogy.com/" rel="noopener">www.weblogy.com</a></li>
@@ -113,7 +113,7 @@ UPDATE pages SET
   content = '<p>Weblogy, éditeur d’immobilier.abidjan.net, traite des données personnelles dans le cadre de l’exploitation du site. Cette page explique lesquelles, pourquoi, et pendant combien de temps.</p>
 
 <h2>Responsable du traitement</h2>
-<p>Weblogy — Cocody Ambassade, 10 Rue Washington Booker, Abidjan, Côte d’Ivoire — <a href="mailto:info@weblogy.com">info@weblogy.com</a> — +225 05 64 00 00 80.</p>
+<p>Weblogy — Rue Washington Booker, Cocody-Ambassades, 01 BP 12324 01 Abidjan, Côte d’Ivoire — <a href="mailto:info@weblogy.com">info@weblogy.com</a> — +225 05 64 00 00 80.</p>
 
 <h2>Données collectées</h2>
 <ul>

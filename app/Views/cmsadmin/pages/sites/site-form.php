@@ -98,11 +98,23 @@ $domainValues = (array) ($domainErrors['_values'] ?? []);
           </div>
         </div>
       </section>
+
+      <section class="card im-panel im-form-section">
+        <header class="im-form-section__head"><span class="im-form-section__index">03</span><h2 class="im-panel__title"><?= e(__('sites.social.title')) ?></h2></header>
+        <p class="im-panel__subtitle"><?= e(__('sites.social.hint')) ?></p>
+        <div class="row g-3">
+          <?php foreach (array_keys(App\Models\Site::SOCIAL_NETWORKS) as $network): ?>
+          <div class="col-md-6">
+            <?= cmsadmin_partial('field', ['name' => 'social_' . $network, 'type' => 'url', 'label' => __('sites.social.networks.' . $network), 'value' => $value('social_' . $network), 'optional' => true, 'error' => $errors['social_' . $network] ?? null, 'class' => '', 'attributes' => ['maxlength' => 255, 'placeholder' => __('sites.social.placeholders.' . $network)]]) ?>
+          </div>
+          <?php endforeach; ?>
+        </div>
+      </section>
     </form>
 
     <?php if ($isEdit): ?>
     <section class="card im-panel im-form-section" id="domaines">
-      <header class="im-form-section__head"><span class="im-form-section__index">03</span><h2 class="im-panel__title"><?= e(__('sites.domains')) ?></h2></header>
+      <header class="im-form-section__head"><span class="im-form-section__index">04</span><h2 class="im-panel__title"><?= e(__('sites.domains')) ?></h2></header>
       <p class="im-panel__subtitle"><?= e(__('sites.domains_hint')) ?></p>
 
       <?php if ($domains === []): ?>

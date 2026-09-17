@@ -12,65 +12,141 @@
     display: grid;
     gap: 2.5rem;
 
+    // Tablette : présentation sur toute la largeur, puis les trois colonnes de liens côte à côte
+    @include im-up(md) { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem 2rem; }
     @include im-up(lg) { grid-template-columns: 1.3fr repeat(3, 1fr); gap: 3rem; }
+  }
+
+  &__about {
+    @include im-up(md) {
+      display: grid;
+      align-items: end;
+      gap: 0 2rem;
+      grid-column: 1 / -1;
+      grid-template-columns: minmax(0, 1fr) auto;
+
+      .im-footer__brand { grid-column: 1 / -1; }
+      .im-footer__social { margin-top: 0; }
+    }
+
+    @include im-up(lg) { display: block; grid-column: auto; .im-footer__social { margin-top: 1.5rem; } }
   }
 
   &__brand img { width: 170px; height: auto; }
 
   &__pitch { max-width: 22rem; margin-top: 1.25rem; }
 
-  // Coordonnées : liste sans puces, icônes discrètes, valeurs lisibles sur fond sombre
+  // Réseaux sociaux : boutons ronds sobres, un par réseau renseigné
+  &__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+
+    a {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba($im-white, .18);
+      border-radius: 50%;
+      color: rgba($im-white, .8);
+      transition: background-color $im-duration-fast $im-ease, border-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+      .im-icon { width: 1.2rem; height: 1.2rem; }
+
+      @include im-hover { border-color: $im-white; background: $im-white; color: $im-navy-deep; }
+      &:focus-visible { @include im-focus-ring; }
+    }
+  }
+
+  // Bande de coordonnées : toute la largeur, entre les liens et les mentions
   &__contact {
     display: grid;
-    gap: .7rem;
-    max-width: 22rem;
-    margin: 1.75rem 0 0;
-    padding: 1.5rem 0 0;
-    border-top: 1px solid rgba($im-white, .12);
-    list-style: none;
+    align-items: center;
+    gap: 1.25rem 2rem;
+    margin-top: im-fluid(2.5rem, 3.5rem);
+    padding-block: im-fluid(1.5rem, 2rem);
+    border-block: 1px solid rgba($im-white, .12);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(md) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @include im-up(xl) { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 1.25rem 3rem; }
   }
 
   &__contact-item {
-    display: grid;
-    align-items: start;
-    gap: .75rem;
-    grid-template-columns: 1.1rem minmax(0, 1fr);
-    color: rgba($im-white, .72);
-    font-size: .875rem;
-    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    min-width: 0;
+    color: $im-white;
     text-decoration: none;
+
+    @include im-hover {
+      .im-footer__contact-icon { border-color: rgba($im-white, .5); color: $im-white; }
+      .im-footer__contact-value { color: $im-white; }
+    }
+    &:focus-visible { @include im-focus-ring; border-radius: $im-radius-sm; }
+  }
+
+  &__contact-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba($im-white, .16);
+    border-radius: $im-radius;
+    color: rgba($im-white, .7);
+    transition: border-color $im-duration-fast $im-ease, color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.2rem; height: 1.2rem; }
+  }
+
+  &__contact-text { display: grid; gap: .1rem; min-width: 0; }
+
+  &__contact-label {
+    color: rgba($im-white, .5);
+    font-size: .6875rem;
+    font-weight: $im-weight-semibold;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  &__contact-value {
+    color: rgba($im-white, .88);
+    font-size: .9375rem;
+    font-weight: $im-weight-medium;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
     transition: color $im-duration-fast $im-ease;
-
-    .im-icon { width: 1.1rem; height: 1.1rem; margin-top: .12rem; color: rgba($im-white, .45); transition: color $im-duration-fast $im-ease; }
-
-    span { overflow-wrap: anywhere; }
-
-    &--strong { color: $im-white; font-size: 1rem; font-weight: $im-weight-semibold; font-variant-numeric: tabular-nums; }
-
-    @include im-hover { color: $im-white; .im-icon { color: $im-white; } }
-    &:focus-visible { @include im-focus-ring; border-radius: $im-radius-xs; }
   }
 
   &__whatsapp {
     display: inline-flex;
     align-items: center;
+    justify-self: start;
     gap: .5rem;
-    min-height: 44px;
-    margin-top: 1.25rem;
-    padding: 0 1.1rem;
-    border: 1px solid rgba($im-white, .2);
+    min-height: 48px;
+    padding: 0 1.25rem;
     border-radius: 999px;
+    // Vert WhatsApp assombri : le vert d'origine n'atteint pas le contraste AA avec un texte blanc
+    background: darken($im-whatsapp, 10%);
     color: $im-white;
     font-size: .875rem;
     font-weight: $im-weight-semibold;
+    white-space: nowrap;
     text-decoration: none;
-    transition: background-color $im-duration-fast $im-ease, border-color $im-duration-fast $im-ease;
+    transition: background-color $im-duration-fast $im-ease, transform $im-duration-fast $im-ease;
 
-    .im-icon { width: 1.1rem; height: 1.1rem; }
-    .im-icon:first-child { color: $im-whatsapp; }
-    .im-icon:last-child { width: .85rem; height: .85rem; opacity: .6; }
+    .im-icon { width: 1.15rem; height: 1.15rem; }
+    .im-icon:last-child { width: .85rem; height: .85rem; opacity: .75; }
 
-    @include im-hover { border-color: $im-whatsapp; background: rgba($im-whatsapp, .14); }
+    @include im-up(xl) { justify-self: end; }
+    @include im-hover { background: darken($im-whatsapp, 15%); }
     &:focus-visible { @include im-focus-ring; }
   }
 
@@ -93,14 +169,16 @@
     a { color: inherit; @include im-hover { color: $im-white; } }
   }
 
+  // Sans bande de coordonnées (site sans contacts), le filet revient au-dessus des mentions
+  &__top + &__bottom { margin-top: 3.5rem; border-top: 1px solid rgba($im-white, .12); }
+
   &__bottom {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 3.5rem;
+    margin-top: 0;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba($im-white, .12);
     font-size: .8125rem;
     color: rgba($im-white, .55);
 

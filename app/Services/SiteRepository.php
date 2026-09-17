@@ -70,7 +70,31 @@ final class SiteRepository
             $site['primary_host'],
             isset($site['latitude']) && $site['latitude'] !== null ? (float) $site['latitude'] : null,
             isset($site['longitude']) && $site['longitude'] !== null ? (float) $site['longitude'] : null,
+            self::socialLinks($site['social_links'] ?? null),
         );
+    }
+
+    /**
+     * Liens de réseaux sociaux lisibles : réseaux connus seulement, URL non vides, ordre d'affichage fixe.
+     *
+     * @return array<string, string>
+     */
+    public static function socialLinks(mixed $json): array
+    {
+        $decoded = is_string($json) ? json_decode($json, true) : null;
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $links = [];
+        foreach (array_keys(Site::SOCIAL_NETWORKS) as $network) {
+            $url = trim((string) ($decoded[$network] ?? ''));
+            if ($url !== '') {
+                $links[$network] = $url;
+            }
+        }
+
+        return $links;
     }
 
     /**

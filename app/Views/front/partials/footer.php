@@ -44,33 +44,35 @@ $legal = array_values(array_filter([
 $phone = $site->contactPhone ?? null;
 $email = $site->contactEmail ?? null;
 $whatsapp = $site->contactWhatsapp ?? null;
-$address = $site->address ?? null;
+// Adresse courte : la boîte postale reste sur la page Contact et dans les mentions légales.
+$address = $site?->shortAddress();
+$contacts = array_values(array_filter([
+    $phone !== null ? ['icon' => 'phone', 'label' => __('front.footer.phone'), 'value' => $phone, 'href' => 'tel:' . preg_replace('/[^\d+]/', '', $phone)] : null,
+    $email !== null ? ['icon' => 'mail', 'label' => __('front.footer.email'), 'value' => $email, 'href' => 'mailto:' . $email] : null,
+    $address !== null ? ['icon' => 'pin', 'label' => __('front.footer.office'), 'value' => $address, 'href' => url('contact')] : null,
+]));
+// Seuls les réseaux renseignés dans Pays & sites ont un bouton : jamais de lien mort.
+$social = $site->socialLinks ?? [];
+$socialIcons = ['facebook' => 'facebook', 'instagram' => 'instagram', 'linkedin' => 'linkedin', 'x' => 'x-twitter', 'youtube' => 'youtube', 'tiktok' => 'tiktok'];
 ?>
 <footer class="im-footer">
   <div class="im-container">
     <div class="im-footer__top">
-      <div>
+      <div class="im-footer__about">
         <a class="im-footer__brand" href="<?= e(url()) ?>" aria-label="<?= e(__('front.nav.home_label', ['site' => $siteName])) ?>">
           <img src="<?= e(asset('img/brand/logo-immobilier-abidjan-net-blanc.png')) ?>" alt="" width="428" height="96" loading="lazy">
         </a>
         <p class="im-footer__pitch"><?= e(__('front.footer.pitch', ['country' => $country])) ?></p>
-        <?php if ($phone !== null || $email !== null || $address !== null): ?>
-        <ul class="im-footer__contact">
-          <?php if ($phone !== null): ?>
-          <li><a class="im-footer__contact-item im-footer__contact-item--strong" href="tel:<?= e(preg_replace('/[^\d+]/', '', $phone)) ?>"><?= icon('phone') ?><span><?= e($phone) ?></span></a></li>
-          <?php endif; ?>
-          <?php if ($email !== null): ?>
-          <li><a class="im-footer__contact-item" href="mailto:<?= e($email) ?>"><?= icon('mail') ?><span><?= e($email) ?></span></a></li>
-          <?php endif; ?>
-          <?php if ($address !== null): ?>
-          <li><a class="im-footer__contact-item" href="<?= e(url('contact')) ?>"><?= icon('pin') ?><span><?= e($address) ?></span></a></li>
-          <?php endif; ?>
+        <?php if ($social !== []): ?>
+        <ul class="im-footer__social" aria-label="<?= e(__('front.footer.social')) ?>">
+          <?php foreach ($social as $network => $link): ?>
+          <li>
+            <a href="<?= e($link) ?>" target="_blank" rel="noopener me" aria-label="<?= e(__('front.footer.social_link', ['network' => __('front.footer.networks.' . $network)])) ?>">
+              <?= icon($socialIcons[$network]) ?>
+            </a>
+          </li>
+          <?php endforeach; ?>
         </ul>
-        <?php endif; ?>
-        <?php if ($whatsapp !== null): ?>
-        <a class="im-footer__whatsapp" href="https://wa.me/<?= e(preg_replace('/\D+/', '', $whatsapp)) ?>" target="_blank" rel="noopener">
-          <?= icon('whatsapp') ?> <?= e(__('front.footer.whatsapp')) ?> <?= icon('arrow-up-right') ?>
-        </a>
         <?php endif; ?>
       </div>
       <?php foreach ($columns as $title => $links): ?>
@@ -84,6 +86,26 @@ $address = $site->address ?? null;
       </nav>
       <?php endforeach; ?>
     </div>
+
+    <?php if ($contacts !== [] || $whatsapp !== null): ?>
+    <div class="im-footer__contact">
+      <?php foreach ($contacts as $contact): ?>
+      <a class="im-footer__contact-item" href="<?= e($contact['href']) ?>">
+        <span class="im-footer__contact-icon"><?= icon($contact['icon']) ?></span>
+        <span class="im-footer__contact-text">
+          <span class="im-footer__contact-label"><?= e($contact['label']) ?></span>
+          <span class="im-footer__contact-value"><?= e($contact['value']) ?></span>
+        </span>
+      </a>
+      <?php endforeach; ?>
+      <?php if ($whatsapp !== null): ?>
+      <a class="im-footer__whatsapp" href="https://wa.me/<?= e(preg_replace('/\D+/', '', $whatsapp)) ?>" target="_blank" rel="noopener">
+        <?= icon('whatsapp') ?> <?= e(__('front.footer.whatsapp')) ?> <?= icon('arrow-up-right') ?>
+      </a>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
     <div class="im-footer__bottom">
       <span>© <?= e(date('Y')) ?> <?= e($siteName) ?></span>
       <?php if ($legal !== []): ?>

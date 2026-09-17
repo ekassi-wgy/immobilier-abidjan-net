@@ -8,6 +8,7 @@ use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Site;
+use App\Services\SiteRepository;
 use App\Support\Validator;
 use DateTimeZone;
 
@@ -105,7 +106,12 @@ final class SiteController extends Controller
     {
         $site = $this->findSite((int) $id);
 
-        return $this->siteForm($request, $site, ['supported_locales' => $this->locales($site['supported_locales'])] + $site);
+        $social = [];
+        foreach (SiteRepository::socialLinks($site['social_links'] ?? null) as $network => $url) {
+            $social['social_' . $network] = $url;
+        }
+
+        return $this->siteForm($request, $site, ['supported_locales' => $this->locales($site['supported_locales'])] + $social + $site);
     }
 
     public function updateSite(Request $request, string $id): Response
@@ -334,6 +340,7 @@ final class SiteController extends Controller
             'contact_phone' => $v->nullableString('contact_phone'),
             'contact_whatsapp' => $v->nullableString('contact_whatsapp'),
             'address' => $v->nullableString('address'),
+            'social_links' => $this->socialLinks($v),
             'latitude' => $v->nullableDecimal('latitude'),
             'longitude' => $v->nullableDecimal('longitude'),
             'status' => $v->string('status'),
@@ -343,6 +350,42 @@ final class SiteController extends Controller
         }
 
         return [$data, $v->errors()];
+    }
+
+    /**
+     * Liens de réseaux sociaux saisis : « https:// » ajouté s'il manque, domaine du réseau exigé
+     * (un lien Facebook qui pointe ailleurs est refusé). Aucun lien = NULL en base.
+     */
+    private function socialLinks(Validator $v): ?string
+    {
+        $links = [];
+        foreach (Site::SOCIAL_NETWORKS as $network => $domains) {
+            $field = 'social_' . $network;
+            $url = $v->string($field);
+            if ($url === '') {
+                continue;
+            }
+            if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $url) !== 1) {
+                $url = 'https://' . ltrim($url, '/');
+            }
+
+            $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+            $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+            $known = false;
+            foreach ($domains as $domain) {
+                $known = $known || $host === $domain || str_ends_with($host, '.' . $domain);
+            }
+
+            if (mb_strlen($url) > 255 || filter_var($url, FILTER_VALIDATE_URL) === false || !in_array($scheme, ['http', 'https'], true)) {
+                $v->add($field, __('sites.social.invalid'));
+            } elseif (!$known) {
+                $v->add($field, __('sites.social.wrong_domain', ['domain' => $domains[0]]));
+            } else {
+                $links[$network] = $url;
+            }
+        }
+
+        return $links === [] ? null : json_encode($links, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /** @return array<string, string> */

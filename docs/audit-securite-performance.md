@@ -232,6 +232,9 @@ filtres correspondants. Aucun index manquant identifié à ce volume.
 | 4 | Export CSV construit en mémoire | Suffisant jusqu'au plafond de 10 000 lignes (28 Mo mesurés). Passer en flux si le plafond est relevé | Si le plafond change |
 | 5 | Pas de cache HTTP sur le HTML | Un micro-cache (quelques secondes) devant PHP serait utile en cas de pic de trafic. Dépend de l'infrastructure retenue | À arbitrer avec l'hébergeur |
 | 6 | Mot de passe d'application Gmail communiqué en clair pendant le développement | Le régénérer et remplacer `SMTP_PASSWORD` | **Lot 3.1, obligatoire** |
+| 7 | Cookies d'authentification derrière le proxy nginx de Plesk : `SESSION_SECURE=auto` dépend de la détection du HTTPS par Apache | `SESSION_SECURE=true` en production (runbook mis à jour) ; le cookie « Rester connecté » suit désormais ce réglage ; `bin/check-deploy.php` alerte sinon | **Lot 3.1** |
+| 8 | Aucune `Content-Security-Policy` sur les pages HTML | Défense en profondeur : la poser d'abord en `Report-Only` après la mise en ligne (scripts tous auto-hébergés, seules exceptions : tuiles OpenStreetMap), puis l'appliquer | Après mise en ligne |
+| 9 | Contenu des pages et actualités saisi en HTML brut par le Super Admin | Acceptable (compte de confiance, rôle unique). Si la rédaction est un jour confiée à d'autres rôles, filtrer le HTML (liste blanche de balises) | Si les rôles changent |
 
 ---
 
@@ -244,3 +247,84 @@ annonces, toutes les pages publiques répondent **en moins de 125 ms** côté se
 
 Les points 1 et 6 du tableau ci-dessus sont des **prérequis de mise en production** et sont repris
 dans la checklist du lot 3.1.
+
+---
+
+## 6. Audit de pré-production (17/09/2026)
+
+Audit complet avant mise en ligne, sur la version `main` du jour : fonctionnement, sécurité, référencement,
+rapidité d'affichage. Données de test créées pour l'occasion (partenaire, annonces avec photos, particulier,
+prospect, article), puis **supprimées** ; emails en pilote `log` pendant les tests.
+
+### 6.1 Contrôles statiques
+
+| Contrôle | Résultat |
+|---|---|
+| Syntaxe PHP, 248 fichiers, PHP 8.3 (MAMP) et 8.4 | ✅ aucune erreur ; aucune fonction propre à PHP 8.3+ (compatibilité 8.2 conservée) |
+| 151 routes → contrôleur et méthode existants | ✅ |
+| 358 appels de vues → fichier existant | ✅ |
+| Traductions : 1 901 clés, parité `fr`/`en` | ✅ 0 clé manquante |
+| Restes de débogage (`var_dump`, `dd`, `print_r`) | ✅ aucun |
+| Bibliothèques tierces | ✅ PHPMailer 6.12, jQuery 3.7.1, Bootstrap 5.3, Chart.js 4.4, Select2 4.0.13, Leaflet 1.9.4 — versions sans faille connue exploitable ici |
+
+### 6.2 Parcours fonctionnels rejoués
+
+| Parcours | Résultat |
+|---|---|
+| Dossier partenaire public avec pièces (PDF, photo) ; fichier PHP déguisé en `.jpg` | ✅ enregistré ; faux fichier **refusé** (type réel vérifié) |
+| Pièces justificatives : équipe / anonyme / partenaire | ✅ téléchargement `attachment` + `nosniff` + CSP `sandbox` / 302 connexion / 403 |
+| Agence créée depuis le dossier → invitation → mot de passe → connexion partenaire | ✅ |
+| Cloisonnement du partenaire (13 écrans réservés à l'équipe) | ✅ 403 partout |
+| Annonce partenaire : photos en arrière-plan, envoi en validation, validation par l'équipe | ✅ ; action de validation par le partenaire → 403 ; POST sans jeton → 419 |
+| Fiche publique : contact interne, notaire, référence interne, adresse privée, nom de l'agence | ✅ **aucune fuite** ; `<script>` saisi dans la description affiché comme texte |
+| Recherche : mot-clé, référence, filtres invalides, injection HTML dans `q` | ✅ résultats justes, paramètres invalides ignorés, sortie échappée |
+| Demande de prospect : envoi, robot (pot de miel), formulaire invalide | ✅ équipe seule notifiée (jamais le partenaire), robot ignoré, 422 |
+| Particulier : inscription → confirmation email → bien confié → conversion en brouillon → publication | ✅ dossier « publié », email au propriétaire ; aucune donnée du propriétaire en public |
+| Modification d'une annonce en ligne par le partenaire | ✅ révision en attente, version en ligne inchangée |
+| Désactivation / réactivation partenaire ; réactivation après dépublication par l'équipe | ✅ ; la seconde est **refusée** |
+| Contact général, mot de passe oublié (adresse connue ou non) | ✅ réponse identique dans les deux cas |
+| CRON `expire-listings` et `cleanup-uploads` (simulation) | ✅ |
+| 52 écrans du back-office (Super Admin) | ✅ aucun code 500, 3 à 26 ms |
+| Fichiers internes (`.env`, `app/`, `storage/`, `vendor/`, `docs/`…) et script PHP déposé dans `uploads/` | ✅ 403, non exécuté |
+
+### 6.3 Défauts trouvés et corrigés
+
+| # | Domaine | Défaut | Correctif |
+|---|---|---|---|
+| 1 | Sécurité | Inscription particulier : le message « adresse déjà utilisée » était renvoyé **sans limite**, un robot pouvait tester une liste d'emails | Quota propre à cette vérification (20 par heure et par IP), vérifié : 429 au 21ᵉ essai |
+| 2 | Sécurité | Cookie « Rester connecté » (30 jours) : attribut `Secure` dépendant de la seule détection du HTTPS | Suit aussi `SESSION_SECURE` ; runbook passé à `SESSION_SECURE=true` ; contrôle ajouté à `check-deploy.php` |
+| 3 | Rapidité | Accueil : les 4 photos du diaporama étaient toutes téléchargées au chargement (`loading="lazy"` sans effet sur des images empilées dans la fenêtre) | Seule la diapositive suivante est chargée, juste avant son tour : **957 → 491 Ko** sur ordinateur, **741 → 428 Ko** sur mobile |
+| 4 | SEO | Sitemap : Contact, Confiez-nous votre bien, Devenir partenaire et **les actualités** (liste et articles) absents alors qu'indexables | Ajoutés (actualités seulement si au moins un article est publié) |
+| 5 | Affichage | Fiche annonce avec 2 ou 3 photos : mosaïque prévue pour 5, grand vide blanc | Mosaïque recomposée selon le nombre de photos |
+| 6 | Affichage | Bloc contact de la fiche : le numéro de téléphone débordait de son bouton | Boutons empilés quand la place manque |
+| 7 | Ergonomie | Formulaire d'annonce : « Envoyer en validation » affiché à un Super Admin dont l'annonce est publiée directement | « Publier l'annonce » selon les règles réelles de publication du compte |
+| 8 | Robustesse | Mise en page publique : une page sans description provoquait une erreur | Valeur par défaut, balise omise si vide |
+| 9 | Accessibilité | Intitulé des filtres actifs : guillemets doublés (« « Riviera » ») lus par les lecteurs d'écran | Libellé corrigé (fr, en) |
+
+### 6.4 Référencement (vérifié)
+
+- Un seul `h1` par page, `title` et `description` présents partout, canonique et Open Graph sur les pages publiques.
+- Fiche annonce : JSON-LD `RealEstateListing` + `Offer` + `RealEstateAgent` (Weblogy), image de partage, slug obsolète → 301.
+- Pages vides ou filtrées → `noindex` ; sitemap : 100 % des URL listées répondent 200 sans `noindex`.
+- `robots.txt` : tout interdit hors production (normal en local), règles et sitemap en production.
+- Recommandation (non bloquante) : titres de fiches longs (~85 caractères avec le nom du site) — Google tronque vers 60 ; le début, le plus utile, reste visible.
+
+### 6.5 Rapidité d'affichage (mesurée dans Chrome)
+
+| Page | Serveur | HTML (gzip) | Transfert initial |
+|---|---|---|---|
+| Accueil ordinateur / mobile | 26 ms | 6,6 Ko | 491 Ko / 428 Ko (dont photo du diaporama 76 / 46 Ko) |
+| Résultats de recherche | 12 ms | 6,4 Ko | ≈ 145 Ko compressés |
+| Fiche annonce | 7 ms | 5,7 Ko | ≈ 195 Ko compressés (dont Leaflet 42 Ko) |
+
+CSS 192 Ko → **30 Ko compressé** : la compression `mod_deflate` sur Plesk (point 1 du § 4) est donc déterminante.
+Les photos du diaporama restent des **photos provisoires** ; les bannières définitives passeront par
+`ImageUploader` (WebP).
+
+### 6.6 Verdict
+
+**Le site est prêt pour la mise en production** sur le plan fonctionnel, sécurité, référencement et performance.
+Restent les prérequis déjà connus, qui ne relèvent pas du code : accès Plesk/DNS, `SESSION_SECURE=true`,
+compression vérifiée sur le serveur, nouveau mot de passe SMTP, autorisation d'intermédiation dans les mentions
+légales, relecture juridique.
+

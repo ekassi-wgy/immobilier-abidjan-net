@@ -47,6 +47,7 @@ INSERT INTO settings (site_id, setting_key, value, description) VALUES
   (NULL, 'listing.max_photo_size_mb',          '10',     'Poids maximal d’une photo à l’envoi'),
   (NULL, 'workflow.auto_publish_super_admin',  'true',   'Annonces du Super Admin publiées sans validation'),
   (NULL, 'workflow.auto_publish_country_admin','false',  'Annonces des Admins Pays publiées sans validation'),
+  (NULL, 'workflow.auto_publish_partner',      'false',  'Annonces des partenaires validés publiées sans validation par Weblogy'),
   (NULL, 'commission.mode',                    'null',   'percent | fixed | premium_listing — à définir'),
   (NULL, 'commission.rate_percent',            'null',   'Taux de commission par transaction — à définir'),
   (NULL, 'commission.fixed_amount',            'null',   'Montant fixe — à définir'),

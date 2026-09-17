@@ -12,6 +12,7 @@
 /storage/cache/
 /storage/logs/
 /storage/mail/
+/storage/private/
 *.log
 
 # Système & éditeurs

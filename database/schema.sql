@@ -142,7 +142,9 @@ CREATE TABLE agencies (
   country_id           INT UNSIGNED  NOT NULL,
   name                 VARCHAR(150)  NOT NULL,
   slug                 VARCHAR(170)  NOT NULL,
+  partner_type         ENUM('agency','developer','property_manager','other') NOT NULL DEFAULT 'agency' COMMENT 'Agence, promoteur, gestionnaire, autre professionnel',
   legal_name           VARCHAR(190)  NULL,
+  legal_form           VARCHAR(60)   NULL COMMENT 'SARL, SA, SAS, entreprise individuelle…',
   rccm                 VARCHAR(60)   NULL COMMENT 'Registre du commerce',
   tax_id               VARCHAR(60)   NULL COMMENT 'Compte contribuable (NCC)',
   logo_path            VARCHAR(255)  NULL,
@@ -187,12 +189,13 @@ CREATE TABLE agency_zones (
 -- Comptes du back-office (connexion unique) : équipe interne ET agences partenaires
 CREATE TABLE users (
   id                   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
-  role                 ENUM('super_admin','country_admin','agency_owner','agency_agent') NOT NULL,
+  role                 ENUM('super_admin','country_admin','agency_owner','agency_agent','owner') NOT NULL COMMENT 'owner = particulier qui confie un bien (espace public, jamais /cmsadmin)',
   country_id           INT UNSIGNED  NULL COMMENT 'Obligatoire pour country_admin et les comptes agence',
   agency_id            INT UNSIGNED  NULL COMMENT 'Obligatoire pour les comptes agence',
   first_name           VARCHAR(80)   NOT NULL,
   last_name            VARCHAR(80)   NOT NULL,
   email                VARCHAR(190)  NOT NULL,
+  email_verified_at    DATETIME      NULL COMMENT 'Adresse confirmée (obligatoire pour un particulier avant de confier un bien)',
   password_hash        VARCHAR(255)  NOT NULL,
   phone                VARCHAR(30)   NULL,
   whatsapp             VARCHAR(30)   NULL,
@@ -216,7 +219,8 @@ CREATE TABLE users (
   CONSTRAINT chk_users_scope CHECK (
     (role = 'super_admin'   AND agency_id IS NULL) OR
     (role = 'country_admin' AND agency_id IS NULL AND country_id IS NOT NULL) OR
-    (role IN ('agency_owner','agency_agent') AND agency_id IS NOT NULL AND country_id IS NOT NULL)
+    (role IN ('agency_owner','agency_agent') AND agency_id IS NOT NULL AND country_id IS NOT NULL) OR
+    (role = 'owner'         AND agency_id IS NULL AND country_id IS NOT NULL)
   )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -462,7 +466,8 @@ CREATE TABLE properties (
   contact_email           VARCHAR(190)    NULL,
 
   -- Workflow de validation (cahier des charges §2.1)
-  status                  ENUM('pending','published','rejected','unpublished','archived','expired') NOT NULL DEFAULT 'pending',
+  status                  ENUM('draft','pending','published','rejected','unpublished','archived','expired') NOT NULL DEFAULT 'pending',
+  deactivated_by_partner  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT 'Dépubliée par le partenaire lui-même (il peut la réactiver)',
   rejection_reason        TEXT            NULL,
   submitted_at            DATETIME        NULL,
   reviewed_by_user_id     INT UNSIGNED    NULL,
@@ -681,14 +686,25 @@ CREATE TABLE partner_requests (
   id                  INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   site_id             INT UNSIGNED  NOT NULL,
   country_id          INT UNSIGNED  NOT NULL,
-  agency_name         VARCHAR(150)  NOT NULL,
+  partner_type        ENUM('agency','developer','property_manager','other') NOT NULL DEFAULT 'agency',
+  agency_name         VARCHAR(150)  NOT NULL COMMENT 'Nom commercial',
+  legal_name          VARCHAR(190)  NULL COMMENT 'Raison sociale',
+  legal_form          VARCHAR(60)   NULL,
   contact_name        VARCHAR(150)  NOT NULL,
+  contact_role        VARCHAR(100)  NULL COMMENT 'Fonction du responsable',
   email               VARCHAR(190)  NOT NULL,
   phone               VARCHAR(30)   NOT NULL,
+  company_email       VARCHAR(190)  NULL,
+  company_phone       VARCHAR(30)   NULL,
+  website             VARCHAR(255)  NULL,
+  address             VARCHAR(255)  NULL,
   rccm                VARCHAR(60)   NULL,
+  tax_id              VARCHAR(60)   NULL COMMENT 'Compte contribuable (NCC)',
+  professional_card   VARCHAR(60)   NULL COMMENT 'Carte ou agrément professionnel',
   city_id             INT UNSIGNED  NULL,
   commune_id          INT UNSIGNED  NULL,
   listings_estimate   SMALLINT UNSIGNED NULL COMMENT 'Nombre d’annonces envisagé',
+  years_active        SMALLINT UNSIGNED NULL COMMENT 'Années d’activité',
   message             TEXT          NULL,
   status              ENUM('new','contacted','approved','rejected') NOT NULL DEFAULT 'new',
   agency_id           INT UNSIGNED  NULL COMMENT 'Agence créée à partir de la demande',
@@ -857,3 +873,94 @@ CREATE TABLE activity_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- -----------------------------------------------------------------------------
+-- Weblogy intermédiaire exclusif (migration 0008) : comptes particuliers, pièces des dossiers
+-- de partenariat, biens confiés. Fichiers stockés dans storage/private, jamais servis directement.
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE email_verifications (
+  user_id     INT UNSIGNED NOT NULL,
+  token_hash  CHAR(64)     NOT NULL COMMENT 'SHA-256 du jeton envoyé par email',
+  expires_at  DATETIME     NOT NULL,
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id),
+  UNIQUE KEY uq_email_verifications_token (token_hash),
+  CONSTRAINT fk_email_verifications_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE partner_request_files (
+  id                  INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  partner_request_id  INT UNSIGNED  NOT NULL,
+  kind                ENUM('rccm','tax','license','identity','other') NOT NULL,
+  path                VARCHAR(255)  NOT NULL COMMENT 'Relatif à storage/private (jamais servi directement)',
+  original_name       VARCHAR(190)  NOT NULL,
+  mime                VARCHAR(100)  NOT NULL,
+  size                INT UNSIGNED  NOT NULL,
+  created_at          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_partner_request_files_request (partner_request_id),
+  CONSTRAINT fk_partner_request_files_request FOREIGN KEY (partner_request_id) REFERENCES partner_requests (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE property_submissions (
+  id                   BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  site_id              INT UNSIGNED     NOT NULL,
+  country_id           INT UNSIGNED     NOT NULL,
+  user_id              INT UNSIGNED     NOT NULL COMMENT 'Particulier (role owner)',
+  transaction_type_id  INT UNSIGNED     NOT NULL,
+  category_id          INT UNSIGNED     NOT NULL,
+  city_id              INT UNSIGNED     NOT NULL,
+  commune_id           INT UNSIGNED     NULL,
+  district_id          INT UNSIGNED     NULL,
+  address              VARCHAR(255)     NULL COMMENT 'Adresse ou repère : jamais publié',
+  description          TEXT             NOT NULL,
+  price                DECIMAL(15,2)    NULL,
+  price_period         ENUM('total','month','week','night','year') NOT NULL DEFAULT 'total',
+  is_negotiable        TINYINT(1)       NOT NULL DEFAULT 0,
+  conditions           TEXT             NULL COMMENT 'Caution, avance, charges, disponibilité…',
+  living_area          DECIMAL(10,2)    NULL,
+  land_area            DECIMAL(12,2)    NULL,
+  rooms                SMALLINT UNSIGNED NULL,
+  bedrooms             SMALLINT UNSIGNED NULL,
+  bathrooms            SMALLINT UNSIGNED NULL,
+  title_type           VARCHAR(60)      NULL COMMENT 'Option du critère title_type (TF, ACD…)',
+  status               ENUM('submitted','in_review','published','rejected','withdrawn') NOT NULL DEFAULT 'submitted',
+  property_id          BIGINT UNSIGNED  NULL COMMENT 'Annonce créée par l’équipe à partir du dossier',
+  rejection_reason     TEXT             NULL,
+  internal_notes       TEXT             NULL,
+  handled_by_user_id   INT UNSIGNED     NULL,
+  handled_at           DATETIME         NULL,
+  consent_at           DATETIME         NOT NULL COMMENT 'Acceptation de confier la commercialisation à Weblogy',
+  ip                   VARBINARY(16)    NULL,
+  created_at           DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at           DATETIME         NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_property_submissions_country (country_id, status, created_at),
+  KEY idx_property_submissions_user (user_id, created_at),
+  CONSTRAINT fk_property_submissions_site        FOREIGN KEY (site_id)             REFERENCES sites (id),
+  CONSTRAINT fk_property_submissions_country     FOREIGN KEY (country_id)          REFERENCES countries (id),
+  CONSTRAINT fk_property_submissions_user        FOREIGN KEY (user_id)             REFERENCES users (id),
+  CONSTRAINT fk_property_submissions_transaction FOREIGN KEY (transaction_type_id) REFERENCES transaction_types (id),
+  CONSTRAINT fk_property_submissions_category    FOREIGN KEY (category_id)         REFERENCES property_categories (id),
+  CONSTRAINT fk_property_submissions_city        FOREIGN KEY (city_id)             REFERENCES cities (id),
+  CONSTRAINT fk_property_submissions_commune     FOREIGN KEY (commune_id)          REFERENCES communes (id) ON DELETE SET NULL,
+  CONSTRAINT fk_property_submissions_district    FOREIGN KEY (district_id)         REFERENCES districts (id) ON DELETE SET NULL,
+  CONSTRAINT fk_property_submissions_property    FOREIGN KEY (property_id)         REFERENCES properties (id) ON DELETE SET NULL,
+  CONSTRAINT fk_property_submissions_handled_by  FOREIGN KEY (handled_by_user_id)  REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE property_submission_files (
+  id              BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
+  submission_id   BIGINT UNSIGNED   NOT NULL,
+  kind            ENUM('photo','document') NOT NULL,
+  path            VARCHAR(255)      NOT NULL COMMENT 'Relatif à storage/private (jamais servi directement)',
+  original_name   VARCHAR(190)      NOT NULL,
+  mime            VARCHAR(100)      NOT NULL,
+  size            INT UNSIGNED      NOT NULL,
+  sort_order      SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at      DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_property_submission_files_submission (submission_id, kind, sort_order),
+  CONSTRAINT fk_property_submission_files_submission FOREIGN KEY (submission_id) REFERENCES property_submissions (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

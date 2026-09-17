@@ -115,6 +115,16 @@ erDiagram
 - **Pages éditoriales** (`pages`) : le seed crée six pages système vides et non publiées. La migration `0004` remplit et publie « À propos » et « Comment ça marche » (textes de proposition, modifiables au lot 2.2) ; les quatre pages légales restent **non publiées** en attendant les textes du client. Une page non publiée répond 404 et son lien disparaît du pied de page — le site ne sert donc jamais de page vide. Les slugs publiés sont mis en cache (`PageRepository::publishedSlugs()`) pour déclarer une route par page : un slug de page ne doit jamais reprendre un slug de `transaction_types`, et toute écriture dans `pages` doit appeler `flush()`.
 - **URL publique d'une annonce** : `/annonces/{slug}-ref{id}` (`ListingPresenter::url()`) ; le `slug` reste modifiable en back-office, l'identifiant garantit l'unicité.
 
+## Weblogy intermédiaire exclusif (lot 2.5, migrations 0008 et 0009)
+
+- **Comptes particuliers** : `users.role = 'owner'` (contrainte `chk_users_scope` : `agency_id` NULL, `country_id` obligatoire), `users.email_verified_at` (les comptes internes et partenaires existants sont considérés confirmés), `email_verifications` (un jeton haché par compte, remplacé à chaque envoi). Un `owner` n'accède qu'à l'espace public `/mon-espace`.
+- **Annonces** : statut `draft` (brouillon privé, jamais compté dans la file de validation) et `deactivated_by_partner` (seul ce drapeau autorise le partenaire à réactiver ; toute dépublication, republication ou resoumission par l'équipe le remet à 0).
+- **Partenaires** : `agencies.partner_type` (`agency`, `developer`, `property_manager`, `other`) et `legal_form` ; `partner_requests` enrichi (raison sociale, forme juridique, NCC, carte professionnelle, coordonnées de la structure, fonction du responsable, années d'activité) et `partner_request_files` (`rccm`, `identity`, `tax`, `license`, `other`).
+- **Biens confiés** : `property_submissions` (description structurée, localisation dont adresse jamais publiée, prix et conditions, surfaces, pièces, `title_type` = code d'option du critère `title_type`, statut `submitted → in_review → published | rejected | withdrawn`, `property_id` de l'annonce créée par l'équipe) et `property_submission_files` (`photo` ré-encodée WebP, `document` PDF/image).
+- **Fichiers** : les colonnes `path` de `partner_request_files` et `property_submission_files` sont **relatives à `storage/private`** (hors racine web) et ne sont servies que par un contrôleur qui vérifie les droits.
+- **Paramètre** `workflow.auto_publish_partner` (défaut `false`).
+- **Textes publics** (0009) : pages À propos, Comment ça marche, CGU, confidentialité, cookies et mentions légales réécrites ; page `faq` créée et publiée.
+
 ## Conventions
 
 - Tables au pluriel en `snake_case`, clés étrangères `<entité>_id`, index `idx_<table>_<usage>`, uniques `uq_…`, contraintes `chk_…`, clés étrangères `fk_…`.
@@ -141,5 +151,6 @@ $MYSQL -uroot -proot -h127.0.0.1 -P8889 --default-character-set=utf8mb4 immobili
 ## Points à valider par le client
 
 - **Commission** : mode (pourcentage, montant fixe, annonce premium) et taux — paramètres `commission.*` à renseigner.
+- **Rémunération des propriétaires particuliers** (biens confiés) : non modélisée, à définir (lot 2.5).
 - **Référentiel géographique** : la liste des quartiers est une base de départ, à relire et compléter.
 - **Moteur de base en production (Plesk)** : MySQL 8 ou MariaDB (version) — le schéma est écrit pour les deux mais n'a été testé que sur MySQL 8.0.40.

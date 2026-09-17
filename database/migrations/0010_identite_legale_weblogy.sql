@@ -7,9 +7,10 @@
 --  - RCCM : CI-BAS-01-2010-B12-01601 ;
 --  - compte contribuable (NCC) : 1020168 E ;
 --  - capital social : 10 000 000 FCFA (communiqué par le client) ;
+--  - directeur de la publication : M. Robert KRA (communiqué par le client) ;
 --  - régime d'imposition : réel normal (non repris : ce n'est pas une mention du site).
 --
--- Restent à compléter : directeur de la publication, hébergeur, autorisation
+-- Restent à compléter : hébergeur, autorisation
 -- d'exercer l'intermédiation immobilière.
 --
 -- Remplacements ciblés sur les textes de la migration 0009 : une page déjà retouchée dans le
@@ -47,3 +48,12 @@ UPDATE pages SET
   updated_at = UTC_TIMESTAMP()
 WHERE slug = 'mentions-legales'
   AND content LIKE '%<li><strong>Capital social :</strong> à compléter avant la mise en ligne</li>%';
+
+-- Directeur de la publication (communiqué par le client).
+UPDATE pages SET
+  content = REPLACE(content,
+    '<li><strong>Directeur de la publication :</strong> à compléter avant la mise en ligne</li>',
+    '<li><strong>Directeur de la publication :</strong> M. Robert KRA</li>'),
+  updated_at = UTC_TIMESTAMP()
+WHERE slug = 'mentions-legales'
+  AND content LIKE '%<li><strong>Directeur de la publication :</strong> à compléter avant la mise en ligne</li>%';

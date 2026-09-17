@@ -18,8 +18,7 @@ Procédure de première mise en ligne sur **Plesk**, puis de chaque déploiement
 | Clé SSH de déploiement à ajouter au dépôt GitHub | `git pull` depuis le serveur, sans mot de passe | ⬜ |
 | Nouveau mot de passe d'application Gmail | celui du développement a circulé en clair, il doit être révoqué | ⬜ |
 
-Les **mentions obligatoires** encore manquantes des mentions légales (directeur de la
-publication, hébergeur, autorisation d'intermédiation immobilière — l'identité de Weblogy Tech S.A est
+Les **mentions obligatoires** encore manquantes des mentions légales (hébergeur, autorisation d'intermédiation immobilière — l'identité de Weblogy Tech S.A est
 renseignée par la migration `0010`) doivent aussi être complétées dans `/cmsadmin/pages` avant
 l'ouverture au public.
 

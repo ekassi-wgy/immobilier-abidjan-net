@@ -9,6 +9,7 @@ declare(strict_types=1);
  */
 
 use App\Controllers\Cmsadmin\AccountController;
+use App\Controllers\Cmsadmin\ActivityController;
 use App\Controllers\Cmsadmin\Agencies\AgencyAccountController;
 use App\Controllers\Cmsadmin\Agencies\AgencyController;
 use App\Controllers\Cmsadmin\Agencies\AgencyProfileController;
@@ -135,6 +136,9 @@ return static function (Router $router, App $app): void {
                 $router->get('/demandes-partenariat', [PartnerRequestController::class, 'index'], 'partners.index');
                 $router->get('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'show'], 'partners.show');
                 $router->post('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'update'], 'partners.update');
+
+                // Journal d'activité (§ 5.2 du cahier des charges) : lecture seule, aucune écriture exposée
+                $router->get('/journal', [ActivityController::class, 'index'], 'activity');
 
                 // Exports CSV (lot 1.12) : pays du site, jamais un compte agence
                 $router->get('/exports', [ExportController::class, 'index'], 'exports');

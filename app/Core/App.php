@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Models\Site;
 use App\Services\ActivityLogger;
+use App\Services\ActivityRepository;
 use App\Services\AgencyRepository;
 use App\Services\Auth;
 use App\Services\CatalogRepository;
@@ -229,6 +230,11 @@ final class App
     public function content(): ContentRepository
     {
         return $this->service(ContentRepository::class, fn () => new ContentRepository($this->db()));
+    }
+
+    public function activityLog(): ActivityRepository
+    {
+        return $this->service(ActivityRepository::class, fn () => new ActivityRepository($this->db()));
     }
 
     public function seo(): SeoRepository

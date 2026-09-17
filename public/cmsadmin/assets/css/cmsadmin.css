@@ -542,6 +542,10 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 .im-cmsadmin .im-filters__search .form-control { padding-left: 2.4rem; }
 .im-filters__field { flex: 0 1 190px; min-width: 160px; }
 .im-filters__field--narrow { flex-basis: 150px; min-width: 130px; }
+/* Deux dates côte à côte : sans étiquette visible, « jj/mm/aaaa » deux fois ne dit rien */
+.im-filters__dates { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; flex: 1 1 auto; min-width: 0; }
+.im-filters__dates label { margin: 0; color: var(--im-muted); font-size: 13px; }
+.im-filters__dates .form-control { flex: 1 1 8rem; min-width: 0; max-width: 11rem; }
 
 /* Barre d'un panneau de liste : onglets à gauche, actions à droite (référentiels) */
 .im-panel-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 1.5rem; border-bottom: 1px solid var(--im-line); }
@@ -1013,3 +1017,15 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 .im-notification.is-unread { background: var(--im-blue-tint); }
 .im-notification strong { display: block; font-size: 13px; }
 .im-notification__body { display: block; color: var(--im-muted); font-size: 12.5px; }
+
+/* Journal d'activité : différences avant/après, repliées par défaut (<details> natif, sans JS) */
+.im-log-diff { margin-top: .35rem; }
+.im-log-diff > summary { color: var(--im-blue); cursor: pointer; font-size: 12.5px; list-style: none; }
+.im-log-diff > summary::-webkit-details-marker { display: none; }
+.im-log-diff > summary::before { content: "\F0142"; margin-right: .25rem; font-family: "Material Design Icons"; }
+.im-log-diff[open] > summary::before { content: "\F0140"; }
+.im-log-diff dl { display: grid; grid-template-columns: minmax(6rem, auto) 1fr; gap: .15rem .75rem; margin: .4rem 0 0; font-size: 12.5px; }
+.im-log-diff dt { color: var(--im-muted); font-weight: 500; overflow-wrap: anywhere; }
+.im-log-diff dd { margin: 0; overflow-wrap: anywhere; }
+.im-log-diff del { color: var(--im-muted); text-decoration: line-through; }
+.im-log-diff ins { margin-left: .35rem; color: var(--im-ink); text-decoration: none; }

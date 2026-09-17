@@ -3,11 +3,14 @@
 use App\Support\Paginator;
 
 /**
- * Annuaire des agences partenaires (lot 1.11).
+ * Vitrine « Nos partenaires ».
  *
- * @var array     $agencies
+ * Les cartes ne sont pas des liens : aucune fiche, aucune coordonnée, aucun formulaire de contact
+ * d'un partenaire n'est public. Weblogy présente et commercialise toutes les offres du réseau.
+ *
+ * @var array     $agencies  ['name','logo_path','partner_type','is_verified','city_name','commune_name']
  * @var int       $total
- * @var array     $filters   q, ville, commune, verifiee
+ * @var array     $filters   q, ville, verifiee
  * @var array     $cities    [['slug','name']]
  * @var Paginator $paginator
  * @var string    $baseUrl
@@ -18,13 +21,13 @@ use App\Support\Paginator;
   <div class="im-container">
     <div class="im-section-head">
       <div class="im-section-head__text">
-        <p class="im-eyebrow"><?= e(__('front.nav.agencies')) ?></p>
+        <p class="im-eyebrow"><?= e(__('front.agencies.eyebrow')) ?></p>
         <h1 class="im-h2 im-section-head__title"><?= e(__('front.agencies.title')) ?></h1>
-        <p class="im-lead im-section-head__lead"><?= e(__('front.agencies.lead')) ?></p>
+        <p class="im-lead im-section-head__lead"><?= e(__('front.agencies.lead', ['site' => site()->name ?? ''])) ?></p>
       </div>
     </div>
 
-    <form class="im-agency-filters" method="get" action="<?= e(url('agences')) ?>" role="search">
+    <form class="im-agency-filters" method="get" action="<?= e(url('partenaires')) ?>" role="search">
       <div class="im-field im-agency-filters__search">
         <label class="visually-hidden" for="agency-q"><?= e(__('front.agencies.search_label')) ?></label>
         <div class="im-control-icon">
@@ -59,29 +62,33 @@ use App\Support\Paginator;
       <a class="im-btn im-btn--outline" href="<?= e(url('devenir-partenaire')) ?>"><?= e(__('front.nav.become_partner')) ?></a>
     </div>
     <?php else: ?>
-    <div class="im-agency-grid">
+    <ul class="im-agency-grid">
       <?php foreach ($agencies as $agency): $place = trim(implode(', ', array_filter([$agency['commune_name'], $agency['city_name']]))); ?>
-      <a class="im-agency" href="<?= e(url('agences/' . $agency['slug'])) ?>">
+      <li class="im-agency im-agency--static">
         <span class="im-agency__logo">
           <?php if (!empty($agency['logo_path'])): ?>
           <img src="<?= e(url((string) $agency['logo_path'])) ?>" alt="" width="120" height="60" loading="lazy">
           <?php else: ?>
-          <?= e(mb_strtoupper(mb_substr((string) $agency['name'], 0, 1))) ?>
+          <span aria-hidden="true"><?= e(mb_strtoupper(mb_substr((string) $agency['name'], 0, 1))) ?></span>
           <?php endif; ?>
         </span>
         <span class="im-agency__body">
           <span class="im-agency__name">
-            <?php if ((int) $agency['is_verified'] === 1): ?><?= icon('verified', 'im-agency__check', __('front.card.verified_agency')) ?><?php endif; ?>
             <?= e($agency['name']) ?>
+            <?php if ((int) $agency['is_verified'] === 1): ?><?= icon('verified', 'im-agency__check', __('front.agencies.verified')) ?><?php endif; ?>
           </span>
-          <?php if ($place !== ''): ?><span class="im-agency__meta"><?= e($place) ?></span><?php endif; ?>
-          <span class="im-agency__meta im-num"><?= e(__n('front.home.agencies_count', (int) $agency['listings'])) ?></span>
+          <span class="im-agency__meta"><?= e(implode(' · ', array_filter([__('front.agencies.types.' . $agency['partner_type']), $place]))) ?></span>
         </span>
-      </a>
+      </li>
       <?php endforeach; ?>
-    </div>
+    </ul>
 
     <?= render_view('front/partials/pagination', ['paginator' => $paginator, 'baseUrl' => $baseUrl, 'query' => $query]) ?>
     <?php endif; ?>
+
+    <aside class="im-note-band">
+      <p><?= icon('shield') ?> <?= e(__('front.agencies.intermediary_note', ['site' => site()->name ?? ''])) ?></p>
+      <a class="im-link" href="<?= e(url('devenir-partenaire')) ?>"><?= e(__('front.agencies.join_cta')) ?> <?= icon('arrow-right', 'im-icon--arrow') ?></a>
+    </aside>
   </div>
 </section>

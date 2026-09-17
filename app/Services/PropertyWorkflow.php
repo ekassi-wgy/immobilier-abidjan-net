@@ -34,6 +34,7 @@ final class PropertyWorkflow
     public const OUTCOME_UPDATED = 'updated';
     public const OUTCOME_RESUBMITTED = 'resubmitted';
     public const OUTCOME_REVISION = 'revision';
+    public const OUTCOME_DRAFT = 'draft';
 
     public function __construct(
         private readonly Database $db,
@@ -44,6 +45,9 @@ final class PropertyWorkflow
         private readonly ActivityLogger $activity,
         private readonly Logger $logger,
         private readonly Settings $settings,
+        private readonly ?SubmissionRepository $submissions = null,
+        private readonly ?OwnerMessages $ownerMessages = null,
+        private readonly ?UserRepository $users = null,
     ) {
     }
 
@@ -52,18 +56,17 @@ final class PropertyWorkflow
      * @param array<int, array<string, mixed>>  $schemaAttributes
      * @return array{0: int, 1: string} Identifiant, résultat
      */
-    public function create(Request $request, User $user, Site $site, array $payload, array $schemaAttributes): array
+    public function create(Request $request, User $user, Site $site, array $payload, array $schemaAttributes, bool $draft = false): array
     {
-        $publishNow = ($user->isSuperAdmin() && (bool) $this->settings->get('workflow.auto_publish_super_admin', true))
-            || ($user->isCountryAdmin() && (bool) $this->settings->get('workflow.auto_publish_country_admin', false));
+        $publishNow = !$draft && $this->publishesDirectly($user);
         $now = gmdate('Y-m-d H:i:s');
 
-        $id = $this->db->transaction(function () use ($user, $site, $payload, $schemaAttributes, $publishNow, $now): int {
+        $id = $this->db->transaction(function () use ($user, $site, $payload, $schemaAttributes, $publishNow, $draft, $now): int {
             $data = $payload['fields'] + [
                 'country_id' => $site->country->id,
                 'currency_code' => $site->country->currencyCode,
-                'status' => $publishNow ? 'published' : 'pending',
-                'submitted_at' => $now,
+                'status' => $draft ? 'draft' : ($publishNow ? 'published' : 'pending'),
+                'submitted_at' => $draft ? null : $now,
                 'created_by_user_id' => $user->id,
                 'updated_by_user_id' => $user->id,
             ];
@@ -88,8 +91,15 @@ final class PropertyWorkflow
         $property = $this->reload($id, $site);
         $this->activity->log('property.created', $user->id, $site->country->id, 'property', $id, $property['reference'] . ' · ' . $property['title'], request: $request);
 
+        if ($draft) {
+            return [$id, self::OUTCOME_DRAFT];
+        }
         if ($publishNow) {
             $this->activity->log('property.published', $user->id, $site->country->id, 'property', $id, $property['reference'], request: $request);
+            // Publication directe d'un partenaire : Weblogy est prévenu et garde la main a posteriori.
+            if ($user->isAgency()) {
+                $this->notifyStaff($site, $property, 'property.published_by_partner', __('properties.notify.partner_published_title', ['ref' => $property['reference']]), __('properties.notify.submitted_body', ['title' => $property['title'], 'agency' => $property['agency_name'] ?? '']));
+            }
 
             return [$id, self::OUTCOME_PUBLISHED];
         }
@@ -104,7 +114,7 @@ final class PropertyWorkflow
      * @param array<string, mixed>              $payload
      * @param array<int, array<string, mixed>>  $schemaAttributes
      */
-    public function update(Request $request, User $user, Site $site, array $property, array $payload, array $schemaAttributes): string
+    public function update(Request $request, User $user, Site $site, array $property, array $payload, array $schemaAttributes, bool $draft = false): string
     {
         $id = (int) $property['id'];
         $status = (string) $property['status'];
@@ -114,8 +124,14 @@ final class PropertyWorkflow
             throw new RuntimeException('Annonce archivée : modification refusée.');
         }
 
-        // Agence sur une annonce publiée : révision, la version en ligne ne bouge pas
-        if ($user->isAgency() && $status === 'published') {
+        // Brouillon : reste brouillon, ou part en validation (ou en ligne si la publication est directe)
+        if ($status === 'draft') {
+            return $this->updateDraft($request, $user, $site, $property, $payload, $schemaAttributes, $draft);
+        }
+
+        // Partenaire sur une annonce publiée : révision, la version en ligne ne bouge pas —
+        // sauf si Weblogy a activé la publication directe des partenaires (contrôle a posteriori).
+        if ($user->isAgency() && $status === 'published' && !$this->publishesDirectly($user)) {
             $this->storeRevision($user, $site, $property, $payload, $pendingRevision);
             $this->activity->log('property.revision_submitted', $user->id, $site->country->id, 'property', $id, (string) $property['reference'], request: $request);
             $this->notifyStaff($site, $property, 'property.revision_submitted', __('properties.notify.revision_title', ['ref' => $property['reference']]), __('properties.notify.revision_body', ['title' => $payload['fields']['title'], 'agency' => $property['agency_name'] ?? '']));
@@ -123,13 +139,14 @@ final class PropertyWorkflow
             return self::OUTCOME_REVISION;
         }
 
+        // Après un rejet, une dépublication ou une expiration, toute modification repasse par la validation.
         $resubmit = $user->isAgency() && in_array($status, ['rejected', 'unpublished', 'expired'], true);
         $before = array_intersect_key($property, array_flip(PropertyRepository::EDITABLE_FIELDS));
 
         $this->db->transaction(function () use ($user, $site, $property, $payload, $schemaAttributes, $resubmit, $pendingRevision, $id, $status): void {
             $data = $payload['fields'] + ['updated_by_user_id' => $user->id];
             if ($resubmit) {
-                $data += ['status' => 'pending', 'submitted_at' => gmdate('Y-m-d H:i:s'), 'rejection_reason' => null];
+                $data += ['status' => 'pending', 'submitted_at' => gmdate('Y-m-d H:i:s'), 'rejection_reason' => null, 'deactivated_by_partner' => 0];
             } elseif ($user->isAgency() && $status === 'pending') {
                 $data['submitted_at'] = gmdate('Y-m-d H:i:s');
             }
@@ -163,6 +180,11 @@ final class PropertyWorkflow
         }
         $this->activity->log('property.updated', $user->id, $site->country->id, 'property', $id, (string) $property['reference'], $changes['after'] !== [] ? $changes : null, $request);
 
+        // Modification directe d'une annonce en ligne par un partenaire (publication directe activée)
+        if ($user->isAgency() && $status === 'published' && $changes['after'] !== []) {
+            $this->notifyStaff($site, $property, 'property.updated_by_partner', __('properties.notify.partner_updated_title', ['ref' => $property['reference']]), __('properties.notify.submitted_body', ['title' => $payload['fields']['title'], 'agency' => $property['agency_name'] ?? '']));
+        }
+
         if ($resubmit) {
             $fresh = $this->reload($id, $site);
             $this->notifyStaff($site, $fresh, 'property.submitted', __('properties.notify.resubmitted_title', ['ref' => $fresh['reference']]), __('properties.notify.submitted_body', ['title' => $fresh['title'], 'agency' => $fresh['agency_name'] ?? '']));
@@ -194,6 +216,7 @@ final class PropertyWorkflow
         });
 
         $this->activity->log('property.approved', $user->id, $site->country->id, 'property', (int) $property['id'], (string) $property['reference'], request: $request);
+        $this->onPublished($site, (int) $property['id']);
         $this->notifyOwners($site, $property, 'property.approved', __('properties.notify.approved_title', ['ref' => $property['reference']]), __('properties.notify.approved_body', ['title' => $property['title'], 'days' => (int) $this->settings->get('listing.lifetime_days', 90)]));
     }
 
@@ -271,20 +294,52 @@ final class PropertyWorkflow
     /** @param array<string, mixed> $property */
     public function unpublish(Request $request, User $user, Site $site, array $property, ?string $reason): void
     {
-        $this->transition($request, $user, $site, $property, ['published'], 'unpublished', ['is_featured' => 0], $reason, 'property.unpublished');
+        $this->transition($request, $user, $site, $property, ['published'], 'unpublished', ['is_featured' => 0, 'deactivated_by_partner' => 0], $reason, 'property.unpublished');
         $this->notifyOwners($site, $property, 'property.unpublished', __('properties.notify.unpublished_title', ['ref' => $property['reference']]), $reason !== null ? __('properties.notify.reason', ['reason' => $reason]) : null);
+    }
+
+    /**
+     * Désactivation par le partenaire lui-même : l'annonce quitte le site, il pourra la réactiver.
+     *
+     * @param array<string, mixed> $property
+     */
+    public function deactivate(Request $request, User $user, Site $site, array $property): void
+    {
+        $this->transition($request, $user, $site, $property, ['published'], 'unpublished', ['is_featured' => 0, 'deactivated_by_partner' => 1], null, 'property.deactivated');
+        $this->notifyStaff($site, $property, 'property.deactivated', __('properties.notify.partner_deactivated_title', ['ref' => $property['reference']]), null);
+    }
+
+    /**
+     * Réactivation par le partenaire d'une annonce QU'IL a désactivée (contenu inchangé : pas de nouvelle
+     * validation). Une annonce dépubliée par Weblogy ne se réactive jamais depuis la console partenaire.
+     *
+     * @param array<string, mixed> $property
+     */
+    public function reactivate(Request $request, User $user, Site $site, array $property): void
+    {
+        if ((int) ($property['deactivated_by_partner'] ?? 0) !== 1) {
+            throw new RuntimeException('Annonce dépubliée par Weblogy : réactivation refusée au partenaire.');
+        }
+        $stillValid = !empty($property['expires_at']) && strtotime((string) $property['expires_at']) > time();
+        $this->transition($request, $user, $site, $property, ['unpublished'], 'published', [
+            'deactivated_by_partner' => 0,
+            'expires_at' => $stillValid ? $property['expires_at'] : $this->expiryDate(),
+            'expiry_reminder_sent_at' => $stillValid ? ($property['expiry_reminder_sent_at'] ?? null) : null,
+        ], null, 'property.reactivated');
     }
 
     /** Remise en ligne par l'équipe (annonce dépubliée ou expirée) : nouvelle durée de vie. */
     public function republish(Request $request, User $user, Site $site, array $property): void
     {
         $this->transition($request, $user, $site, $property, ['unpublished', 'expired'], 'published', [
+            'deactivated_by_partner' => 0,
             'published_at' => $property['published_at'] ?? gmdate('Y-m-d H:i:s'),
             'expires_at' => $this->expiryDate(),
             'expiry_reminder_sent_at' => null,
             'reviewed_by_user_id' => $user->id,
             'reviewed_at' => gmdate('Y-m-d H:i:s'),
         ], null, 'property.republished');
+        $this->onPublished($site, (int) $property['id']);
     }
 
     /**
@@ -502,6 +557,106 @@ final class PropertyWorkflow
         if (!in_array($property['status'], $allowed, true)) {
             throw new RuntimeException(sprintf('Transition impossible depuis « %s ».', $property['status']));
         }
+    }
+
+    /**
+     * Annonce passée en ligne : si elle est issue d'un bien confié par un particulier, le dossier est
+     * marqué « publié » et le propriétaire prévenu par email. Un échec d'email n'annule rien.
+     */
+    private function onPublished(Site $site, int $propertyId): void
+    {
+        if ($this->submissions === null) {
+            return;
+        }
+        try {
+            foreach ($this->submissions->markPublished($propertyId) as $row) {
+                $owner = $this->users?->findById((int) $row['user_id']);
+                if ($owner !== null && $this->ownerMessages !== null) {
+                    $this->ownerMessages->send(
+                        $owner,
+                        $site,
+                        __('submissions.email.published_subject', ['site' => $site->name]),
+                        __('submissions.email.published_title'),
+                        __('submissions.email.published_body'),
+                        absolute_url('mon-espace/biens/' . $row['id'])
+                    );
+                }
+            }
+        } catch (Throwable $exception) {
+            $this->logger->exception($exception, ['hook' => 'submission.published', 'property' => $propertyId]);
+        }
+    }
+
+    /** Publication sans validation préalable, selon le rôle et les paramètres de Weblogy. */
+    private function publishesDirectly(User $user): bool
+    {
+        return ($user->isSuperAdmin() && (bool) $this->settings->get('workflow.auto_publish_super_admin', true))
+            || ($user->isCountryAdmin() && (bool) $this->settings->get('workflow.auto_publish_country_admin', false))
+            || ($user->isAgency() && (bool) $this->settings->get('workflow.auto_publish_partner', false));
+    }
+
+    /**
+     * Brouillon enregistré à nouveau, ou soumis. Un brouillon n'a jamais été public : la soumission
+     * suit les mêmes règles qu'une création (validation, ou publication directe si elle est activée).
+     *
+     * @param array<string, mixed>              $property
+     * @param array<string, mixed>              $payload
+     * @param array<int, array<string, mixed>>  $schemaAttributes
+     */
+    private function updateDraft(Request $request, User $user, Site $site, array $property, array $payload, array $schemaAttributes, bool $keepDraft): string
+    {
+        $id = (int) $property['id'];
+        $now = gmdate('Y-m-d H:i:s');
+        $publishNow = !$keepDraft && $this->publishesDirectly($user);
+        $to = $keepDraft ? 'draft' : ($publishNow ? 'published' : 'pending');
+
+        $this->db->transaction(function () use ($user, $site, $property, $payload, $schemaAttributes, $id, $now, $to): void {
+            $data = $payload['fields'] + ['updated_by_user_id' => $user->id, 'status' => $to];
+            if ($to !== 'draft') {
+                $data['submitted_at'] = $now;
+            }
+            if ($to === 'published') {
+                $data += ['published_at' => $now, 'expires_at' => $this->expiryDate(), 'reviewed_by_user_id' => $user->id, 'reviewed_at' => $now];
+            }
+            if ($payload['featured'] !== null) {
+                $data += $payload['featured'];
+            }
+
+            $this->properties->update($id, $data);
+            $this->properties->saveAttributeValues($id, $schemaAttributes, $payload['attributes']);
+            $this->properties->saveFeatures($id, $payload['features']);
+            $this->properties->savePrivateDetails($id, $payload['private'] + array_intersect_key($this->properties->privateDetails($id), array_flip(['owner_name', 'owner_phone', 'owner_email'])));
+            $this->syncImages($id, $site, $payload['images'], null, true);
+            $this->storeDocument($id, $site, $payload['document'], $property['document_path']);
+            if ($to !== 'draft') {
+                $this->properties->recordStatus($id, 'draft', $to, null, $user->id);
+            }
+        });
+
+        if ($keepDraft) {
+            $this->activity->log('property.draft_saved', $user->id, $site->country->id, 'property', $id, (string) $property['reference'], request: $request);
+
+            return self::OUTCOME_DRAFT;
+        }
+
+        $fresh = $this->reload($id, $site);
+        if ($publishNow) {
+            $this->onPublished($site, $id);
+        }
+        $this->activity->log($publishNow ? 'property.published' : 'property.submitted', $user->id, $site->country->id, 'property', $id, (string) $property['reference'], request: $request);
+        // L'équipe qui publie son propre brouillon n'a pas à être prévenue d'elle-même.
+        if ($publishNow && !$user->isAgency()) {
+            return self::OUTCOME_PUBLISHED;
+        }
+        $this->notifyStaff(
+            $site,
+            $fresh,
+            $publishNow ? 'property.published_by_partner' : 'property.submitted',
+            __($publishNow ? 'properties.notify.partner_published_title' : 'properties.notify.submitted_title', ['ref' => $fresh['reference']]),
+            __('properties.notify.submitted_body', ['title' => $fresh['title'], 'agency' => $fresh['agency_name'] ?? __('properties.source.' . $fresh['source'])])
+        );
+
+        return $publishNow ? self::OUTCOME_PUBLISHED : self::OUTCOME_CREATED;
     }
 
     private function expiryDate(): string

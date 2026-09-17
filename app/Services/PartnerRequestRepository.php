@@ -74,6 +74,29 @@ final class PartnerRequestRepository
         );
     }
 
+    /**
+     * Pièces justificatives d'un dossier (métadonnées ; le fichier reste dans storage/private).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function files(int $requestId): array
+    {
+        return $this->db->select(
+            "SELECT id, kind, path, mime, size, original_name, created_at FROM partner_request_files
+             WHERE partner_request_id = :id ORDER BY FIELD(kind, 'rccm', 'identity', 'tax', 'license', 'other'), id",
+            ['id' => $requestId]
+        );
+    }
+
+    /** @return array<string, mixed>|null Pièce d'un dossier donné (jamais une pièce d'un autre dossier) */
+    public function file(int $requestId, int $fileId): ?array
+    {
+        return $this->db->selectOne(
+            'SELECT id, kind, path, mime, size, original_name FROM partner_request_files WHERE id = :file AND partner_request_id = :request',
+            ['file' => $fileId, 'request' => $requestId]
+        );
+    }
+
     public function update(int $id, string $status, ?string $notes, int $userId, ?int $agencyId = null): void
     {
         $this->db->execute(

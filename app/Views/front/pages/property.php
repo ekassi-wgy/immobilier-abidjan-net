@@ -168,38 +168,18 @@ $availability = $p['availability'];
 
     <aside class="im-property__aside">
       <div class="im-property__sticky">
-        <?php if ($p['agency'] !== null): ?>
+        <?php /* Weblogy est l'interlocuteur unique : le partenaire qui gère le bien n'est jamais présenté. */ ?>
         <section class="im-seller">
-          <p class="im-eyebrow"><?= e(__('front.property.agency_title')) ?></p>
+          <p class="im-eyebrow"><?= e(__('front.property.seller_title')) ?></p>
           <div class="im-seller__identity">
-            <?php if ($p['agency']['logo'] !== null): ?>
-            <img class="im-seller__logo" src="<?= e($p['agency']['logo']) ?>" alt="" width="120" height="60" loading="lazy">
-            <?php else: ?>
-            <span class="im-seller__initial" aria-hidden="true"><?= e(mb_substr($p['agency']['name'], 0, 1)) ?></span>
-            <?php endif; ?>
+            <img class="im-seller__logo" src="<?= e(asset('img/brand/logo-symbole.png')) ?>" alt="" width="64" height="64" loading="lazy">
             <div>
-              <p class="im-seller__name">
-                <?php if ($p['agency']['verified']): ?><?= icon('verified', '', __('front.card.verified_agency')) ?><?php endif; ?>
-                <?= e($p['agency']['name']) ?>
-              </p>
-              <?php if ($p['agency']['listings'] > 0): ?>
-              <p class="im-small im-muted"><?= e(__n('front.property.agency_listings', $p['agency']['listings'])) ?></p>
-              <?php endif; ?>
+              <p class="im-seller__name"><?= e(site()->name ?? '') ?> <?= icon('verified', '', __('front.property.seller_verified')) ?></p>
+              <p class="im-small im-muted"><?= e(__('front.property.seller_lead')) ?></p>
             </div>
           </div>
-          <?php if ($p['agent'] !== null): ?>
-          <p class="im-seller__agent">
-            <?= icon('user') ?> <?= e($p['agent']['name']) ?><?= $p['agent']['job'] !== null ? ' · ' . e($p['agent']['job']) : '' ?>
-          </p>
-          <?php endif; ?>
-          <a class="im-link im-seller__link" href="<?= e(url($p['agency']['url'])) ?>"><?= e(__('front.property.agency_link')) ?> <?= icon('arrow-right') ?></a>
+          <p class="im-seller__agent"><?= icon('info') ?> <?= e(__('front.property.seller_reference', ['reference' => $p['reference']])) ?></p>
         </section>
-        <?php else: ?>
-        <section class="im-seller">
-          <p class="im-eyebrow"><?= e(__('front.property.agency_title')) ?></p>
-          <p class="im-seller__name"><?= icon('shield') ?> <?= e(__('front.property.platform_seller', ['site' => site()->name ?? ''])) ?></p>
-        </section>
-        <?php endif; ?>
 
         <?= render_view('front/partials/property-contact', [
             'property' => $p,

@@ -55,7 +55,10 @@ final class PasswordReset
 
         $token = $this->issueToken($user->id, $this->expiresMinutes);
 
-        $link = absolute_url(route('cmsadmin.password.reset', ['token' => $token]));
+        // Un particulier réinitialise son mot de passe depuis l'espace propriétaire, jamais depuis /cmsadmin.
+        $link = $user->isOwner()
+            ? absolute_url('mon-espace/mot-de-passe/' . $token)
+            : absolute_url(route('cmsadmin.password.reset', ['token' => $token]));
         $data = ['user' => $user, 'site' => $site, 'link' => $link, 'minutes' => $this->expiresMinutes, 'ip' => $request->ip()];
 
         try {
@@ -100,8 +103,13 @@ final class PasswordReset
         $this->activity->log('user.invited', $this->currentUserId($request), $user->countryId, 'user', $user->id, $user->email, request: $request);
     }
 
-    /** Compte associé à un jeton valide (non utilisé, non expiré), null sinon. */
-    public function findUser(string $token): ?User
+    /**
+     * Compte associé à un jeton valide (non utilisé, non expiré), null sinon.
+     *
+     * @param bool $owner Espace concerné : true = espace propriétaire, false = back-office. Un jeton
+     *                    d'un particulier n'est jamais accepté par l'écran du back-office, et inversement.
+     */
+    public function findUser(string $token, bool $owner = false): ?User
     {
         if (preg_match('/^[A-Za-z0-9_-]{43}$/', $token) !== 1) {
             return null;
@@ -113,7 +121,7 @@ final class PasswordReset
         );
         $user = $userId !== null ? $this->users->findById((int) $userId) : null;
 
-        return $user !== null && $user->canLogin() ? $user : null;
+        return $user !== null && $user->canLogin() && $user->isOwner() === $owner ? $user : null;
     }
 
     /** Crée un jeton à usage unique (les liens précédents non utilisés du compte sont annulés). */
@@ -139,9 +147,9 @@ final class PasswordReset
     }
 
     /** Enregistre le nouveau mot de passe et consomme le jeton. Retourne l'utilisateur, ou null si le jeton n'est plus valide. */
-    public function reset(Request $request, string $token, string $password): ?User
+    public function reset(Request $request, string $token, string $password, bool $owner = false): ?User
     {
-        $user = $this->findUser($token);
+        $user = $this->findUser($token, $owner);
         if ($user === null) {
             return null;
         }

@@ -85,7 +85,24 @@
     }
 
     &[aria-current="page"]::after { transform: scaleX(1); }
+
+    // Parcours propriétaire : se distingue des liens de recherche sans devenir un second bouton
+    &--accent {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      color: $im-blue;
+      font-weight: $im-weight-semibold;
+
+      .im-icon { width: 1.1rem; height: 1.1rem; }
+
+      @include im-hover { color: $im-blue; }
+    }
   }
+
+  // Écran moyen : le lien propriétaire reste dans le menu mobile tant que la place manque
+  &__nav-owner { display: none; @include im-up(xl) { display: block; } }
+  &__nav-secondary { display: none; @include im-up(xxl) { display: block; } }
 
   &__actions {
     display: flex;
@@ -131,7 +148,8 @@
 
   // Spécificité renforcée : .im-btn et .im-header__icon-btn définissent aussi display
   & &__cta { display: none; @include im-up(md) { display: inline-flex; } }
-  & &__burger { @include im-up(lg) { display: none; } }
+  // Jusqu'à xl, le menu reste accessible : il porte le lien « Confiez-nous votre bien » absent de la barre
+  & &__burger { @include im-up(xl) { display: none; } }
 
   // Variante superposée au hero
   &--overlay:not(.is-scrolled) {
@@ -142,6 +160,7 @@
     .im-header__logo-light { opacity: 1; }
     .im-header__logo-dark { opacity: 0; }
     .im-header__icon-btn:hover { background: rgba($im-white, .12); }
+    .im-header__link--accent { color: $im-white; }
 
     .im-header__cta {
       --im-btn-bg: #{$im-white};

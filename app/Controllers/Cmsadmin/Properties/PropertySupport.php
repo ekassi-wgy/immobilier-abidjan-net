@@ -44,6 +44,17 @@ trait PropertySupport
         }
     }
 
+    /**
+     * Action propre au partenaire (désactiver / réactiver SES annonces). L'équipe dispose de
+     * « Dépublier » et « Republier », qui ne laissent pas au partenaire la main sur la remise en ligne.
+     */
+    private function requirePartner(Request $request): void
+    {
+        if (!$this->user($request)->isAgency()) {
+            throw new HttpException(403);
+        }
+    }
+
     /** URL d'une image dans une taille (400, 800, 1600). */
     private function imageUrl(string $base, int $width = 400): string
     {

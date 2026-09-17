@@ -112,7 +112,10 @@ final class LeadRepository
 
         return $this->db->selectOne(
             "SELECT l.*, p.reference AS property_reference, p.title AS property_title, p.status AS property_status,
-                    a.name AS agency_name, CONCAT(u.first_name, ' ', u.last_name) AS assigned_name
+                    p.contact_name AS property_contact_name, p.contact_phone AS property_contact_phone,
+                    p.contact_whatsapp AS property_contact_whatsapp, p.contact_email AS property_contact_email,
+                    a.name AS agency_name, a.phone AS agency_phone, a.whatsapp AS agency_whatsapp, a.email AS agency_email,
+                    CONCAT(u.first_name, ' ', u.last_name) AS assigned_name
              FROM leads l
              LEFT JOIN properties p ON p.id = l.property_id
              LEFT JOIN agencies a ON a.id = l.agency_id

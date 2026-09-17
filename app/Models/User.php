@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Models;
 
 /**
- * Compte du back-office (table users) : équipe interne ou agence partenaire.
- * Aucun compte visiteur n'existe sur la plateforme.
+ * Compte (table users) : équipe Weblogy, partenaire professionnel, ou particulier qui confie un bien.
+ *
+ * Un particulier (`owner`) n'a jamais accès à /cmsadmin : il utilise l'espace propriétaire du site
+ * public, sous une session distincte (garde « owner » d'Auth). Les visiteurs n'ont pas de compte.
  */
 final class User
 {
@@ -14,12 +16,15 @@ final class User
     public const COUNTRY_ADMIN = 'country_admin';
     public const AGENCY_OWNER = 'agency_owner';
     public const AGENCY_AGENT = 'agency_agent';
+    /** Particulier qui confie un bien à Weblogy (espace propriétaire, jamais le back-office). */
+    public const OWNER = 'owner';
 
+    /** Rôles du back-office. */
     public const ROLES = [self::SUPER_ADMIN, self::COUNTRY_ADMIN, self::AGENCY_OWNER, self::AGENCY_AGENT];
 
     /** Colonnes lues pour construire un utilisateur (jamais de SELECT * sur users). */
     public const COLUMNS = 'u.id, u.role, u.country_id, u.agency_id, u.first_name, u.last_name, u.email, u.password_hash,
-        u.is_active, u.must_change_password, u.last_login_at, a.name AS agency_name, a.status AS agency_status, a.deleted_at AS agency_deleted_at';
+        u.is_active, u.must_change_password, u.last_login_at, u.email_verified_at, u.phone, a.name AS agency_name, a.status AS agency_status, a.deleted_at AS agency_deleted_at';
 
     public function __construct(
         public readonly int $id,
@@ -35,6 +40,8 @@ final class User
         public readonly ?string $lastLoginAt,
         public readonly ?string $agencyName,
         public readonly bool $agencyIsActive,
+        public readonly ?string $emailVerifiedAt = null,
+        public readonly ?string $phone = null,
     ) {
     }
 
@@ -55,6 +62,8 @@ final class User
             $row['last_login_at'] !== null ? (string) $row['last_login_at'] : null,
             $row['agency_name'] !== null ? (string) $row['agency_name'] : null,
             $row['agency_id'] === null || (($row['agency_status'] ?? null) === 'active' && ($row['agency_deleted_at'] ?? null) === null),
+            isset($row['email_verified_at']) ? (string) $row['email_verified_at'] : null,
+            isset($row['phone']) ? (string) $row['phone'] : null,
         );
     }
 
@@ -77,6 +86,16 @@ final class User
     public function isStaff(): bool
     {
         return $this->isSuperAdmin() || $this->isCountryAdmin();
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === self::OWNER;
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->emailVerifiedAt !== null;
     }
 
     public function isAgency(): bool

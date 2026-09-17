@@ -55,6 +55,20 @@ final class PartnerRequestController extends Controller
         return $this->screen($request, $this->find((int) $id));
     }
 
+    /**
+     * Téléchargement d'une pièce justificative. Rôle `staff` (route) et dossier du pays du site
+     * (find) : une pièce ne se télécharge jamais par son seul identifiant.
+     */
+    public function document(Request $request, string $id, string $file): Response
+    {
+        $partnerRequest = $this->find((int) $id);
+        $document = $this->app->partnerRequests()->file((int) $partnerRequest['id'], (int) $file) ?? throw new HttpException(404);
+
+        $this->log($request, 'partner_request.document_viewed', 'partner_request', (int) $partnerRequest['id'], (string) $partnerRequest['agency_name'] . ' · ' . $document['kind']);
+
+        return $this->app->privateFiles()->response((string) $document['path'], (string) $document['mime'], (string) $document['original_name'], $request->query('apercu') === '1');
+    }
+
     public function update(Request $request, string $id): Response
     {
         $partnerRequest = $this->find((int) $id);
@@ -84,6 +98,7 @@ final class PartnerRequestController extends Controller
 
         return $this->render($request, 'partner-requests/show', [
             'item' => $partnerRequest,
+            'files' => $this->app->partnerRequests()->files((int) $partnerRequest['id']),
             'errors' => $errors,
             'emailInUse' => $existingAccount,
         ], [

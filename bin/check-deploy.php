@@ -134,6 +134,7 @@ foreach ([
     'storage/logs' => 'journal des erreurs',
     'storage/cache' => 'cache des sites, des pages et des redirections',
     'public/uploads' => 'photos des annonces et logos des agences',
+    'storage/private' => 'pièces justificatives et fichiers des biens confiés (hors racine web)',
 ] as $relative => $usage) {
     $path = $app->root . '/' . $relative;
     $check(

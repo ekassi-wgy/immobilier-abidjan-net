@@ -45,7 +45,7 @@ final class Authenticate implements Middleware
         }
 
         $site = $this->app->site();
-        if ($site === null || !$user->canAccessCountry($site->country->id)) {
+        if ($user->isOwner() || $site === null || !$user->canAccessCountry($site->country->id)) {
             throw new HttpException(403);
         }
 

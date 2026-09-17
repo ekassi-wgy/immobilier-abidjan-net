@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Demande de contact d'une annonce : crée un lead `property_contact`.
+ * Demande de contact d'une annonce : crée un lead `property_contact`, adressé à l'équipe Weblogy.
+ * Téléphone et WhatsApp affichés : ceux du site (Weblogy), jamais ceux du partenaire.
  * Aucun compte visiteur — seuls le nom, un moyen de recontact et le message sont demandés.
  *
  * @var array  $property
@@ -19,7 +20,7 @@ $whatsappUrl = !empty($property['whatsapp'])
 <section class="im-contact" id="contact">
   <div class="im-contact__head">
     <h2 class="im-h3"><?= e(__('front.contact.title')) ?></h2>
-    <p class="im-small im-muted"><?= e(__('front.contact.lead')) ?></p>
+    <p class="im-small im-muted"><?= e(__('front.contact.lead', ['site' => site()->name ?? ''])) ?></p>
   </div>
 
   <?php if (!empty($property['phone']) || $whatsappUrl !== null): ?>
@@ -82,7 +83,7 @@ $whatsappUrl = !empty($property['whatsapp'])
     <label class="im-check im-contact__consent">
       <input type="checkbox" name="consent" value="1"<?= $value('consent') !== '' ? ' checked' : '' ?> required>
       <span class="im-check__box" aria-hidden="true"><?= icon('check') ?></span>
-      <span><?= e(__('front.contact.consent')) ?></span>
+      <span><?= e(__('front.contact.consent', ['site' => site()->name ?? ''])) ?></span>
     </label>
     <?php if (isset($errors['consent'])): ?><span class="im-field__error"><?= e($errors['consent']) ?></span><?php endif; ?>
 

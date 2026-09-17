@@ -28,6 +28,13 @@ final class PropertyForm
     private const TITLE_MIN = 10;
     private const DESCRIPTION_MIN = 40;
 
+    /**
+     * Brouillon en cours de validation : critères obligatoires, photo et prix peuvent manquer.
+     * Titre, description, catégorie, transaction et ville restent exigés (colonnes NOT NULL), et
+     * tout est de nouveau contrôlé quand le brouillon est envoyé.
+     */
+    private bool $draft = false;
+
     public function __construct(
         private readonly CatalogRepository $catalog,
         private readonly GeoRepository $geo,
@@ -45,8 +52,9 @@ final class PropertyForm
      * @param list<array<string, mixed>>     $currentImages Photos actuelles (en ligne + révision en cours)
      * @return array{0: array<string, mixed>, 1: array<string, string>, 2: array<string, mixed>|null} payload, erreurs, schéma
      */
-    public function validate(Request $request, User $user, Site $site, ?array $property, array $currentImages): array
+    public function validate(Request $request, User $user, Site $site, ?array $property, array $currentImages, bool $draft = false): array
     {
+        $this->draft = $draft;
         $input = $request->all();
         // Montants saisis avec séparateurs de milliers : « 185 000 000 »
         foreach (['price', 'charges', 'agency_fee_percent', 'latitude', 'longitude'] as $numeric) {
@@ -82,7 +90,7 @@ final class PropertyForm
 
         // Prix
         $onRequest = $v->bool('price_on_request');
-        if (!$onRequest) {
+        if (!$onRequest && !$this->draft) {
             $v->required('price');
         }
         $v->decimal('price', 0, 9999999999999)->decimal('charges', 0, 9999999999)->decimal('agency_fee_percent', 0, 100)
@@ -238,7 +246,7 @@ final class PropertyForm
     private function attributeValue(Validator $v, array $attribute, mixed $raw, int $id): mixed
     {
         $field = 'attributes.' . $id;
-        $required = (int) $attribute['is_required'] === 1;
+        $required = (int) $attribute['is_required'] === 1 && !$this->draft;
         $type = (string) $attribute['input_type'];
 
         if ($type === 'multiselect') {
@@ -341,7 +349,7 @@ final class PropertyForm
             }
         }
 
-        if ($images === []) {
+        if ($images === [] && !$this->draft) {
             $v->add('photos', __('properties.errors.photos_required'));
         } elseif (count($images) > $this->maxPhotos) {
             $v->add('photos', __('properties.errors.photos_max', ['max' => $this->maxPhotos]));

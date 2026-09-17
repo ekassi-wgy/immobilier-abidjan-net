@@ -25,7 +25,7 @@ $noindex ??= false;
 $siteName = site()->name ?? config('app.name');
 // Pages éditoriales et légales publiées : les liens absents ne sont pas affichés (lot 1.11).
 $cmsPages = site() !== null
-    ? app()->pages()->byCodes(['about', 'how_it_works', 'legal_notice', 'terms', 'privacy', 'cookies'], site()->id, locale())
+    ? app()->pages()->byCodes(['about', 'how_it_works', 'faq', 'legal_notice', 'terms', 'privacy', 'cookies'], site()->id, locale())
     : [];
 ?>
 <!doctype html>

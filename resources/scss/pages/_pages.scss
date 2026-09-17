@@ -65,6 +65,21 @@
     @include im-hover { a { color: $im-navy; } }
   }
 
+  &__aside-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem .5rem;
+    margin: 1.75rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid $im-line;
+    color: $im-muted;
+    font-size: .875rem;
+
+    .im-icon { width: 1rem; height: 1rem; color: $im-navy; }
+    a { color: $im-navy; font-weight: $im-weight-semibold; }
+  }
+
   &__form {
     padding: im-fluid(1.25rem, 2rem);
     border: 1px solid $im-line;
@@ -140,92 +155,38 @@
 
 .im-agency__logo img { display: block; }
 
-// Profil d'agence --------------------------------------------------------------------------
-.im-agency-hero {
-  padding-block: im-fluid(1.75rem, 3rem);
-  background: $im-navy;
-  color: $im-white;
+// Vitrine des partenaires : cartes sans lien (aucune fiche ni coordonnée publique)
+.im-agency--static {
+  cursor: default;
 
-  &__inner {
-    display: grid;
-    align-items: center;
-    gap: 1.25rem;
-    grid-template-columns: auto minmax(0, 1fr);
+  &:hover,
+  &:focus-visible { border-color: $im-line; box-shadow: none; }
+}
 
-    @include im-up(md) { grid-template-columns: auto minmax(0, 1fr) auto; }
-  }
+// Bandeau d'information sous une liste (rappel du rôle d'intermédiaire de Weblogy)
+.im-note-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 2rem;
+  margin-top: im-fluid(2rem, 3rem);
+  padding: 1.25rem 1.5rem;
+  border-radius: $im-radius-lg;
+  background: $im-mist;
 
-  &__logo {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 5rem;
-    height: 5rem;
-    overflow: hidden;
-    border-radius: $im-radius;
-    background: $im-white;
-    color: $im-navy;
-    font-size: 2rem;
-    font-weight: $im-weight-bold;
-
-    img { width: 100%; height: 100%; object-fit: contain; padding: .35rem; }
-  }
-
-  &__identity .im-h2 { margin: .35rem 0 0; color: $im-white; }
-
-  &__meta {
+  p {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .5rem 1rem;
-    margin: .75rem 0 0;
-    color: rgba($im-white, .78);
-    font-size: .875rem;
-
-    span { display: inline-flex; align-items: center; gap: .35rem; }
-
-    .im-icon { width: 1rem; height: 1rem; }
-  }
-
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
+    align-items: flex-start;
     gap: .6rem;
-    grid-column: 1 / -1;
-
-    @include im-up(md) { grid-column: auto; }
-  }
-}
-
-.im-agency-profile {
-  padding-bottom: im-fluid(3rem, 5rem);
-
-  &__layout {
-    display: grid;
-    align-items: start;
-    gap: im-fluid(2rem, 3.5rem);
-    padding-top: im-fluid(1.5rem, 2.5rem);
-    grid-template-columns: minmax(0, 1fr);
-
-    @include im-up(lg) { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
+    max-width: 46rem;
+    margin: 0;
+    color: $im-ink;
+    font-size: .9375rem;
+    line-height: 1.55;
   }
 
-  &__main { min-width: 0; }
-
-  &__aside {
-    display: grid;
-    gap: 1rem;
-    min-width: 0;
-
-    @include im-up(lg) { position: sticky; top: calc(var(--im-header-height) + 1rem); }
-  }
-}
-
-// Grille d'annonces resserrée (colonne d'un profil)
-.im-grid-cards--compact {
-  gap: 2rem 1.5rem;
-
-  @include im-up(lg) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  p .im-icon { flex: none; width: 1.25rem; height: 1.25rem; margin-top: .1rem; color: $im-navy; }
 }
 
 // Actualités ------------------------------------------------------------------------------------

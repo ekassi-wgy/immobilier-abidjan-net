@@ -37,9 +37,6 @@ final class ListingPresenter
      */
     public function card(array $row): array
     {
-        $phone = $row['contact_phone'] ?? $row['agency_phone'] ?? null;
-        $whatsapp = $row['contact_whatsapp'] ?? $row['agency_whatsapp'] ?? null;
-
         return [
             'reference' => (string) $row['reference'],
             'url' => $this->url($row),
@@ -54,11 +51,9 @@ final class ListingPresenter
             'photos' => (int) ($row['photos_count'] ?? 0),
             'badges' => $this->badges($row),
             'specs' => $this->specs($row),
-            'agency' => $row['agency_name'] !== null ? (string) $row['agency_name'] : (string) (site()?->name ?? ''),
-            'agency_url' => $row['agency_slug'] !== null ? 'agences/' . $row['agency_slug'] : null,
-            'verified' => (int) ($row['agency_verified'] ?? 0) === 1,
-            'phone' => $phone !== null && $phone !== '' ? (string) $phone : null,
-            'whatsapp' => $whatsapp !== null && $whatsapp !== '' ? (string) $whatsapp : null,
+            // Weblogy est l'interlocuteur de toutes les annonces : coordonnées du site, jamais celles du partenaire.
+            'phone' => site()?->contactPhone,
+            'whatsapp' => site()?->contactWhatsapp,
             'description' => $this->excerpt($row['description'] ?? null),
         ];
     }
@@ -99,7 +94,7 @@ final class ListingPresenter
 
     /**
      * Fiche annonce complète (lot 1.10) : galerie, prix, localisation, critères groupés,
-     * équipements, médias, contacts affichés et bloc agence.
+     * équipements, médias et coordonnées de Weblogy, seul interlocuteur du prospect.
      *
      * @param array<string, mixed>       $row      Ligne de ListingRepository::findPublished()
      * @param list<array<string, mixed>> $images   ListingRepository::publicImages()
@@ -109,8 +104,6 @@ final class ListingPresenter
      */
     public function detail(array $row, array $images, array $criteria, array $features): array
     {
-        $phone = $row['contact_phone'] ?? $row['agent_phone'] ?? $row['agency_phone'] ?? null;
-        $whatsapp = $row['contact_whatsapp'] ?? $row['agent_whatsapp'] ?? $row['agency_whatsapp'] ?? null;
         $groups = $this->criteriaGroups($criteria);
 
         return [
@@ -151,11 +144,10 @@ final class ListingPresenter
             'video' => $this->link($row['video_url'] ?? null),
             'tour' => $this->link($row['virtual_tour_url'] ?? null),
             'document' => !empty($row['document_path']) ? url((string) $row['document_path']) : null,
-            'contact_name' => !empty($row['contact_name']) ? (string) $row['contact_name'] : null,
-            'phone' => $phone !== null && $phone !== '' ? (string) $phone : null,
-            'whatsapp' => $whatsapp !== null && $whatsapp !== '' ? (string) $whatsapp : null,
-            'agency' => $this->agency($row),
-            'agent' => $this->agent($row),
+            // Interlocuteur unique : Weblogy (coordonnées du site). Le partenaire reste une information interne.
+            'phone' => site()?->contactPhone,
+            'whatsapp' => site()?->contactWhatsapp,
+            'email' => site()?->contactEmail,
             'published_at' => $row['published_at'] !== null ? (string) $row['published_at'] : null,
             'updated_at' => $row['updated_at'] !== null ? (string) $row['updated_at'] : null,
         ];
@@ -297,37 +289,6 @@ final class ListingPresenter
         }
 
         return $groups;
-    }
-
-    /** @return array<string, mixed>|null */
-    private function agency(array $row): ?array
-    {
-        if ($row['agency_name'] === null) {
-            return null;
-        }
-
-        return [
-            'name' => (string) $row['agency_name'],
-            'slug' => (string) $row['agency_slug'],
-            'url' => 'agences/' . $row['agency_slug'],
-            'logo' => !empty($row['agency_logo']) ? url((string) $row['agency_logo']) : null,
-            'verified' => (int) ($row['agency_verified'] ?? 0) === 1,
-            'description' => !empty($row['agency_description']) ? (string) $row['agency_description'] : null,
-            'listings' => (int) ($row['agency_listings'] ?? 0),
-            'phone' => !empty($row['agency_phone']) ? (string) $row['agency_phone'] : null,
-            'whatsapp' => !empty($row['agency_whatsapp']) ? (string) $row['agency_whatsapp'] : null,
-        ];
-    }
-
-    /** @return array{name: string, job: ?string}|null Agent en charge, sans son adresse email */
-    private function agent(array $row): ?array
-    {
-        $name = trim((string) ($row['agent_first_name'] ?? '') . ' ' . (string) ($row['agent_last_name'] ?? ''));
-        if ($name === '') {
-            return null;
-        }
-
-        return ['name' => $name, 'job' => !empty($row['agent_job']) ? (string) $row['agent_job'] : null];
     }
 
     /** Lien externe (vidéo, visite 360°) : seuls http(s) sont acceptés. */

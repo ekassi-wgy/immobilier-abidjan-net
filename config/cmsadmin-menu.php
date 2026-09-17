@@ -45,18 +45,20 @@ return [
     ],
 
     ['category' => 'Relation client', 'roles' => $allRoles],
-    ['key' => 'leads', 'label' => 'Demandes de contact', 'icon' => 'mdi-email-outline', 'url' => 'contacts', 'roles' => $allRoles, 'badge' => 'new_leads'],
+    ['key' => 'leads', 'label' => 'Demandes de contact', 'icon' => 'mdi-email-outline', 'url' => 'contacts', 'roles' => $staff, 'badge' => 'new_leads'],
+    // Biens confiés par des particuliers : Weblogy les étudie puis crée l'annonce
+    ['key' => 'submissions', 'label' => 'Biens confiés', 'icon' => 'mdi-key-outline', 'url' => 'biens-confies', 'roles' => $staff, 'badge' => 'new_submissions'],
     [
         'key' => 'agencies',
-        'label' => 'Agences partenaires',
+        'label' => 'Partenaires',
         'icon' => 'mdi-office-building-outline',
         'roles' => $staff,
         'children' => [
-            ['key' => 'agencies.all', 'label' => 'Toutes les agences', 'url' => 'agences', 'roles' => $staff],
-            ['key' => 'agencies.requests', 'label' => 'Demandes de partenariat', 'url' => 'demandes-partenariat', 'roles' => $staff, 'badge' => 'partner_requests'],
+            ['key' => 'agencies.all', 'label' => 'Tous les partenaires', 'url' => 'agences', 'roles' => $staff],
+            ['key' => 'agencies.requests', 'label' => 'Dossiers de partenariat', 'url' => 'demandes-partenariat', 'roles' => $staff, 'badge' => 'partner_requests'],
         ],
     ],
-    ['key' => 'agency_profile', 'label' => 'Profil de l\'agence', 'icon' => 'mdi-card-account-details-outline', 'url' => 'profil-agence', 'roles' => ['agency']],
+    ['key' => 'agency_profile', 'label' => 'Profil partenaire', 'icon' => 'mdi-card-account-details-outline', 'url' => 'profil-agence', 'roles' => ['agency']],
 
     ['category' => 'Contenu & SEO', 'roles' => ['super_admin']],
     [

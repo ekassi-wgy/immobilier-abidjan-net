@@ -16,7 +16,7 @@ $query = (string) app()->request()?->server('QUERY_STRING', '');
 $current = '/cmsadmin/annonces' . ($query !== '' ? '?' . $query : '');
 $activeFilters = array_filter($filters);
 $searchFilters = array_filter(array_diff_key($filters, ['statut' => true]));
-$tabs = ['' => __('properties.tabs.all'), 'pending' => __('properties.status.pending'), 'revision' => __('properties.tabs.revision'), 'published' => __('properties.status.published'), 'rejected' => __('properties.status.rejected'), 'unpublished' => __('properties.status.unpublished'), 'expired' => __('properties.status.expired'), 'archived' => __('properties.status.archived')];
+$tabs = ['' => __('properties.tabs.all'), 'draft' => __('properties.status.draft'), 'pending' => __('properties.status.pending'), 'revision' => __('properties.tabs.revision'), 'published' => __('properties.status.published'), 'rejected' => __('properties.status.rejected'), 'unpublished' => __('properties.status.unpublished'), 'expired' => __('properties.status.expired'), 'archived' => __('properties.status.archived')];
 $tabUrl = static fn (string $status): string => cmsadmin_url('annonces' . ($status !== '' ? '?statut=' . $status : ''));
 ?>
 <?= cmsadmin_partial('page-header', [

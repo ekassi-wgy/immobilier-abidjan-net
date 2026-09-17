@@ -48,6 +48,7 @@ final class SettingsController extends Controller
         'home.featured_limit' => ['type' => 'int', 'min' => 1, 'max' => 24, 'group' => 'listing'],
         'workflow.auto_publish_super_admin' => ['type' => 'bool', 'group' => 'workflow'],
         'workflow.auto_publish_country_admin' => ['type' => 'bool', 'group' => 'workflow'],
+        'workflow.auto_publish_partner' => ['type' => 'bool', 'group' => 'workflow'],
         'security.login_max_attempts' => ['type' => 'int', 'min' => 3, 'max' => 20, 'group' => 'security'],
         'security.login_lockout_minutes' => ['type' => 'int', 'min' => 1, 'max' => 1440, 'group' => 'security'],
     ];

@@ -25,10 +25,12 @@ $columns = [
         [__('front.footer.commercial'), 'louer/commercial-bureaux'],
     ],
     __('front.footer.sell') => array_values(array_filter([
-        [__('front.footer.submit_property'), 'deposer-un-bien'],
-        [__('front.footer.find_agency'), 'agences'],
-        [__('front.footer.become_partner'), 'devenir-partenaire'],
+        [__('front.nav.entrust_property'), 'confiez-nous-votre-bien'],
+        [__('front.nav.owner_space'), 'mon-espace'],
+        [__('front.nav.become_partner'), 'devenir-partenaire'],
+        [__('front.nav.partners'), 'partenaires'],
         $pageLink('how_it_works'),
+        $pageLink('faq'),
     ])),
     $siteName => array_values(array_filter([
         $pageLink('about'),

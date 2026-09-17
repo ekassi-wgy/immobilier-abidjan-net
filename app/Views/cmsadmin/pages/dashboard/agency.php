@@ -13,7 +13,6 @@
  * @var list<array<string,mixed>> $toFix     Annonces rejetées ou modification refusée
  * @var list<array<string,mixed>> $expiring  Annonces qui expirent bientôt
  * @var list<array<string,mixed>> $recent    Dernières annonces
- * @var list<array<string,mixed>> $leads     Dernières demandes de contact
  * @var list<string>              $missing   Éléments manquants du profil public
  * @var bool                      $isOwner   Responsable de l'agence (peut modifier le profil)
  */
@@ -165,31 +164,15 @@ $chartData = ['labels' => $audience['labels'], 'views' => $audience['views'], 'l
     <section class="card im-panel h-100">
       <header class="im-panel__head">
         <div>
-          <h2 class="im-panel__title"><?= e(__('leads.latest')) ?></h2>
-          <p class="im-panel__subtitle"><?= e(__('leads.latest_subtitle')) ?></p>
+          <h2 class="im-panel__title"><?= e(__('dashboard.partner_leads_title')) ?></h2>
+          <p class="im-panel__subtitle"><?= e(__('dashboard.partner_leads_subtitle')) ?></p>
         </div>
-        <a class="im-link" href="<?= e(cmsadmin_url('contacts')) ?>"><?= e(__('dashboard.see_all')) ?> <span class="mdi mdi-arrow-right" aria-hidden="true"></span></a>
       </header>
-      <?php if ($leads === []): ?>
-        <?= cmsadmin_partial('empty-state', [
-            'icon' => 'mdi-email-outline',
-            'title' => __('leads.empty_title'),
-            'text' => __('leads.empty_agency_text'),
-        ]) ?>
-      <?php else: ?>
-      <ul class="im-feed">
-        <?php foreach ($leads as $lead): ?>
-        <li class="im-feed__item">
-          <span class="im-feed__icon mdi <?= e($lead['type'] === 'agency_contact' ? 'mdi-office-building-outline' : 'mdi-email-outline') ?>" aria-hidden="true"></span>
-          <div class="im-feed__body">
-            <p class="im-feed__title"><a class="im-cell-link" href="<?= e(cmsadmin_url('contacts/' . $lead['id'])) ?>"><?= e($lead['name']) ?></a></p>
-            <p class="im-feed__meta"><?= e($lead['property_title'] ?? __('leads.type.' . $lead['type'])) ?></p>
-          </div>
-          <span class="im-feed__time"><?= e(substr((string) $lead['created_at'], 0, 10)) ?></span>
-        </li>
-        <?php endforeach; ?>
-      </ul>
-      <?php endif; ?>
+      <ol class="im-steps-list">
+        <li><?= e(__('dashboard.partner_leads_step1')) ?></li>
+        <li><?= e(__('dashboard.partner_leads_step2')) ?></li>
+        <li><?= e(__('dashboard.partner_leads_step3')) ?></li>
+      </ol>
     </section>
   </div>
 

@@ -150,13 +150,13 @@ final class PropertyController extends Controller
     {
         $site = $this->site();
         $user = $this->user($request);
-        [$payload, $errors, $schema] = $this->app->propertyForm()->validate($request, $user, $site, null, []);
+        [$payload, $errors, $schema] = $this->app->propertyForm()->validate($request, $user, $site, null, [], $this->isDraft($request));
         if ($errors !== []) {
             return $this->form($request, null, $this->resubmitted($request), $errors, 422);
         }
 
         try {
-            [$id, $outcome] = $this->app->workflow()->create($request, $user, $site, $payload, $schema['attributes'] ?? []);
+            [$id, $outcome] = $this->app->workflow()->create($request, $user, $site, $payload, $schema['attributes'] ?? [], $this->isDraft($request));
         } catch (RuntimeException $exception) {
             $this->app->logger()->exception($exception, ['action' => 'property.create']);
             $this->flash('error', __('properties.flash.save_failed'));
@@ -165,7 +165,11 @@ final class PropertyController extends Controller
         }
 
         $reference = (string) $this->app->db()->scalar('SELECT reference FROM properties WHERE id = :id', ['id' => $id]);
-        $this->flash('success', __($outcome === PropertyWorkflow::OUTCOME_PUBLISHED ? 'properties.flash.published' : 'properties.flash.submitted', ['ref' => $reference]));
+        $this->flash('success', __(match ($outcome) {
+            PropertyWorkflow::OUTCOME_PUBLISHED => 'properties.flash.published',
+            PropertyWorkflow::OUTCOME_DRAFT => 'properties.flash.draft_saved',
+            default => 'properties.flash.submitted',
+        }, ['ref' => $reference]));
 
         return $this->redirectToRoute('cmsadmin.properties.show', ['reference' => $reference], 303);
     }
@@ -222,13 +226,13 @@ final class PropertyController extends Controller
         $revision = $repo->pendingRevision((int) $property['id']);
         $currentImages = $repo->images((int) $property['id'], $user->isAgency() && $revision !== null ? (int) $revision['id'] : null);
 
-        [$payload, $errors, $schema] = $this->app->propertyForm()->validate($request, $user, $site, $property, $currentImages);
+        [$payload, $errors, $schema] = $this->app->propertyForm()->validate($request, $user, $site, $property, $currentImages, $this->isDraft($request) && $property['status'] === 'draft');
         if ($errors !== []) {
             return $this->form($request, $property, $this->resubmitted($request) + ['document_path' => $property['document_path']], $errors, 422, $user->isAgency() ? $revision : null);
         }
 
         try {
-            $outcome = $this->app->workflow()->update($request, $user, $site, $property, $payload, $schema['attributes'] ?? []);
+            $outcome = $this->app->workflow()->update($request, $user, $site, $property, $payload, $schema['attributes'] ?? [], $this->isDraft($request));
         } catch (RuntimeException $exception) {
             $this->app->logger()->exception($exception, ['action' => 'property.update', 'reference' => $reference]);
             $this->flash('error', __('properties.flash.save_failed'));
@@ -239,10 +243,19 @@ final class PropertyController extends Controller
         $this->flash('success', __(match ($outcome) {
             PropertyWorkflow::OUTCOME_REVISION => 'properties.flash.revision_submitted',
             PropertyWorkflow::OUTCOME_RESUBMITTED => 'properties.flash.resubmitted',
+            PropertyWorkflow::OUTCOME_DRAFT => 'properties.flash.draft_saved',
+            PropertyWorkflow::OUTCOME_CREATED => 'properties.flash.submitted',
+            PropertyWorkflow::OUTCOME_PUBLISHED => 'properties.flash.published',
             default => 'properties.flash.updated',
         }, ['ref' => $reference]));
 
         return $this->redirectToRoute('cmsadmin.properties.show', ['reference' => $reference], 303);
+    }
+
+    /** Bouton « Enregistrer en brouillon » : l'annonce n'est ni publiée ni transmise à Weblogy. */
+    private function isDraft(Request $request): bool
+    {
+        return $request->input('intent') === 'draft';
     }
 
     /**

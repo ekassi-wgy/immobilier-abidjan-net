@@ -38,13 +38,25 @@ $payload = $lead['payload'] !== null ? json_decode((string) $lead['payload'], tr
         <div><dt><?= e(__('properties.singular')) ?></dt><dd><a href="<?= e(cmsadmin_url('annonces/' . $lead['property_reference'])) ?>"><?= e($lead['property_title']) ?></a> <span class="im-cell-sub"><?= e($lead['property_reference']) ?></span></dd></div>
         <?php endif; ?>
         <?php if ($lead['agency_name'] !== null): ?>
-        <div><dt><?= e(__('agencies.singular')) ?></dt><dd><?= e($lead['agency_name']) ?></dd></div>
+        <div><dt><?= e(__('leads.partner')) ?></dt><dd><a href="<?= e(cmsadmin_url('agences/' . $lead['agency_id'] . '/modifier')) ?>"><?= e($lead['agency_name']) ?></a></dd></div>
         <?php endif; ?>
         <div><dt><?= e(__('partners.consent')) ?></dt><dd><?= e(substr((string) $lead['consent_at'], 0, 16)) ?> UTC</dd></div>
         <?php if ($lead['source_url'] !== null): ?>
         <div><dt><?= e(__('leads.source')) ?></dt><dd class="im-cell-sub-text"><?= e($lead['source_url']) ?></dd></div>
         <?php endif; ?>
       </dl>
+
+      <?php
+      // Weblogy sollicite lui-même le partenaire : contact propre à l'annonce, sinon celui de l'agence.
+      $partnerContacts = array_values(array_filter([
+          $lead['property_contact_name'] ?? null,
+          $lead['property_contact_phone'] ?? $lead['agency_phone'] ?? null,
+          $lead['property_contact_email'] ?? $lead['agency_email'] ?? null,
+      ]));
+      ?>
+      <?php if ($partnerContacts !== []): ?>
+      <p class="im-note"><span class="mdi mdi-account-tie-outline" aria-hidden="true"></span> <?= e(__('leads.partner_contact', ['contact' => implode(' · ', $partnerContacts)])) ?></p>
+      <?php endif; ?>
 
       <?php if ($lead['message'] !== null && trim((string) $lead['message']) !== ''): ?>
       <h3 class="im-subtitle"><?= e(__('leads.message')) ?></h3>

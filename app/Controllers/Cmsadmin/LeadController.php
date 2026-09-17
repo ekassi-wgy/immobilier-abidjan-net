@@ -150,12 +150,17 @@ final class LeadController extends Controller
         return $this->app->leads()->find($id, $this->countryId(), $this->scopeAgency($request)) ?? throw new HttpException(404);
     }
 
-    /** Agence du compte connecté (null pour l'équipe interne, qui voit tout le pays). */
+    /**
+     * Toujours null : les demandes sont réservées à l'équipe Weblogy, qui voit tout le pays.
+     * Un compte partenaire est refusé (la route l'exclut déjà ; contrôle répété dans l'action).
+     */
     private function scopeAgency(Request $request): ?int
     {
-        $user = $this->user($request);
+        if (!$this->user($request)->isStaff()) {
+            throw new HttpException(403);
+        }
 
-        return $user->isAgency() ? (int) $user->agencyId : null;
+        return null;
     }
 
     private function countryId(): int

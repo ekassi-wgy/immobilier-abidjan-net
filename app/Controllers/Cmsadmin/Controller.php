@@ -65,13 +65,11 @@ abstract class Controller extends BaseController
             $agencyId = (int) $user->agencyId;
             $counts = $this->app->properties()->countsByStatus($countryId, $agencyId);
 
-            return [
-                'pending_properties' => $counts['pending'] + $counts['revision'],
-                'new_leads' => $this->app->leads()->newCount($countryId, $agencyId),
-            ];
+            return ['pending_properties' => $counts['pending'] + $counts['revision']];
         }
 
         return [
+            'new_submissions' => $this->app->submissions()->newCount($countryId),
             'partner_requests' => (int) $this->app->db()->scalar(
                 "SELECT COUNT(*) FROM partner_requests WHERE country_id = :country AND status = 'new'",
                 ['country' => $countryId]

@@ -140,31 +140,30 @@ $hasListings = $featured !== [] || $latest !== [];
         <h2 class="im-h2 im-section-head__title" id="agencies-title"><?= e(__('front.home.agencies_title')) ?></h2>
         <p class="im-lead im-section-head__lead"><?= e(__('front.home.agencies_lead')) ?></p>
       </div>
-      <a class="im-link" href="<?= e(url('agences')) ?>"><?= e(__('front.home.agencies_link')) ?> <?= icon('arrow-right', 'im-icon--arrow') ?></a>
+      <a class="im-link" href="<?= e(url('partenaires')) ?>"><?= e(__('front.home.agencies_link')) ?> <?= icon('arrow-right', 'im-icon--arrow') ?></a>
     </header>
 
     <ul class="im-agency-grid">
       <?php foreach ($agencies as $agency): ?>
-      <li>
-        <a class="im-agency" href="<?= e(url('agences/' . $agency['slug'])) ?>">
-          <span class="im-agency__logo">
-            <?php if ($agency['logo_path']): ?>
-            <img src="<?= e(url($agency['logo_path'])) ?>" alt="" width="64" height="64" loading="lazy">
-            <?php else: ?>
-            <span aria-hidden="true"><?= e(mb_strtoupper(mb_substr((string) $agency['name'], 0, 1))) ?></span>
-            <?php endif; ?>
+      <?php /* Vitrine : pas de lien vers l'agence, pas de coordonnées — Weblogy reste l'interlocuteur. */ ?>
+      <li class="im-agency im-agency--static">
+        <span class="im-agency__logo">
+          <?php if ($agency['logo_path']): ?>
+          <img src="<?= e(url($agency['logo_path'])) ?>" alt="" width="64" height="64" loading="lazy">
+          <?php else: ?>
+          <span aria-hidden="true"><?= e(mb_strtoupper(mb_substr((string) $agency['name'], 0, 1))) ?></span>
+          <?php endif; ?>
+        </span>
+        <span class="im-agency__body">
+          <span class="im-agency__name">
+            <?= e($agency['name']) ?>
+            <?php if ((int) $agency['is_verified'] === 1): ?><?= icon('verified', 'im-agency__check', __('front.agencies.verified')) ?><?php endif; ?>
           </span>
-          <span class="im-agency__body">
-            <span class="im-agency__name">
-              <?= e($agency['name']) ?>
-              <?php if ((int) $agency['is_verified'] === 1): ?><?= icon('verified', 'im-agency__check', __('front.card.verified_agency')) ?><?php endif; ?>
-            </span>
-            <span class="im-agency__meta"><?= e(implode(' · ', array_filter([
-                trim((string) ($agency['commune_name'] ?? $agency['city_name'] ?? '')),
-                (int) $agency['listings'] > 0 ? __n('front.home.agencies_count', (int) $agency['listings']) : null,
-            ]))) ?></span>
-          </span>
-        </a>
+          <span class="im-agency__meta"><?= e(implode(' · ', array_filter([
+              __('front.agencies.types.' . $agency['partner_type']),
+              trim((string) ($agency['commune_name'] ?? $agency['city_name'] ?? '')),
+          ]))) ?></span>
+        </span>
       </li>
       <?php endforeach; ?>
     </ul>
@@ -184,7 +183,7 @@ $hasListings = $featured !== [] || $latest !== [];
         <a class="im-btn im-btn--lg" href="<?= e(url('devenir-partenaire')) ?>"><?= e(__('front.home.partner_cta')) ?></a>
         <p class="im-partner__secondary">
           <?= e(__('front.home.partner_secondary')) ?>
-          <a href="<?= e(url('deposer-un-bien')) ?>"><?= e(__('front.home.partner_secondary_cta')) ?> <?= icon('arrow-right', 'im-icon--arrow') ?></a>
+          <a href="<?= e(url('confiez-nous-votre-bien')) ?>"><?= e(__('front.home.partner_secondary_cta')) ?> <?= icon('arrow-right', 'im-icon--arrow') ?></a>
         </p>
       </div>
     </div>

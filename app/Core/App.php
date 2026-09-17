@@ -7,6 +7,10 @@ namespace App\Core;
 use App\Models\Site;
 use App\Services\ActivityLogger;
 use App\Services\ActivityRepository;
+use App\Services\OwnerMessages;
+use App\Services\PrivateFiles;
+use App\Services\SubmissionConverter;
+use App\Services\SubmissionRepository;
 use App\Services\AgencyRepository;
 use App\Services\Auth;
 use App\Services\CatalogRepository;
@@ -232,6 +236,12 @@ final class App
         return $this->service(ContentRepository::class, fn () => new ContentRepository($this->db()));
     }
 
+    /** Fichiers confidentiels (pièces de partenariat, biens confiés) : storage/private, hors racine web. */
+    public function privateFiles(): PrivateFiles
+    {
+        return $this->service(PrivateFiles::class, fn () => new PrivateFiles($this->root . '/storage/private'));
+    }
+
     public function activityLog(): ActivityRepository
     {
         return $this->service(ActivityRepository::class, fn () => new ActivityRepository($this->db()));
@@ -299,6 +309,9 @@ final class App
             $this->activity(),
             $this->logger(),
             $this->settings(),
+            $this->submissions(),
+            $this->ownerMessages(),
+            $this->users(),
         ));
     }
 
@@ -322,6 +335,48 @@ final class App
             ),
             $this->activity(),
             (array) $this->config->get('auth'),
+        ));
+    }
+
+    public function submissions(): SubmissionRepository
+    {
+        return $this->service(SubmissionRepository::class, fn () => new SubmissionRepository($this->db()));
+    }
+
+    public function submissionConverter(): SubmissionConverter
+    {
+        return $this->service(SubmissionConverter::class, fn () => new SubmissionConverter(
+            $this->db(),
+            $this->properties(),
+            $this->submissions(),
+            $this->privateFiles(),
+            $this->images(),
+            $this->settings(),
+        ));
+    }
+
+    public function ownerMessages(): OwnerMessages
+    {
+        return $this->service(OwnerMessages::class, fn () => new OwnerMessages($this->db(), $this->mailer(), $this->view(), $this->logger()));
+    }
+
+    /** Authentification de l'espace propriétaire (particuliers) : session distincte du back-office. */
+    public function ownerAuth(): Auth
+    {
+        return $this->service(Auth::class . ':owner', fn () => new Auth(
+            $this->db(),
+            $this->session(),
+            $this->users(),
+            $this->hasher(),
+            new LoginThrottle(
+                $this->db(),
+                (int) $this->settings()->get('security.login_max_attempts', 5),
+                (int) $this->settings()->get('security.login_lockout_minutes', 15),
+                (int) $this->config->get('auth.ip_failure_limit', 30),
+            ),
+            $this->activity(),
+            ['remember_cookie' => ''] + (array) $this->config->get('auth'),
+            Auth::GUARD_OWNER,
         ));
     }
 

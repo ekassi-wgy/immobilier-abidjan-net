@@ -160,24 +160,6 @@
   }
 }
 
-// Objet du message : boutons radio présentés en puces (aucun JavaScript)
-.im-choices {
-  margin: 0;
-  padding: 0;
-  border: 0;
-
-  &__list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
-
-  &__item {
-    position: relative;
-
-    input { position: absolute; opacity: 0; pointer-events: none; }
-
-    input:checked + .im-chip { border-color: $im-navy; background: $im-navy; color: $im-white; }
-    input:focus-visible + .im-chip { @include im-focus-ring; }
-  }
-}
-
 // Carte des bureaux
 .im-contact-map {
   padding-bottom: im-fluid(3rem, 6rem);

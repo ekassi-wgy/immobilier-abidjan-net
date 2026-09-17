@@ -284,6 +284,55 @@ select.im-control {
 
 textarea.im-control { min-height: 140px; resize: vertical; }
 
+// Champ fichier : la zone reste celle d'un champ, le bouton natif est habillé sobrement
+.im-control--file {
+  padding: .55rem .65rem;
+  cursor: pointer;
+
+  &::file-selector-button {
+    margin-right: .85rem;
+    padding: .45rem .9rem;
+    border: 1px solid $im-line;
+    border-radius: $im-radius-sm;
+    background: $im-snow;
+    color: $im-navy;
+    font: inherit;
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+    cursor: pointer;
+    transition: border-color $im-duration-fast $im-ease;
+  }
+
+  &:hover::file-selector-button { border-color: $im-navy; }
+}
+
+// Sections numérotées d'un long formulaire public (dossier partenaire, bien confié)
+.im-form__section {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  & + & { padding-top: 1.75rem; border-top: 1px solid $im-line; }
+
+  > legend {
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    float: none;
+    width: 100%;
+    margin: 0 0 .25rem;
+    padding: 0;
+    color: $im-ink;
+    font-size: 1.0625rem;
+    font-weight: $im-weight-semibold;
+  }
+}
+
+.im-form__index { color: $im-subtle; font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.im-form__hint { margin: -.5rem 0 0; color: $im-muted; font-size: .875rem; line-height: 1.5; }
+
 // Champ avec icône en tête
 .im-control-icon {
   position: relative;
@@ -376,5 +425,23 @@ textarea.im-control { min-height: 140px; resize: vertical; }
 
       &::after { transform: scaleX(1); }
     }
+  }
+}
+
+// Choix unique en puces : boutons radio habillés en .im-chip, sans JavaScript (contact, partenaire, bien confié)
+.im-choices {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  &__list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+
+  &__item {
+    position: relative;
+
+    input { position: absolute; opacity: 0; pointer-events: none; }
+
+    input:checked + .im-chip { border-color: $im-navy; background: $im-navy; color: $im-white; }
+    input:focus-visible + .im-chip { @include im-focus-ring; }
   }
 }

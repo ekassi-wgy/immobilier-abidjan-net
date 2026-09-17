@@ -184,17 +184,17 @@
 
   &__specs + &__footer { margin-top: 1rem; border-top: 1px solid $im-line-soft; }
 
-  &__agency {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
+  // Référence à citer au téléphone ou sur WhatsApp (l'agence partenaire n'est jamais affichée)
+  &__reference {
     min-width: 0;
+    overflow: hidden;
+    color: $im-subtle;
     font-size: .8125rem;
-    font-weight: $im-weight-semibold;
-    color: $im-muted;
-
-    span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .im-icon { width: 1rem; height: 1rem; color: $im-blue; }
+    font-weight: $im-weight-medium;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
   }
 
   &__actions {

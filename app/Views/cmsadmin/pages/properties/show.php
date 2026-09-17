@@ -219,6 +219,18 @@ $date = static fn (?string $value): string => $value !== null ? substr($value, 0
             <button class="btn im-btn-ghost w-100" type="submit" data-confirm="<?= e(__('properties.confirm.unpublish')) ?>"><span class="mdi mdi-eye-off-outline" aria-hidden="true"></span> <?= e(__('properties.actions.unpublish')) ?></button>
           </form>
           <?php endif; ?>
+          <?php if (!$isStaff && $status === 'published'): ?>
+          <form method="post" action="<?= e($url('/desactiver')) ?>">
+            <?= csrf_field() ?>
+            <button class="btn im-btn-ghost w-100" type="submit" data-confirm="<?= e(__('properties.confirm.deactivate')) ?>"><span class="mdi mdi-eye-off-outline" aria-hidden="true"></span> <?= e(__('properties.actions.deactivate')) ?></button>
+          </form>
+          <?php endif; ?>
+          <?php if (!$isStaff && $status === 'unpublished' && (int) ($property['deactivated_by_partner'] ?? 0) === 1): ?>
+          <form method="post" action="<?= e($url('/reactiver')) ?>">
+            <?= csrf_field() ?>
+            <button class="btn btn-primary w-100" type="submit"><span class="mdi mdi-eye-outline" aria-hidden="true"></span> <?= e(__('properties.actions.reactivate')) ?></button>
+          </form>
+          <?php endif; ?>
           <?php if ($isStaff && in_array($status, ['unpublished', 'expired'], true)): ?>
           <form method="post" action="<?= e($url('/republier')) ?>">
             <?= csrf_field() ?>
@@ -255,7 +267,7 @@ $date = static fn (?string $value): string => $value !== null ? substr($value, 0
       </section>
       <?php endif; ?>
 
-      <?php if ($isStaff || in_array($status, ['pending', 'rejected'], true)): ?>
+      <?php if ($isStaff || in_array($status, ['draft', 'pending', 'rejected'], true)): ?>
       <form method="post" action="<?= e($url('/supprimer')) ?>" class="im-danger-zone">
         <?= csrf_field() ?>
         <button class="btn im-btn-ghost im-btn-danger w-100" type="submit" data-confirm="<?= e(__('properties.confirm.delete', ['ref' => $property['reference']])) ?>"><span class="mdi mdi-trash-can-outline" aria-hidden="true"></span> <?= e(__('properties.actions.delete')) ?></button>

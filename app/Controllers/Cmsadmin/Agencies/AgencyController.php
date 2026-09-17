@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Cmsadmin\Agencies;
 
 use App\Controllers\Cmsadmin\Controller;
+use App\Controllers\Front\ContactController;
 use App\Core\Exceptions\HttpException;
 use App\Core\Request;
 use App\Core\Response;
@@ -72,10 +73,17 @@ final class AgencyController extends Controller
                 return $this->redirectToRoute('cmsadmin.agencies.edit', ['id' => (int) $partnerRequest['agency_id']]);
             }
             [$firstName, $lastName] = $this->splitName((string) $partnerRequest['contact_name']);
+            // Le dossier alimente la fiche : coordonnées de la structure si elles ont été données, sinon celles du responsable.
             $values = [
                 'name' => $partnerRequest['agency_name'],
-                'email' => $partnerRequest['email'],
-                'phone' => $partnerRequest['phone'],
+                'partner_type' => $partnerRequest['partner_type'] ?? 'agency',
+                'legal_name' => $partnerRequest['legal_name'] ?? null,
+                'legal_form' => $partnerRequest['legal_form'] ?? null,
+                'email' => $partnerRequest['company_email'] ?? $partnerRequest['email'],
+                'phone' => $partnerRequest['company_phone'] ?? $partnerRequest['phone'],
+                'website' => $partnerRequest['website'] ?? null,
+                'address' => $partnerRequest['address'] ?? null,
+                'tax_id' => $partnerRequest['tax_id'] ?? null,
                 'rccm' => $partnerRequest['rccm'],
                 'city_id' => $partnerRequest['city_id'],
                 'commune_id' => $partnerRequest['commune_id'],
@@ -251,7 +259,11 @@ final class AgencyController extends Controller
             ->maxLength('whatsapp', 30)->phone('whatsapp')
             ->maxLength('website', 255)->rule('website', $v->string('website') === '' || filter_var($v->string('website'), FILTER_VALIDATE_URL) !== false, __('validation.url'))
             ->maxLength('address', 255)
+            ->required('partner_type')->in('partner_type', ContactController::PARTNER_TYPES)
             ->required('status')->in('status', AgencyRepository::STATUSES);
+        if ($v->string('legal_form') !== '') {
+            $v->in('legal_form', ContactController::LEGAL_FORMS);
+        }
 
         if (!$v->has('slug') && $this->app->agencies()->slugExists($countryId, $v->string('slug'), $agency !== null ? (int) $agency['id'] : null)) {
             $v->add('slug', __('validation.unique'));
@@ -274,7 +286,9 @@ final class AgencyController extends Controller
         $data = [
             'name' => $v->string('name'),
             'slug' => $v->string('slug'),
+            'partner_type' => $v->string('partner_type'),
             'legal_name' => $v->nullableString('legal_name'),
+            'legal_form' => $v->nullableString('legal_form'),
             'rccm' => $v->nullableString('rccm'),
             'tax_id' => $v->nullableString('tax_id'),
             'description' => $v->nullableString('description'),

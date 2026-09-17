@@ -15,7 +15,7 @@ use App\Core\Database;
  */
 final class PropertyRepository
 {
-    public const STATUSES = ['pending', 'published', 'rejected', 'unpublished', 'archived', 'expired'];
+    public const STATUSES = ['draft', 'pending', 'published', 'rejected', 'unpublished', 'archived', 'expired'];
     public const AVAILABILITIES = ['available', 'reserved', 'sold', 'rented'];
     public const PRICE_PERIODS = ['total', 'month', 'week', 'night', 'year'];
     public const SOURCES = ['agency', 'platform', 'private_owner'];

@@ -98,6 +98,37 @@ final class PropertyActionController extends Controller
         });
     }
 
+    /** Désactivation par le partenaire : l'annonce quitte le site, il pourra la réactiver. */
+    public function deactivate(Request $request, string $reference): Response
+    {
+        $this->requirePartner($request);
+        $property = $this->findProperty($request, $reference);
+
+        return $this->run($reference, function () use ($request, $property): string {
+            $this->app->workflow()->deactivate($request, $this->user($request), $this->site(), $property);
+
+            return __('properties.flash.deactivated', ['ref' => $property['reference']]);
+        });
+    }
+
+    /** Réactivation d'une annonce que le partenaire a lui-même désactivée (jamais une dépublication de Weblogy). */
+    public function reactivate(Request $request, string $reference): Response
+    {
+        $this->requirePartner($request);
+        $property = $this->findProperty($request, $reference);
+        if ((int) ($property['deactivated_by_partner'] ?? 0) !== 1) {
+            $this->flash('error', __('properties.errors.reactivate_refused'));
+
+            return $this->redirectToRoute('cmsadmin.properties.show', ['reference' => $reference], 303);
+        }
+
+        return $this->run($reference, function () use ($request, $property): string {
+            $this->app->workflow()->reactivate($request, $this->user($request), $this->site(), $property);
+
+            return __('properties.flash.reactivated', ['ref' => $property['reference']]);
+        });
+    }
+
     /** Prolongation sans nouvelle validation : le contenu n'a pas changé (agence ou équipe). */
     public function extend(Request $request, string $reference): Response
     {
@@ -151,8 +182,8 @@ final class PropertyActionController extends Controller
         $user = $this->user($request);
         $property = $this->findProperty($request, $reference);
 
-        // Une agence ne supprime que ses annonces jamais publiées ; sinon elle les archive
-        if ($user->isAgency() && !in_array($property['status'], ['pending', 'rejected'], true)) {
+        // Une agence ne supprime que ses annonces jamais publiées ; sinon elle les archive ou les désactive
+        if ($user->isAgency() && !in_array($property['status'], ['draft', 'pending', 'rejected'], true)) {
             $this->flash('error', __('properties.errors.delete_published'));
 
             return $this->redirectToRoute('cmsadmin.properties.show', ['reference' => $reference], 303);

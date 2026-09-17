@@ -136,7 +136,6 @@ final class DashboardController extends Controller
         $agency = $this->app->agencies()->find($agencyId, $countryId) ?? throw new HttpException(403);
         $stats = $this->app->stats();
         $counts = $this->app->properties()->countsByStatus($countryId, $agencyId);
-        $newLeads = $this->app->leads()->newCount($countryId, $agencyId);
         $pending = $counts['pending'] + $counts['revision'];
         $toFix = $stats->toFix($countryId, $agencyId);
         $expiring = $stats->expiringSoon($countryId, $agencyId, self::EXPIRY_DAYS);
@@ -163,11 +162,10 @@ final class DashboardController extends Controller
                 'link' => $counts['rejected'] > 0 ? ['label' => __('dashboard.see_listings'), 'url' => 'annonces?statut=rejected'] : null,
             ],
             [
-                'label' => __('dashboard.kpi.leads'),
-                'value' => $newLeads,
-                'hint' => __('dashboard.kpi.leads_hint'),
-                'tone' => $newLeads > 0 ? 'alert' : null,
-                'link' => ['label' => __('dashboard.see_leads'), 'url' => 'contacts'],
+                // Nombre seulement : les demandes sont reçues et traitées par Weblogy, qui sollicite le partenaire.
+                'label' => __('dashboard.kpi.partner_leads'),
+                'value' => $audience['totals']['leads'],
+                'hint' => __('dashboard.kpi.partner_leads_hint', ['days' => self::AUDIENCE_DAYS]),
             ],
         ];
 
@@ -182,7 +180,6 @@ final class DashboardController extends Controller
             'toFix' => $toFix,
             'expiring' => $expiring,
             'recent' => $stats->recentProperties($countryId, $agencyId),
-            'leads' => $this->app->leads()->latest($countryId, $agencyId, 5),
             'missing' => $this->profileGaps($agency, $agencyId),
             'isOwner' => $user->role === User::AGENCY_OWNER,
         ], [

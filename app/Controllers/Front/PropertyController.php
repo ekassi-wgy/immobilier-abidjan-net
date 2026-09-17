@@ -186,9 +186,10 @@ final class PropertyController extends Controller
             'lead.new',
             __('front.contact.notification_title', ['reference' => (string) $property['reference']]),
             __('front.contact.notification_body', ['name' => $validator->string('name'), 'title' => (string) $property['title']]),
-            cmsadmin_url('contacts/' . $leadId),
-            $this->app->notifier()->propertyRecipients($property)
+            cmsadmin_url('contacts/' . $leadId)
         );
+        // Aucun destinataire précisé : seule l'équipe Weblogy du pays est prévenue. Le partenaire ne reçoit
+        // jamais directement la demande ; Weblogy qualifie le prospect puis le sollicite si nécessaire.
     }
 
     /**
@@ -255,9 +256,8 @@ final class PropertyController extends Controller
         if ($detail['map'] !== null) {
             $listing['geo'] = ['@type' => 'GeoCoordinates', 'latitude' => $detail['map']['lat'], 'longitude' => $detail['map']['lng']];
         }
-        if ($detail['agency'] !== null) {
-            $listing['provider'] = ['@type' => 'RealEstateAgent', 'name' => $detail['agency']['name'], 'url' => absolute_url($detail['agency']['url'])];
-        }
+        // Le prestataire affiché est toujours Weblogy (site courant), jamais l'agence partenaire.
+        $listing['provider'] = ['@type' => 'RealEstateAgent', 'name' => $site->name, 'url' => absolute_url('')];
 
         return ['@context' => 'https://schema.org', '@graph' => [$listing]];
     }

@@ -34,6 +34,7 @@ use App\Controllers\Cmsadmin\Properties\PropertyMediaController;
 use App\Controllers\Cmsadmin\SeoController;
 use App\Controllers\Cmsadmin\SettingsController;
 use App\Controllers\Cmsadmin\SiteController;
+use App\Controllers\Cmsadmin\SubmissionController;
 use App\Controllers\Preview\CmsadminPreviewController;
 use App\Core\App;
 use App\Core\Router;
@@ -90,6 +91,8 @@ return static function (Router $router, App $app): void {
                 $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/rejeter', [PropertyActionController::class, 'reject'], 'reject');
                 $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/depublier', [PropertyActionController::class, 'unpublish'], 'unpublish');
                 $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/republier', [PropertyActionController::class, 'republish'], 'republish');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/desactiver', [PropertyActionController::class, 'deactivate'], 'deactivate');
+                $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/reactiver', [PropertyActionController::class, 'reactivate'], 'reactivate');
                 $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/prolonger', [PropertyActionController::class, 'extend'], 'extend');
                 $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/archiver', [PropertyActionController::class, 'archive'], 'archive');
                 $router->post('/{reference:[A-Z][A-Z0-9]*-[0-9]+}/disponibilite', [PropertyActionController::class, 'availability'], 'availability');
@@ -101,8 +104,9 @@ return static function (Router $router, App $app): void {
             $router->get('/notifications/{id:\\d+}', [NotificationController::class, 'open'], 'notifications.open');
             $router->post('/notifications/tout-lire', [NotificationController::class, 'markAllRead'], 'notifications.read_all');
 
-            // Demandes de contact : tous les rôles, dans leur périmètre (agence = les siennes)
-            $router->group(['prefix' => '/contacts', 'as' => 'leads.'], static function (Router $router): void {
+            // Demandes de contact : équipe Weblogy uniquement. Weblogy est l'intermédiaire exclusif :
+            // un partenaire ne voit jamais l'identité d'un prospect, Weblogy le sollicite lui-même.
+            $router->group(['prefix' => '/contacts', 'as' => 'leads.', 'middleware' => [RequireRole::class . ':staff']], static function (Router $router): void {
                 $router->get('/', [LeadController::class, 'index'], 'index');
                 $router->get('/{id:\\d+}', [LeadController::class, 'show'], 'show');
                 $router->post('/{id:\\d+}', [LeadController::class, 'update'], 'update');
@@ -136,6 +140,14 @@ return static function (Router $router, App $app): void {
                 $router->get('/demandes-partenariat', [PartnerRequestController::class, 'index'], 'partners.index');
                 $router->get('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'show'], 'partners.show');
                 $router->post('/demandes-partenariat/{id:\\d+}', [PartnerRequestController::class, 'update'], 'partners.update');
+                $router->get('/demandes-partenariat/{id:\\d+}/pieces/{file:\\d+}', [PartnerRequestController::class, 'document'], 'partners.document');
+
+                // Biens confiés par des particuliers : étude, décision, création de l'annonce brouillon
+                $router->get('/biens-confies', [SubmissionController::class, 'index'], 'submissions.index');
+                $router->get('/biens-confies/{id:\\d+}', [SubmissionController::class, 'show'], 'submissions.show');
+                $router->post('/biens-confies/{id:\\d+}', [SubmissionController::class, 'update'], 'submissions.update');
+                $router->post('/biens-confies/{id:\\d+}/annonce', [SubmissionController::class, 'convert'], 'submissions.convert');
+                $router->get('/biens-confies/{id:\\d+}/fichiers/{file:\\d+}', [SubmissionController::class, 'file'], 'submissions.file');
 
                 // Journal d'activité (§ 5.2 du cahier des charges) : lecture seule, aucune écriture exposée
                 $router->get('/journal', [ActivityController::class, 'index'], 'activity');

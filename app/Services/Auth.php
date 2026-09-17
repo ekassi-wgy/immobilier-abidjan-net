@@ -11,7 +11,13 @@ use App\Models\Site;
 use App\Models\User;
 
 /**
- * Authentification du back-office : connexion, session, « Rester connecté », déconnexion.
+ * Authentification : connexion, session, « Rester connecté », déconnexion.
+ *
+ * Deux gardes, deux sessions indépendantes, un seul code :
+ * - `cmsadmin` : équipe Weblogy et partenaires (back-office) ; un compte particulier y est refusé ;
+ * - `owner`    : particuliers qui confient un bien (espace propriétaire du site public) ; tout autre
+ *                compte y est refusé. Pas de « Rester connecté » pour ce garde.
+ * Être connecté d'un côté n'ouvre jamais l'autre.
  *
  * Sécurité :
  * - message d'échec générique, temps de réponse identique que le compte existe ou non ;
@@ -27,11 +33,11 @@ final class Auth
     public const LOCKED = 'locked';
     public const WRONG_SITE = 'wrong_site';
 
-    private const SESSION_USER = '_auth.user_id';
-    private const SESSION_FINGERPRINT = '_auth.fingerprint';
-    private const SESSION_ACTIVITY = '_auth.last_activity';
-    private const SESSION_INTENDED = '_auth.intended';
-    private const SESSION_EXPIRED = '_auth.expired';
+    public const GUARD_CMSADMIN = 'cmsadmin';
+    public const GUARD_OWNER = 'owner';
+
+    /** Préfixe des clés de session : le garde cmsadmin garde les clés historiques (sessions en cours conservées). */
+    private readonly string $prefix;
 
     private ?User $user = null;
     private bool $resolved = false;
@@ -45,7 +51,20 @@ final class Auth
         private readonly LoginThrottle $throttle,
         private readonly ActivityLogger $activity,
         private readonly array $config,
+        private readonly string $guard = self::GUARD_CMSADMIN,
     ) {
+        $this->prefix = $guard === self::GUARD_OWNER ? '_owner.' : '_auth.';
+    }
+
+    /** Le compte relève-t-il de ce garde ? Un particulier n'entre jamais au back-office, et inversement. */
+    public function accepts(User $user): bool
+    {
+        return $this->guard === self::GUARD_OWNER ? $user->isOwner() : !$user->isOwner();
+    }
+
+    private function key(string $name): string
+    {
+        return $this->prefix . $name;
     }
 
     /** Tentative de connexion. Retourne Auth::OK, INVALID, LOCKED ou WRONG_SITE. */
@@ -61,7 +80,8 @@ final class Auth
             // Adresse inconnue : calcul de coût équivalent, pour ne pas révéler par le temps de réponse qu'elle n'existe pas
             $this->hasher->hash($password);
         }
-        $valid = $user !== null && $this->hasher->verify($password, $user->passwordHash) && $user->canLogin();
+        // Un compte d'un autre garde échoue comme un mauvais mot de passe : rien n'est révélé.
+        $valid = $user !== null && $this->hasher->verify($password, $user->passwordHash) && $user->canLogin() && $this->accepts($user);
 
         $this->throttle->record($email, $request->ip(), $valid);
         if (!$valid) {
@@ -79,7 +99,7 @@ final class Auth
             $user = $this->users->findById($user->id) ?? $user;
         }
 
-        $this->login($request, $user, $remember);
+        $this->login($request, $user, $remember && $this->config['remember_cookie'] !== '');
         $this->activity->log('user.login', $user->id, $site->country->id, 'user', $user->id, request: $request);
 
         return self::OK;
@@ -90,10 +110,10 @@ final class Auth
     {
         $this->session->regenerate();
         $this->session->forget('_csrf_token');
-        $this->session->forget(self::SESSION_EXPIRED);
-        $this->session->set(self::SESSION_USER, $user->id);
-        $this->session->set(self::SESSION_FINGERPRINT, $this->fingerprint($user));
-        $this->session->set(self::SESSION_ACTIVITY, time());
+        $this->session->forget($this->key('expired'));
+        $this->session->set($this->key('user_id'), $user->id);
+        $this->session->set($this->key('fingerprint'), $this->fingerprint($user));
+        $this->session->set($this->key('last_activity'), time());
 
         $this->users->recordLogin($user->id, $request->ip());
         if ($remember) {
@@ -112,22 +132,22 @@ final class Auth
         }
         $this->resolved = true;
 
-        $userId = $this->session->isStarted() ? $this->session->get(self::SESSION_USER) : null;
+        $userId = $this->session->isStarted() ? $this->session->get($this->key('user_id')) : null;
 
         if (is_int($userId)) {
             $user = $this->users->findById($userId);
-            $idle = time() - (int) $this->session->get(self::SESSION_ACTIVITY, 0) > $this->config['idle_timeout'] * 60;
+            $idle = time() - (int) $this->session->get($this->key('last_activity'), 0) > $this->config['idle_timeout'] * 60;
 
-            if ($user !== null && $user->canLogin() && !$idle
-                && hash_equals((string) $this->session->get(self::SESSION_FINGERPRINT, ''), $this->fingerprint($user))) {
-                $this->session->set(self::SESSION_ACTIVITY, time());
+            if ($user !== null && $user->canLogin() && $this->accepts($user) && !$idle
+                && hash_equals((string) $this->session->get($this->key('fingerprint'), ''), $this->fingerprint($user))) {
+                $this->session->set($this->key('last_activity'), time());
 
                 return $this->user = $user;
             }
 
             $this->clearSession();
             if ($idle) {
-                $this->session->set(self::SESSION_EXPIRED, true);
+                $this->session->set($this->key('expired'), true);
             }
         }
 
@@ -164,10 +184,10 @@ final class Auth
     /** La session vient-elle d'expirer pour inactivité ? (message sur l'écran de connexion, lu une seule fois) */
     public function pullSessionExpired(): bool
     {
-        if (!$this->session->isStarted() || !$this->session->get(self::SESSION_EXPIRED)) {
+        if (!$this->session->isStarted() || !$this->session->get($this->key('expired'))) {
             return false;
         }
-        $this->session->forget(self::SESSION_EXPIRED);
+        $this->session->forget($this->key('expired'));
 
         return true;
     }
@@ -175,16 +195,17 @@ final class Auth
     /** Mémorise la page demandée avant la redirection vers la connexion. */
     public function setIntendedUrl(string $path): void
     {
-        $this->session->set(self::SESSION_INTENDED, $path);
+        $this->session->set($this->key('intended'), $path);
     }
 
-    /** Page à ouvrir après connexion : uniquement un chemin interne au back-office (pas de redirection ouverte). */
+    /** Page à ouvrir après connexion : uniquement un chemin interne à l'espace du garde (pas de redirection ouverte). */
     public function pullIntendedUrl(string $default): string
     {
-        $path = $this->session->get(self::SESSION_INTENDED);
-        $this->session->forget(self::SESSION_INTENDED);
+        $path = $this->session->get($this->key('intended'));
+        $this->session->forget($this->key('intended'));
+        $area = $this->guard === self::GUARD_OWNER ? '(?:/mon-espace|/confiez-nous-votre-bien)' : '/cmsadmin';
 
-        return is_string($path) && preg_match('#^/cmsadmin(/[A-Za-z0-9/_\-.?=&%]*)?$#', $path) === 1 && !str_contains($path, '//')
+        return is_string($path) && preg_match('#^' . $area . '(/[A-Za-z0-9/_\-.?=&%]*)?$#', $path) === 1 && !str_contains($path, '//')
             ? $path
             : $default;
     }
@@ -200,7 +221,7 @@ final class Auth
         $user = $this->users->findById($userId);
         if ($user !== null) {
             $this->session->regenerate();
-            $this->session->set(self::SESSION_FINGERPRINT, $this->fingerprint($user));
+            $this->session->set($this->key('fingerprint'), $this->fingerprint($user));
             $this->user = $user;
         }
     }
@@ -237,7 +258,7 @@ final class Auth
 
     private function clearSession(): void
     {
-        foreach ([self::SESSION_USER, self::SESSION_FINGERPRINT, self::SESSION_ACTIVITY] as $key) {
+        foreach ([$this->key('user_id'), $this->key('fingerprint'), $this->key('last_activity')] as $key) {
             $this->session->forget($key);
         }
     }
@@ -269,6 +290,9 @@ final class Auth
 
     private function userFromRememberCookie(Request $request): ?User
     {
+        if ($this->config['remember_cookie'] === '') {
+            return null;
+        }
         $cookie = $request->cookie($this->config['remember_cookie']);
         if ($cookie === null || preg_match('/^([a-f0-9]{24}):([a-f0-9]{64})$/', $cookie, $matches) !== 1) {
             return null;
@@ -294,7 +318,7 @@ final class Auth
         }
 
         $user = $this->users->findById((int) $token['user_id']);
-        if ($user === null || !$user->canLogin()) {
+        if ($user === null || !$user->canLogin() || !$this->accepts($user)) {
             $this->db->execute('DELETE FROM remember_tokens WHERE id = :id', ['id' => $token['id']]);
             $this->forgetRememberCookie($request, deleteToken: false);
 
@@ -315,6 +339,9 @@ final class Auth
 
     private function forgetRememberCookie(Request $request, bool $deleteToken): void
     {
+        if ($this->config['remember_cookie'] === '') {
+            return;
+        }
         $cookie = $request->cookie($this->config['remember_cookie']);
         if ($cookie === null) {
             return;

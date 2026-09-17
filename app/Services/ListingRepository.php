@@ -14,6 +14,10 @@ use App\Core\Database;
  *   2. seules les annonces `status = 'published'` et non supprimées sont visibles ;
  *   3. photos : `revision_id IS NULL` (une photo de révision en attente n'est jamais publique).
  * `property_private_details` n'est jamais joint ici.
+ *
+ * Weblogy est l'intermédiaire exclusif : aucune requête publique ne lit l'identité ni les
+ * coordonnées de l'agence partenaire, de son agent ou le contact propre à l'annonce. Le
+ * rattachement (`p.agency_id`) n'est lu que pour enregistrer une demande côté back-office.
  */
 final class ListingRepository
 {
@@ -23,11 +27,8 @@ final class ListingRepository
     /** Colonnes nécessaires à une carte annonce (jamais SELECT *). */
     private const CARD_COLUMNS = "p.id, p.reference, p.title, p.slug, p.price, p.currency_code, p.price_period,
         p.living_area, p.land_area, p.rooms, p.bedrooms, p.bathrooms, p.is_featured, p.published_at,
-        p.contact_phone, p.contact_whatsapp,
         c.name AS category_name, t.name AS transaction_name, t.slug AS transaction_slug,
         ci.name AS city_name, m.name AS commune_name, d.name AS district_name,
-        a.name AS agency_name, a.slug AS agency_slug, a.is_verified AS agency_verified,
-        a.phone AS agency_phone, a.whatsapp AS agency_whatsapp,
         (SELECT i.path FROM property_images i WHERE i.property_id = p.id AND i.revision_id IS NULL ORDER BY i.sort_order, i.id LIMIT 1) AS cover_path,
         (SELECT i.alt_text FROM property_images i WHERE i.property_id = p.id AND i.revision_id IS NULL ORDER BY i.sort_order, i.id LIMIT 1) AS cover_alt,
         (SELECT COUNT(*) FROM property_images i WHERE i.property_id = p.id AND i.revision_id IS NULL) AS photos_count";
@@ -37,8 +38,7 @@ final class ListingRepository
         JOIN transaction_types t ON t.id = p.transaction_type_id
         JOIN cities ci ON ci.id = p.city_id
         LEFT JOIN communes m ON m.id = p.commune_id
-        LEFT JOIN districts d ON d.id = p.district_id
-        LEFT JOIN agencies a ON a.id = p.agency_id AND a.deleted_at IS NULL";
+        LEFT JOIN districts d ON d.id = p.district_id";
 
     public function __construct(private readonly Database $db)
     {
@@ -197,15 +197,14 @@ final class ListingRepository
     public function featuredAgencies(int $countryId, int $limit = 6): array
     {
         return $this->db->select(
-            "SELECT a.id, a.name, a.slug, a.logo_path, a.is_verified, ci.name AS city_name, m.name AS commune_name,
-                    (SELECT COUNT(*) FROM properties p WHERE " . $this->publishedScope() . " AND p.agency_id = a.id) AS listings
+            "SELECT a.id, a.name, a.logo_path, a.partner_type, a.is_verified, ci.name AS city_name, m.name AS commune_name
              FROM agencies a
              LEFT JOIN cities ci ON ci.id = a.city_id
              LEFT JOIN communes m ON m.id = a.commune_id
-             WHERE a.country_id = :country2 AND a.status = 'active' AND a.deleted_at IS NULL AND a.is_featured = 1
-             ORDER BY listings DESC, a.name
+             WHERE a.country_id = :country AND a.status = 'active' AND a.deleted_at IS NULL AND a.is_featured = 1
+             ORDER BY a.is_verified DESC, a.name
              LIMIT :limit",
-            ['country' => $countryId, 'country2' => $countryId, 'limit' => $limit]
+            ['country' => $countryId, 'limit' => $limit]
         );
     }
 
@@ -254,22 +253,16 @@ final class ListingRepository
                     p.address, p.latitude, p.longitude, p.show_exact_location,
                     p.living_area, p.land_area, p.rooms, p.bedrooms, p.bathrooms,
                     p.availability, p.available_from, p.video_url, p.virtual_tour_url, p.document_path,
-                    p.contact_name, p.contact_phone, p.contact_whatsapp,
                     p.published_at, p.updated_at, p.is_featured, p.featured_until,
                     p.meta_title, p.meta_description,
                     p.category_id, p.transaction_type_id, p.city_id, p.commune_id, p.district_id,
-                    p.agency_id, p.agent_user_id,
+                    p.agency_id,
                     c.name AS category_name, c.slug AS category_slug, c.parent_id AS category_parent_id,
                     f.name AS family_name, f.slug AS family_slug,
                     t.name AS transaction_name, t.slug AS transaction_slug,
                     ci.name AS city_name, ci.slug AS city_slug,
                     m.name AS commune_name, m.slug AS commune_slug,
-                    d.name AS district_name, d.slug AS district_slug,
-                    a.name AS agency_name, a.slug AS agency_slug, a.logo_path AS agency_logo,
-                    a.is_verified AS agency_verified, a.phone AS agency_phone, a.whatsapp AS agency_whatsapp,
-                    a.description AS agency_description, a.published_properties_count AS agency_listings,
-                    u.first_name AS agent_first_name, u.last_name AS agent_last_name, u.job_title AS agent_job,
-                    u.phone AS agent_phone, u.whatsapp AS agent_whatsapp
+                    d.name AS district_name, d.slug AS district_slug
              FROM properties p
              JOIN property_categories c ON c.id = p.category_id
              LEFT JOIN property_categories f ON f.id = c.parent_id
@@ -277,8 +270,6 @@ final class ListingRepository
              JOIN cities ci ON ci.id = p.city_id
              LEFT JOIN communes m ON m.id = p.commune_id
              LEFT JOIN districts d ON d.id = p.district_id
-             LEFT JOIN agencies a ON a.id = p.agency_id AND a.deleted_at IS NULL
-             LEFT JOIN users u ON u.id = p.agent_user_id AND u.is_active = 1 AND u.deleted_at IS NULL
              WHERE p.id = :id AND " . $this->publishedScope(),
             ['id' => $id, 'country' => $countryId]
         );
@@ -654,13 +645,11 @@ final class ListingRepository
         $where = $this->agencyScope($filters, $params);
 
         return $this->db->select(
-            "SELECT a.id, a.name, a.slug, a.logo_path, a.description, a.is_verified,
-                    ci.name AS city_name, m.name AS commune_name,
-                    (SELECT COUNT(*) FROM properties p WHERE " . $this->publishedScope(':country2') . " AND p.agency_id = a.id) AS listings
+            "SELECT a.id, a.name, a.logo_path, a.partner_type, a.is_verified, ci.name AS city_name, m.name AS commune_name
              {$where}
-             ORDER BY listings DESC, a.is_verified DESC, a.name
+             ORDER BY a.is_featured DESC, a.is_verified DESC, a.name
              LIMIT :limit OFFSET :offset",
-            $params + ['country2' => $countryId, 'limit' => $limit, 'offset' => $offset]
+            $params + ['limit' => $limit, 'offset' => $offset]
         );
     }
 
@@ -711,68 +700,6 @@ final class ListingRepository
     }
 
     /**
-     * Profil public d'une agence partenaire.
-     *
-     * @return array<string, mixed>|null
-     */
-    public function agencyBySlug(string $slug, int $countryId): ?array
-    {
-        return $this->db->selectOne(
-            "SELECT a.id, a.name, a.slug, a.logo_path, a.description, a.is_verified, a.verified_at,
-                    a.phone, a.whatsapp, a.website, a.address,
-                    ci.name AS city_name, ci.slug AS city_slug, m.name AS commune_name,
-                    (SELECT COUNT(*) FROM properties p WHERE " . $this->publishedScope(':country2') . " AND p.agency_id = a.id) AS listings
-             FROM agencies a
-             LEFT JOIN cities ci ON ci.id = a.city_id
-             LEFT JOIN communes m ON m.id = a.commune_id
-             WHERE a.slug = :slug AND a.country_id = :country AND a.status = 'active' AND a.deleted_at IS NULL",
-            ['slug' => $slug, 'country' => $countryId, 'country2' => $countryId]
-        );
-    }
-
-    /**
-     * Zones de couverture déclarées par l'agence (communes).
-     *
-     * @return list<array{name: string, slug: string, city_slug: string}>
-     */
-    public function agencyZones(int $agencyId): array
-    {
-        return $this->db->select(
-            'SELECT m.name, m.slug, ci.slug AS city_slug
-             FROM agency_zones z
-             JOIN communes m ON m.id = z.commune_id AND m.is_active = 1
-             JOIN cities ci ON ci.id = m.city_id
-             WHERE z.agency_id = :id
-             ORDER BY m.sort_order, m.name',
-            ['id' => $agencyId]
-        );
-    }
-
-    /**
-     * Annonces en ligne d'une agence, paginées (profil public).
-     *
-     * @return array{rows: list<array<string, mixed>>, total: int}
-     */
-    public function byAgency(int $agencyId, int $countryId, int $limit, int $offset): array
-    {
-        $params = ['country' => $countryId, 'agency' => $agencyId];
-
-        return [
-            'total' => (int) $this->db->scalar(
-                'SELECT COUNT(*) FROM properties p WHERE ' . $this->publishedScope() . ' AND p.agency_id = :agency',
-                $params
-            ),
-            'rows' => $this->db->select(
-                'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . '
-                 WHERE ' . $this->publishedScope() . ' AND p.agency_id = :agency
-                 ORDER BY p.published_at DESC, p.id DESC
-                 LIMIT :limit OFFSET :offset',
-                $params + ['limit' => $limit, 'offset' => $offset]
-            ),
-        ];
-    }
-
-    /**
      * Villes proposées en filtre de l'annuaire : celles où une agence active est implantée
      * ou déclare une zone de couverture.
      *
@@ -814,27 +741,6 @@ final class ListingRepository
                  WHERE ' . $this->publishedScope() . '
                  ORDER BY p.published_at DESC LIMIT :limit',
                 ['country' => $countryId, 'limit' => $limit]
-            )
-        );
-    }
-
-    /**
-     * URL des agences partenaires actives.
-     *
-     * @return list<array{loc: string, lastmod: ?string}>
-     */
-    public function sitemapAgencies(int $countryId): array
-    {
-        return array_map(
-            static fn (array $row): array => [
-                'loc' => 'agences/' . $row['slug'],
-                'lastmod' => $row['updated_at'] !== null ? (string) $row['updated_at'] : null,
-            ],
-            $this->db->select(
-                "SELECT slug, updated_at FROM agencies
-                 WHERE country_id = :country AND status = 'active' AND deleted_at IS NULL
-                 ORDER BY name",
-                ['country' => $countryId]
             )
         );
     }

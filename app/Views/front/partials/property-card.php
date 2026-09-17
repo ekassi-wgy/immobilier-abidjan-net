@@ -5,7 +5,8 @@
  * @var array  $property ['reference','url','title','category','transaction','price','currency','period',
  *                        'location','image' => ['src','srcset','alt','placeholder'],'photos',
  *                        'badges' => [['label','variant']],'specs' => [['icon','label']],
- *                        'agency','agency_url'?,'verified','phone','whatsapp','description'?]
+ *                        'phone','whatsapp','description'?]
+ *                        Téléphone et WhatsApp sont ceux de Weblogy : le partenaire n'apparaît jamais en public.
  * @var string $variant  'grid' | 'row'
  * @var bool   $eager    Image chargée immédiatement (au-dessus de la ligne de flottaison)
  */
@@ -76,10 +77,7 @@ $whatsappUrl = !empty($p['whatsapp'])
     <?php endif; ?>
 
     <div class="im-card__footer">
-      <span class="im-card__agency">
-        <?php if (!empty($p['verified'])): ?><?= icon('verified', '', __('front.card.verified_agency')) ?><?php endif; ?>
-        <span><?= e($p['agency']) ?></span>
-      </span>
+      <span class="im-card__reference"><?= e(__('front.card.reference', ['reference' => $p['reference']])) ?></span>
       <div class="im-card__actions">
         <?php if ($whatsappUrl !== null): ?>
         <a class="im-card__action im-card__action--whatsapp" href="<?= e($whatsappUrl) ?>" target="_blank" rel="noopener" aria-label="<?= e(__('front.card.whatsapp', ['reference' => $p['reference']])) ?>"><?= icon('whatsapp') ?></a>

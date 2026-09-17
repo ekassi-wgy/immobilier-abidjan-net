@@ -1,0 +1,312 @@
+// =============================================================================
+// Espace propriétaire (particuliers) et page « Confiez-nous votre bien »
+// =============================================================================
+
+// Connexion, mot de passe : carte centrée, sobre
+.im-auth-page {
+  display: grid;
+  place-items: center;
+
+  &__card {
+    width: 100%;
+    max-width: 28rem;
+    padding: im-fluid(1.5rem, 2.5rem);
+    border: 1px solid $im-line;
+    border-radius: $im-radius-xl;
+    background: $im-white;
+    box-shadow: $im-shadow;
+
+    .im-h3 { margin: .6rem 0 0; }
+  }
+
+  &__lead { margin: .5rem 0 1.5rem; color: $im-muted; font-size: .9375rem; line-height: 1.55; }
+
+  &__forgot { justify-self: end; margin-top: -.5rem; color: $im-navy; font-size: .8125rem; font-weight: $im-weight-semibold; }
+
+  &__switch {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .35rem;
+    margin: 1.5rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid $im-line;
+    color: $im-muted;
+    font-size: .875rem;
+
+    a { display: inline-flex; align-items: center; gap: .3rem; color: $im-navy; font-weight: $im-weight-semibold; }
+    .im-icon { width: 1rem; height: 1rem; }
+  }
+}
+
+// Liste à coches (avantages, engagements)
+.im-checklist {
+  display: grid;
+  gap: .65rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: .9375rem;
+
+  li { display: flex; align-items: flex-start; gap: .6rem; line-height: 1.5; }
+  .im-icon { flex: none; width: 1.1rem; height: 1.1rem; margin-top: .15rem; color: $im-success; }
+}
+
+// Page publique « Confiez-nous votre bien »
+.im-entrust {
+  &__hero {
+    display: grid;
+    align-items: start;
+    gap: im-fluid(2rem, 4rem);
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(lg) { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+
+    .im-lead { max-width: 36rem; margin-top: 1rem; }
+  }
+
+  &__title { margin: .75rem 0 0; }
+
+  &__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 2rem; }
+
+  &__steps {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: im-fluid(1.25rem, 2rem);
+    border-radius: $im-radius-xl;
+    background: $im-snow;
+    list-style: none;
+
+    li {
+      display: grid;
+      gap: 1rem;
+      padding: 1.1rem 0;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      font-size: .9375rem;
+      line-height: 1.55;
+      color: $im-muted;
+
+      & + li { border-top: 1px solid $im-line; }
+    }
+
+    strong { display: block; color: $im-ink; font-weight: $im-weight-semibold; }
+  }
+
+  &__number { color: $im-blue; font-size: .875rem; font-weight: $im-weight-bold; line-height: 1.8; }
+
+  &__columns {
+    display: grid;
+    gap: 2rem;
+    margin-top: im-fluid(2.5rem, 4rem);
+    padding-top: im-fluid(2rem, 3rem);
+    border-top: 1px solid $im-line;
+    grid-template-columns: minmax(0, 1fr);
+
+    @include im-up(md) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .im-h4 { margin: 0; }
+  }
+}
+
+.im-note-band--warning {
+  border: 1px solid rgba($im-blue, .2);
+  background: $im-blue-tint;
+  margin: 0 0 1.5rem;
+}
+
+// En-tête et navigation de l'espace
+.im-owner-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $im-line;
+
+  &__title { margin: .5rem 0 0; }
+}
+
+.im-owner-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+
+  form { margin: 0; }
+  a.im-chip { text-decoration: none; }
+}
+
+.im-owner-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin: 0 0 1.25rem;
+
+  .im-h3 { margin: 0; }
+  p { margin: .35rem 0 0; }
+}
+
+.im-owner-back { display: inline-flex; margin-bottom: 1.25rem; }
+
+// Liste des biens confiés
+.im-owner-list { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+
+.im-owner-item {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  padding: .85rem;
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+  color: $im-ink;
+  text-decoration: none;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  transition: border-color $im-duration-fast $im-ease, box-shadow $im-duration-fast $im-ease;
+
+  @include im-up(sm) { grid-template-columns: 7rem minmax(0, 1fr) auto; }
+
+  .im-badge { grid-column: 2; justify-self: start; @include im-up(sm) { grid-column: auto; } }
+
+  @include im-hover { border-color: rgba($im-blue, .45); box-shadow: $im-shadow-sm; color: $im-ink; }
+
+  &__media {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: $im-radius;
+    background: $im-mist;
+    color: $im-subtle;
+    aspect-ratio: 4 / 3;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+    .im-icon { width: 1.75rem; height: 1.75rem; }
+  }
+
+  &__body { display: grid; gap: .2rem; min-width: 0; }
+  &__title { font-weight: $im-weight-semibold; }
+  &__meta { color: $im-muted; font-size: .8125rem; }
+}
+
+// Panneaux (profil, suivi d'un dossier)
+.im-owner-grid {
+  display: grid;
+  align-items: start;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+
+  @include im-up(lg) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  &--wide { @include im-up(lg) { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); } }
+
+  > div, > aside { display: grid; gap: 1.5rem; min-width: 0; }
+}
+
+.im-owner-panel {
+  padding: im-fluid(1.25rem, 1.75rem);
+  border: 1px solid $im-line;
+  border-radius: $im-radius-lg;
+  background: $im-white;
+
+  > .im-h4 { margin: 0 0 1rem; }
+
+  &--quiet { background: $im-snow; display: grid; gap: .75rem; justify-items: start; }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+
+    .im-h3 { margin: .35rem 0 0; }
+    p { margin: .25rem 0 0; }
+  }
+}
+
+.im-owner-static { display: flex; align-items: center; gap: .4rem; margin: .35rem 0 0; font-weight: $im-weight-medium; .im-icon { width: 1rem; height: 1rem; color: $im-success; } }
+.im-owner-explain { margin: 1.25rem 0 1rem; color: $im-muted; line-height: 1.6; }
+.im-owner-quote { margin: 0 0 1rem; padding: .85rem 1rem; border-left: 3px solid $im-line; background: $im-snow; color: $im-ink; }
+.im-owner-text { margin: 0; color: $im-ink; line-height: 1.65; white-space: normal; overflow-wrap: anywhere; }
+
+.im-owner-contact-card {
+  margin-top: 1.75rem;
+  padding: 1.25rem;
+  border-radius: $im-radius-lg;
+  background: $im-snow;
+
+  p { margin: .35rem 0 0; font-size: .9375rem; }
+  .im-link { display: inline-flex; margin-top: .75rem; font-size: .875rem; }
+}
+
+// Étapes d'avancement d'un dossier
+.im-progress-steps {
+  display: grid;
+  gap: .5rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @include im-up(md) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding-top: .75rem;
+    border-top: 3px solid $im-line;
+    color: $im-subtle;
+    font-size: .8125rem;
+    font-weight: $im-weight-medium;
+
+    &.is-done { border-color: $im-blue; color: $im-ink; }
+    &.is-current { font-weight: $im-weight-semibold; }
+  }
+
+  &__dot {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+
+    .im-icon { width: .8rem; height: .8rem; }
+
+    .is-done & { border-color: $im-blue; background: $im-blue; color: $im-white; }
+  }
+}
+
+.im-owner-photos {
+  display: grid;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+
+  img { display: block; width: 100%; height: auto; border-radius: $im-radius-sm; aspect-ratio: 4 / 3; object-fit: cover; background: $im-mist; }
+}
+
+.im-owner-facts {
+  display: grid;
+  gap: .5rem;
+  margin: 0 0 1rem;
+
+  div { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: .5rem; border-bottom: 1px solid $im-line-soft; font-size: .875rem; }
+  dt { color: $im-muted; font-weight: $im-weight-regular; }
+  dd { margin: 0; text-align: right; font-weight: $im-weight-medium; }
+}
+
+// Trois champs sur une ligne (pièces, chambres, salles d'eau)
+.im-form__triple {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}

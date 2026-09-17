@@ -15,7 +15,9 @@
  * @var array  $old
  * @var array  $flash
  * @var string $csrfToken
+ * @var bool   $multipart  Envoi de fichiers (enctype multipart/form-data)
  */
+$multipart ??= false;
 ?>
 <?php foreach ($flash as $message): ?>
 <p class="im-alert im-alert--<?= e($message['type'] === 'success' ? 'success' : 'info') ?>" role="status">
@@ -27,7 +29,7 @@
 <p class="im-alert im-alert--error" role="alert"><?= icon('info') ?> <?= e($errors['message']) ?></p>
 <?php endif; ?>
 
-<form class="im-form" method="post" action="<?= e(url($action)) ?>" novalidate>
+<form class="im-form" method="post" action="<?= e(url($action)) ?>"<?= $multipart ? ' enctype="multipart/form-data"' : '' ?> novalidate>
   <input type="hidden" name="_csrf" value="<?= e($csrfToken) ?>">
 
   <?= $fields ?>

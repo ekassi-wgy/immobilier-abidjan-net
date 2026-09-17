@@ -56,6 +56,6 @@ $selectedPrice = (string) ($values['prix_max'] ?? '');
 
   <div class="im-search__footer">
     <a href="<?= e(url($current . '?vue=carte')) ?>"><?= icon('view-map') ?> <?= e(__('front.search.map_link')) ?></a>
-    <a href="<?= e(url('agences')) ?>"><?= icon('verified') ?> <?= e(__('front.search.agencies_link')) ?></a>
+    <a href="<?= e(url('confiez-nous-votre-bien')) ?>"><?= icon('key') ?> <?= e(__('front.search.agencies_link')) ?></a>
   </div>
 </form>

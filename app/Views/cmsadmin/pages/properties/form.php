@@ -31,7 +31,16 @@ foreach ($schema['transactions'] ?? [] as $id => $transaction) {
     $transactions[$id] = $transaction['name'];
 }
 $sections = ['bien' => __('properties.sections.property'), 'prix' => __('properties.sections.price'), 'localisation' => __('properties.sections.location'), 'criteres' => __('properties.sections.criteria'), 'equipements' => __('properties.sections.features'), 'photos' => __('properties.sections.photos'), 'contact' => __('properties.sections.contact'), 'interne' => __('properties.sections.private')];
-$publishedByAgency = $isEdit && !$isStaff && $property['status'] === 'published';
+// Publication directe des partenaires (Paramètres) : sans elle, toute modification d'une annonce en ligne est une révision.
+$directPublish = !$isStaff && (bool) settings('workflow.auto_publish_partner', false);
+$publishedByAgency = $isEdit && !$isStaff && !$directPublish && $property['status'] === 'published';
+$canDraft = !$isEdit || $property['status'] === 'draft';
+$submitLabel = match (true) {
+    $publishedByAgency => 'properties.actions.submit_revision',
+    $isEdit && $property['status'] !== 'draft' => 'cmsadmin.save',
+    $directPublish => 'properties.actions.submit_publish',
+    default => 'properties.actions.submit',
+};
 ?>
 <?= cmsadmin_partial('page-header', [
     'title' => $isEdit ? __('properties.edit_title', ['ref' => $property['reference']]) : __('properties.create_title'),
@@ -289,10 +298,13 @@ $publishedByAgency = $isEdit && !$isStaff && $property['status'] === 'published'
           <?= cmsadmin_partial('switch', ['name' => 'is_featured', 'label' => __('properties.featured'), 'checked' => (bool) $value('is_featured', 0), 'hint' => __('properties.featured_form_hint')]) ?>
           <?= $field(['name' => 'featured_until', 'type' => 'date', 'label' => __('properties.featured_until_label'), 'optional' => true]) ?>
           <?php else: ?>
-          <p class="im-note"><span class="mdi mdi-information-outline" aria-hidden="true"></span> <?= e(__($publishedByAgency ? 'properties.revision.note' : 'properties.review_notice')) ?></p>
+          <p class="im-note"><span class="mdi mdi-information-outline" aria-hidden="true"></span> <?= e(__($publishedByAgency ? 'properties.revision.note' : ($directPublish ? 'properties.direct_publish_notice' : 'properties.review_notice'))) ?></p>
           <?php endif; ?>
           <div class="d-grid gap-2">
-            <button class="btn btn-primary" type="submit"><?= e(__($isEdit ? ($publishedByAgency ? 'properties.actions.submit_revision' : 'cmsadmin.save') : 'properties.actions.submit')) ?></button>
+            <button class="btn btn-primary" type="submit" name="intent" value="submit"><?= e(__($submitLabel)) ?></button>
+            <?php if ($canDraft): ?>
+            <button class="btn im-btn-ghost" type="submit" name="intent" value="draft"><span class="mdi mdi-content-save-outline" aria-hidden="true"></span> <?= e(__('properties.actions.save_draft')) ?></button>
+            <?php endif; ?>
             <a class="btn im-btn-ghost" href="<?= e($isEdit ? cmsadmin_url('annonces/' . $property['reference']) : cmsadmin_url('annonces')) ?>"><?= e(__('cmsadmin.cancel')) ?></a>
           </div>
         </section>

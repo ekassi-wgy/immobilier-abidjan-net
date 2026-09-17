@@ -11,8 +11,8 @@ use App\Core\Response;
  * `sitemap.xml` et `robots.txt` du site courant (lot 2.1).
  *
  * Le sitemap est calculé à chaque appel : il ne contient que des URL réellement indexables —
- * accueil, pages de résultats qui portent au moins une annonce, annonces en ligne, agences
- * actives, pages éditoriales publiées. Une URL surchargée en `noindex` dans `seo_meta` en est
+ * accueil, pages de résultats qui portent au moins une annonce, annonces en ligne, vitrine des
+ * partenaires, pages éditoriales publiées. Une URL surchargée en `noindex` dans `seo_meta` en est
  * retirée : le sitemap ne doit jamais contredire la balise `robots` de la page.
  *
  * `robots.txt` interdit tout hors production : un domaine de pré-production ne doit pas être
@@ -38,8 +38,9 @@ final class SitemapController extends Controller
         foreach ($listings->sitemapProperties($site->country->id, self::MAX_PROPERTIES) as $row) {
             $urls[] = ['loc' => $presenter->url($row), 'lastmod' => $row['lastmod'], 'priority' => '0.7', 'changefreq' => 'weekly'];
         }
-        foreach ($listings->sitemapAgencies($site->country->id) as $row) {
-            $urls[] = $row + ['priority' => '0.5', 'changefreq' => 'monthly'];
+        // Vitrine des partenaires : une seule page (les profils d'agence ne sont plus publics).
+        if ($listings->countAgencies($site->country->id, []) > 0) {
+            $urls[] = ['loc' => 'partenaires', 'lastmod' => null, 'priority' => '0.4', 'changefreq' => 'monthly'];
         }
         foreach ($this->app->pages()->publishedSlugs() as $slug) {
             $urls[] = ['loc' => $slug, 'lastmod' => null, 'priority' => '0.3', 'changefreq' => 'yearly'];

@@ -8,7 +8,9 @@
  * @var string $label
  * @var array  $errors      [champ => message]
  * @var array  $old         Valeurs ressaisies
- * @var string $type        text | email | tel | number | textarea | select
+ * @var string $type        text | email | tel | number | password | textarea | select | file
+ * @var string $accept      Types acceptés (file)
+ * @var bool   $multiple    Plusieurs fichiers (file) — le nom reçoit alors « [] »
  * @var array  $options     [valeur => libellé] pour un select, éventuellement groupé
  * @var bool   $grouped     Les options sont des optgroups [groupe => [valeur => libellé]]
  * @var string $placeholder
@@ -27,6 +29,8 @@ $autocomplete ??= '';
 $required ??= false;
 $maxlength ??= 190;
 $empty ??= '';
+$accept ??= '';
+$multiple ??= false;
 $errors ??= [];
 $old ??= [];
 
@@ -61,6 +65,10 @@ $attributes = ($required ? ' required' : '')
       <?php endforeach; ?>
     <?php endif; ?>
   </select>
+
+  <?php elseif ($type === 'file'): ?>
+  <?php /* Un fichier n'est jamais ré-affiché après une erreur : le navigateur l'interdit, l'aide le rappelle. */ ?>
+  <input class="<?= e($class) ?> im-control--file" id="<?= e($id) ?>" name="<?= e($name . ($multiple ? '[]' : '')) ?>" type="file"<?= $accept !== '' ? ' accept="' . e($accept) . '"' : '' ?><?= $multiple ? ' multiple' : '' ?><?= $attributes ?>>
 
   <?php else: ?>
   <input class="<?= e($class) ?>" id="<?= e($id) ?>" name="<?= e($name) ?>" type="<?= e($type) ?>"

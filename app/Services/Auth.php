@@ -360,7 +360,8 @@ final class Auth
         setcookie($this->config['remember_cookie'], $value, [
             'expires' => $expires,
             'path' => '/cmsadmin',
-            'secure' => $request->isSecure(),
+            // Même règle que le cookie de session : SESSION_SECURE=true force l'attribut derrière un proxy.
+            'secure' => $request->isSecure() || filter_var(config('app.session.secure'), FILTER_VALIDATE_BOOL),
             'httponly' => true,
             'samesite' => 'Lax',
         ]);

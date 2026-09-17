@@ -102,6 +102,14 @@ $check('Prévisualisation désactivée', !$app->config->get('app.preview'), 'APP
 $url = (string) $app->config->get('app.url');
 $check('APP_URL en HTTPS', str_starts_with($url, 'https://'), "APP_URL = « {$url} » : les URL absolues (emails, sitemap, Open Graph) en héritent.");
 
+$secureCookie = $app->config->get('app.session.secure');
+$check(
+    'Cookie de session forcé en HTTPS (SESSION_SECURE=true)',
+    in_array(strtolower((string) var_export($secureCookie, true)), ['true', "'true'", "'1'", '1'], true),
+    'SESSION_SECURE=true : derrière le proxy nginx de Plesk, la détection « auto » du HTTPS peut échouer et le cookie partirait sans l\'attribut Secure.',
+    false
+);
+
 $ttl = $app->config->get('app.cache.sites_ttl');
 $check(
     'Cache des sites actif (' . var_export($ttl, true) . ')',

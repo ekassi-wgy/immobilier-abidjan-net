@@ -84,6 +84,11 @@ final class AccountController extends Controller
                 $v->add($field, __($key, ['min' => $hasher->minLength()]));
             }
         }
+        // Le message « adresse déjà utilisée » révèle qu'un compte existe : cette vérification a son
+        // propre quota par adresse IP, pour qu'un robot ne puisse pas tester une liste d'emails.
+        if (!$v->has('email') && !$this->app->rateLimiter()->attempt('public-form:owner-register-email:' . $request->ip(), 20, 3600)) {
+            return $this->screen('front/pages/owner/register', ['message' => __('front.contact.too_many')], $input, 429, __('owner.register.title'));
+        }
         if (!$v->has('email') && $this->app->users()->emailExists($v->string('email'))) {
             $v->add('email', __('owner.register.email_taken'));
         }

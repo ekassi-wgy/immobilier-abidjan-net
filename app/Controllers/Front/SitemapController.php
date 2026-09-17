@@ -80,12 +80,25 @@ final class SitemapController extends Controller
         $lines = ['User-agent: *'];
 
         if ($site->isProductionHost()) {
-            $lines[] = 'Disallow: /cmsadmin';
-            $lines[] = 'Disallow: /favoris';
-            // Les combinaisons de filtres ne sont pas indexables : inutile d'y dépenser le budget d'exploration.
-            $lines[] = 'Disallow: /*?';
-            $lines[] = '';
-            $lines[] = 'Sitemap: ' . absolute_url('sitemap.xml');
+            // Aucune ligne vide dans le groupe : certains robots y voient la fin du bloc User-agent.
+            array_push(
+                $lines,
+                '# Espaces privés : back-office, espace propriétaire, favoris du visiteur',
+                'Disallow: /cmsadmin',
+                'Disallow: /mon-espace',
+                'Disallow: /favoris',
+                '# Combinaisons de filtres, tris et vues de recherche : contenu en double, déjà en noindex',
+                'Disallow: /*?',
+                '# … sauf la pagination des listes, pour que les robots atteignent toutes les annonces',
+                'Allow: /*?page=',
+                // La règle la plus longue l'emporte : sans ces lignes, « /*? » bloquerait les CSS et JS
+                // versionnés (?v=…) et Google afficherait les pages sans mise en forme.
+                '# Styles, scripts, polices et photos : nécessaires à Google pour afficher les pages',
+                'Allow: /assets/',
+                'Allow: /uploads/',
+                '',
+                'Sitemap: ' . absolute_url('sitemap.xml'),
+            );
         } else {
             // Pré-production et développement : rien ne doit être indexé.
             $lines[] = 'Disallow: /';

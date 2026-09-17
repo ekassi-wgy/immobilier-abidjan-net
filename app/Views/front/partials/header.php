@@ -22,8 +22,8 @@ $navigation = [
 <header class="im-header<?= $overlay ? ' im-header--overlay' : ' is-scrolled' ?>" data-header>
   <div class="im-container im-header__inner">
     <a class="im-header__brand" href="<?= e(url()) ?>" aria-label="<?= e(__('front.nav.home_label', ['site' => $siteName])) ?>">
-      <img class="im-header__logo-dark" src="<?= e(asset('img/brand/logo-immobilier-abidjan-net.png')) ?>" alt="" width="428" height="96">
-      <img class="im-header__logo-light" src="<?= e(asset('img/brand/logo-immobilier-abidjan-net-blanc.png')) ?>" alt="" width="428" height="96">
+      <?= logo_picture('assets/img/brand/logo-immobilier-abidjan-net.png', ['class' => 'im-header__logo-dark', 'width' => 428, 'height' => 96]) ?>
+      <?= logo_picture('assets/img/brand/logo-immobilier-abidjan-net-blanc.png', ['class' => 'im-header__logo-light', 'width' => 428, 'height' => 96]) ?>
     </a>
 
     <nav class="im-header__nav" aria-label="<?= e(__('front.nav.main_label')) ?>">
@@ -54,7 +54,7 @@ $navigation = [
 <div class="im-menu" id="im-menu" role="dialog" aria-modal="true" aria-label="<?= e(__('front.nav.menu_label')) ?>" data-menu hidden>
   <div class="im-container im-menu__top">
     <a class="im-header__brand" href="<?= e(url()) ?>" aria-label="<?= e(__('front.nav.home_label', ['site' => $siteName])) ?>">
-      <img src="<?= e(asset('img/brand/logo-immobilier-abidjan-net.png')) ?>" alt="" width="428" height="96">
+      <?= logo_picture('assets/img/brand/logo-immobilier-abidjan-net.png', ['width' => 428, 'height' => 96, 'loading' => 'lazy']) ?>
     </a>
     <button class="im-header__icon-btn" type="button" aria-label="<?= e(__('front.nav.close_menu')) ?>" data-menu-close>
       <?= icon('close') ?>

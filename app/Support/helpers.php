@@ -159,6 +159,36 @@ function cmsadmin_asset(string $path): string
     return url($relative) . $version;
 }
 
+/**
+ * Logo en WebP avec repli PNG : `<picture>` dont le navigateur ne télécharge qu'une version.
+ * `$path` est le PNG relatif à public/ (ex. « assets/img/brand/logo-symbole.png ») ; le WebP
+ * voisin est généré par `php bin/build-logos.php`. `<picture class="im-picture">` est en
+ * `display: contents` : l'image garde exactement la mise en page d'un simple `<img>`.
+ *
+ * @param array<string, string|int> $attributes Attributs de l'image (class, alt, width, height, loading…)
+ */
+function logo_picture(string $path, array $attributes = []): string
+{
+    $png = ltrim($path, '/');
+    $webp = substr($png, 0, -4) . '.webp';
+    $versioned = static function (string $relative): string {
+        $file = APP_ROOT . '/public/' . $relative;
+
+        return url($relative) . (is_file($file) ? '?v=' . filemtime($file) : '');
+    };
+
+    $attributes += ['alt' => ''];
+    $html = '';
+    foreach ($attributes as $name => $value) {
+        $html .= ' ' . e((string) $name) . '="' . e((string) $value) . '"';
+    }
+    $source = is_file(APP_ROOT . '/public/' . $webp)
+        ? '<source srcset="' . e($versioned($webp)) . '" type="image/webp">'
+        : '';
+
+    return '<picture class="im-picture">' . $source . '<img src="' . e($versioned($png)) . '"' . $html . '></picture>';
+}
+
 /** URL d'une page du back-office. */
 function cmsadmin_url(string $path = ''): string
 {

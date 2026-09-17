@@ -4,7 +4,7 @@
  */
 ?>
 <section class="im-auth__aside" aria-hidden="true">
-  <img class="im-auth__logo" src="<?= e(cmsadmin_asset('images/logo-immobilier-abidjan-net-blanc.png')) ?>" alt="" width="214" height="48">
+  <?= logo_picture('cmsadmin/assets/images/logo-immobilier-abidjan-net-blanc.png', ['class' => 'im-auth__logo', 'width' => 214, 'height' => 48]) ?>
 
   <div class="im-auth__statement">
     <p class="im-eyebrow im-eyebrow--light"><?= e(__('auth.aside.eyebrow')) ?></p>

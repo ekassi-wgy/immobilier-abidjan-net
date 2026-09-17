@@ -62,7 +62,7 @@ $socialIcons = ['facebook' => 'facebook', 'instagram' => 'instagram', 'linkedin'
     <div class="im-footer__top">
       <div class="im-footer__about">
         <a class="im-footer__brand" href="<?= e(url()) ?>" aria-label="<?= e(__('front.nav.home_label', ['site' => $siteName])) ?>">
-          <img src="<?= e(asset('img/brand/logo-immobilier-abidjan-net-blanc.png')) ?>" alt="" width="428" height="96" loading="lazy">
+          <?= logo_picture('assets/img/brand/logo-immobilier-abidjan-net-blanc.png', ['width' => 428, 'height' => 96, 'loading' => 'lazy']) ?>
         </a>
         <p class="im-footer__pitch"><?= e(__('front.footer.pitch', ['country' => $country])) ?></p>
         <?php if ($social !== []): ?>

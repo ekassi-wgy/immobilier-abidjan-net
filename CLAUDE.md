@@ -83,6 +83,7 @@ bin/
   preview/            ✅ PROVISOIRE : front-fixtures.php (styleguide uniquement) — fixtures.php du back-office retiré au lot 1.12
   build-css.php       ✅ compile resources/scss → public/assets/css/app.css
   build-icons.php     ✅ génère le sprite d’icônes
+  build-logos.php     ✅ génère les logos WebP à partir des PNG de marque (à relancer si un logo change)
   create-user.php     ✅ crée un Super Admin / Admin Pays (mot de passe provisoire affiché une fois)
   mail-test.php       ✅ envoie un email de test (vérification SMTP)
   expire-listings.php ✅ CRON quotidien : expiration des annonces + relance avant échéance (--dry-run)
@@ -121,6 +122,7 @@ docs/                 ✅ cahier-des-charges.md, PLAN.md, database.md, tests.md,
 /Applications/MAMP/bin/php/composer install
 php bin/build-css.php            # compile resources/scss → public/assets/css/app.css (minifié) · --dev : lisible
 php bin/build-icons.php          # régénère public/assets/img/icons.svg (liste des icônes dans le script)
+php bin/build-logos.php          # logos PNG → WebP (front et cmsadmin) ; afficher un logo avec logo_picture('assets/img/brand/….png', [...]) — jamais <img> seul
 php bin/create-user.php --role=super_admin --email=… --first-name=… --last-name=…   # compte interne (Admin Pays : --role=country_admin --country=CI)
 php bin/cache-clear.php          # vide storage/cache
 php bin/expire-listings.php      # expiration + relances (CRON quotidien) · --dry-run

@@ -172,7 +172,7 @@ $availability = $p['availability'];
         <section class="im-seller">
           <p class="im-eyebrow"><?= e(__('front.property.seller_title')) ?></p>
           <div class="im-seller__identity">
-            <img class="im-seller__logo" src="<?= e(asset('img/brand/logo-symbole.png')) ?>" alt="" width="64" height="64" loading="lazy">
+            <?= logo_picture('assets/img/brand/logo-symbole.png', ['class' => 'im-seller__logo', 'width' => 64, 'height' => 64, 'loading' => 'lazy']) ?>
             <div>
               <p class="im-seller__name"><?= e(site()->name ?? '') ?> <?= icon('verified', '', __('front.property.seller_verified')) ?></p>
               <p class="im-small im-muted"><?= e(__('front.property.seller_lead')) ?></p>

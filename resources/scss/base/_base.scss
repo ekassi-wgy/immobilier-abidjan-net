@@ -136,6 +136,9 @@ img {
   &:focus { transform: none; color: $im-white; }
 }
 
+// <picture> des logos (logo_picture) : transparent pour la mise en page, l'image se place comme un <img>
+.im-picture { display: contents; }
+
 // Structure -------------------------------------------------------------------
 .im-container {
   width: 100%;

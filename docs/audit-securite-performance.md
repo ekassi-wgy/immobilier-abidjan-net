@@ -227,7 +227,7 @@ filtres correspondants. Aucun index manquant identifié à ce volume.
 | # | Point | Recommandation | Échéance |
 |---|---|---|---|
 | 1 | `mod_deflate` non vérifiable en local | Confirmer la compression active sur Plesk (`curl -H "Accept-Encoding: gzip" -I`) | Lot 3.1 |
-| 2 | Logos PNG : 54 Ko chargés sur chaque page (42 Ko + 12 Ko, versions sombre et claire) | Servir des WebP via `<picture>` avec repli PNG : **54 Ko → 26 Ko**. Touche aux fichiers de marque fournis par le client → **à valider avant de le faire** | À arbitrer |
+| 2 | Logos PNG : 54 Ko chargés sur chaque page (42 Ko + 12 Ko, versions sombre et claire) | WebP servis via `<picture>` avec repli PNG (`logo_picture()`, fichiers générés par `php bin/build-logos.php`, sans perte pour le logo blanc, qualité 92 pour les autres) : **54 Ko → 27 Ko**, rendu identique à l’œil. Les PNG d’origine restent (repli, JSON-LD, emails) | **Fait** |
 | 3 | Liste des annonces du back-office : 82 ms, tri non indexable (`FIELD(status,'pending') DESC, COALESCE(updated_at, created_at) DESC`) | Acceptable à ce volume. À revoir au-delà de ~50 000 annonces par pays : colonne générée indexée ou simplification du tri | Si le volume l'impose |
 | 4 | Export CSV construit en mémoire | Suffisant jusqu'au plafond de 10 000 lignes (28 Mo mesurés). Passer en flux si le plafond est relevé | Si le plafond change |
 | 5 | Pas de cache HTTP sur le HTML | Un micro-cache (quelques secondes) devant PHP serait utile en cas de pic de trafic. Dépend de l'infrastructure retenue | À arbitrer avec l'hébergeur |

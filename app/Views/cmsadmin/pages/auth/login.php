@@ -19,7 +19,7 @@ $flash ??= [];
 
   <section class="im-auth__main">
     <div class="im-auth__panel">
-      <img class="im-auth__logo-mobile" src="<?= e(cmsadmin_asset('images/logo-immobilier-abidjan-net.png')) ?>" alt="<?= e(site()->name ?? '') ?>" width="178" height="40">
+      <?= logo_picture('cmsadmin/assets/images/logo-immobilier-abidjan-net.png', ['class' => 'im-auth__logo-mobile', 'alt' => site()->name ?? '', 'width' => 178, 'height' => 40]) ?>
 
       <h1 class="im-auth__title"><?= e(__('auth.login.title')) ?></h1>
       <p class="im-auth__subtitle"><?= e(__('auth.login.subtitle')) ?></p>

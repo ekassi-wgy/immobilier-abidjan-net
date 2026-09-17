@@ -62,6 +62,7 @@ Sans MAMP : `PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8765 -t public bin/dev-se
 ```bash
 php bin/build-css.php           # resources/scss → public/assets/css/app.css (--dev : lisible)
 php bin/build-icons.php         # régénère le sprite d'icônes Phosphor
+php bin/build-logos.php         # génère les logos WebP à partir des PNG de marque
 php bin/create-user.php         # compte interne (--role=super_admin|country_admin --country=CI)
 php bin/cache-clear.php         # vide storage/cache (après déploiement ou écriture directe en base)
 php bin/expire-listings.php     # CRON quotidien : expiration des annonces + relances (--dry-run)

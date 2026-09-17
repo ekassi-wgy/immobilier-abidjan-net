@@ -1045,3 +1045,6 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 /* Photos d'un bien confié (servies par contrôleur depuis le stockage privé) */
 .im-thumb-grid { display: grid; gap: .5rem; margin: .75rem 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); }
 .im-thumb-grid img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--im-radius-sm); background: var(--im-snow); }
+
+/* <picture> des logos (helper logo_picture) : transparent pour la mise en page */
+.im-picture { display: contents; }

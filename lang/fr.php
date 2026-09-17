@@ -502,6 +502,7 @@ return [
             'missing' => ':count annonce mise de côté n’est plus en ligne.|:count annonces mises de côté ne sont plus en ligne.',
         ],
         'footer' => [
+            'whatsapp' => 'Discuter sur WhatsApp',
             'pitch' => 'Les annonces immobilières des agences partenaires en :country, vérifiées avant publication.',
             'search' => 'Rechercher',
             'sell' => 'Vendre ou louer',

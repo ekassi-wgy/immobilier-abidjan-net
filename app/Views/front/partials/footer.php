@@ -44,6 +44,7 @@ $legal = array_values(array_filter([
 $phone = $site->contactPhone ?? null;
 $email = $site->contactEmail ?? null;
 $whatsapp = $site->contactWhatsapp ?? null;
+$address = $site->address ?? null;
 ?>
 <footer class="im-footer">
   <div class="im-container">
@@ -53,18 +54,23 @@ $whatsapp = $site->contactWhatsapp ?? null;
           <img src="<?= e(asset('img/brand/logo-immobilier-abidjan-net-blanc.png')) ?>" alt="" width="428" height="96" loading="lazy">
         </a>
         <p class="im-footer__pitch"><?= e(__('front.footer.pitch', ['country' => $country])) ?></p>
-        <?php if ($phone !== null || $email !== null): ?>
+        <?php if ($phone !== null || $email !== null || $address !== null): ?>
         <ul class="im-footer__contact">
           <?php if ($phone !== null): ?>
-          <li><a href="tel:<?= e(preg_replace('/[^\d+]/', '', $phone)) ?>"><?= icon('phone') ?> <?= e($phone) ?></a></li>
-          <?php endif; ?>
-          <?php if ($whatsapp !== null): ?>
-          <li><a href="https://wa.me/<?= e(preg_replace('/\D+/', '', $whatsapp)) ?>" target="_blank" rel="noopener"><?= icon('whatsapp') ?> WhatsApp</a></li>
+          <li><a class="im-footer__contact-item im-footer__contact-item--strong" href="tel:<?= e(preg_replace('/[^\d+]/', '', $phone)) ?>"><?= icon('phone') ?><span><?= e($phone) ?></span></a></li>
           <?php endif; ?>
           <?php if ($email !== null): ?>
-          <li><a href="mailto:<?= e($email) ?>"><?= icon('mail') ?> <?= e($email) ?></a></li>
+          <li><a class="im-footer__contact-item" href="mailto:<?= e($email) ?>"><?= icon('mail') ?><span><?= e($email) ?></span></a></li>
+          <?php endif; ?>
+          <?php if ($address !== null): ?>
+          <li><a class="im-footer__contact-item" href="<?= e(url('contact')) ?>"><?= icon('pin') ?><span><?= e($address) ?></span></a></li>
           <?php endif; ?>
         </ul>
+        <?php endif; ?>
+        <?php if ($whatsapp !== null): ?>
+        <a class="im-footer__whatsapp" href="https://wa.me/<?= e(preg_replace('/\D+/', '', $whatsapp)) ?>" target="_blank" rel="noopener">
+          <?= icon('whatsapp') ?> <?= e(__('front.footer.whatsapp')) ?> <?= icon('arrow-up-right') ?>
+        </a>
         <?php endif; ?>
       </div>
       <?php foreach ($columns as $title => $links): ?>

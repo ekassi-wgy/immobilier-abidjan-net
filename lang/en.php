@@ -501,6 +501,7 @@ return [
             'missing' => ':count saved listing is no longer online.|:count saved listings are no longer online.',
         ],
         'footer' => [
+            'whatsapp' => 'Chat on WhatsApp',
             'pitch' => 'Listings from partner agencies in :country, checked before publication.',
             'search' => 'Search',
             'sell' => 'Sell or rent',

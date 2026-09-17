@@ -19,6 +19,61 @@
 
   &__pitch { max-width: 22rem; margin-top: 1.25rem; }
 
+  // Coordonnées : liste sans puces, icônes discrètes, valeurs lisibles sur fond sombre
+  &__contact {
+    display: grid;
+    gap: .7rem;
+    max-width: 22rem;
+    margin: 1.75rem 0 0;
+    padding: 1.5rem 0 0;
+    border-top: 1px solid rgba($im-white, .12);
+    list-style: none;
+  }
+
+  &__contact-item {
+    display: grid;
+    align-items: start;
+    gap: .75rem;
+    grid-template-columns: 1.1rem minmax(0, 1fr);
+    color: rgba($im-white, .72);
+    font-size: .875rem;
+    line-height: 1.5;
+    text-decoration: none;
+    transition: color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.1rem; height: 1.1rem; margin-top: .12rem; color: rgba($im-white, .45); transition: color $im-duration-fast $im-ease; }
+
+    span { overflow-wrap: anywhere; }
+
+    &--strong { color: $im-white; font-size: 1rem; font-weight: $im-weight-semibold; font-variant-numeric: tabular-nums; }
+
+    @include im-hover { color: $im-white; .im-icon { color: $im-white; } }
+    &:focus-visible { @include im-focus-ring; border-radius: $im-radius-xs; }
+  }
+
+  &__whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 44px;
+    margin-top: 1.25rem;
+    padding: 0 1.1rem;
+    border: 1px solid rgba($im-white, .2);
+    border-radius: 999px;
+    color: $im-white;
+    font-size: .875rem;
+    font-weight: $im-weight-semibold;
+    text-decoration: none;
+    transition: background-color $im-duration-fast $im-ease, border-color $im-duration-fast $im-ease;
+
+    .im-icon { width: 1.1rem; height: 1.1rem; }
+    .im-icon:first-child { color: $im-whatsapp; }
+    .im-icon:last-child { width: .85rem; height: .85rem; opacity: .6; }
+
+    @include im-hover { border-color: $im-whatsapp; background: rgba($im-whatsapp, .14); }
+    &:focus-visible { @include im-focus-ring; }
+  }
+
   &__title {
     margin-bottom: 1rem;
     font-size: .75rem;

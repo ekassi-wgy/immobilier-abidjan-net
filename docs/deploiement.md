@@ -36,9 +36,21 @@ l'ouverture au public.
    - `memory_limit` ≥ 128M, `upload_max_filesize` ≥ 12M, `post_max_size` ≥ 60M (une annonce peut
      recevoir plusieurs photos en une fois), `max_execution_time` ≥ 60 ;
    - `display_errors = Off`.
-4. Vérifier que la **ligne de commande** utilise elle aussi PHP 8.2+ (`php -v` en SSH) : les CRON en
-   dépendent. Si l'hébergeur garde un PHP ancien par défaut, utiliser le chemin complet
-   (`/opt/plesk/php/8.2/bin/php`) dans les tâches planifiées.
+4. Vérifier que la **ligne de commande** utilise elle aussi PHP 8.2+ (`php -v` en SSH). **Ce n'est
+   presque jamais le cas** : sur le serveur du client, le `php` du PATH est le PHP système
+   (constaté : 5.4.16), qui ne sait même pas lire `declare(strict_types=1)` — le script s'arrête sur
+   `Unsupported declare 'strict_types'`. Lister les versions Plesk avec `ls /opt/plesk/php/` et
+   employer **le chemin complet partout** : scripts `bin/`, tâches planifiées, Composer.
+
+   ```bash
+   ls /opt/plesk/php/                       # versions installées
+   /opt/plesk/php/8.2/bin/php -v
+   /opt/plesk/php/8.2/bin/php -m | grep -E '^(gd|intl|mbstring|pdo_mysql|fileinfo)$'
+   /opt/plesk/php/8.2/bin/php -r 'var_dump(function_exists("imagewebp"), gd_info()["WebP Support"] ?? false);'
+   ```
+
+   Le dernier contrôle n'est pas une formalité : toutes les photos du site sont en WebP, et sans ce
+   support GD, `bin/seed-demo.php` et tout envoi de photo échouent en cours de route.
 
 ## 2. Base de données
 
@@ -154,13 +166,42 @@ Les migrations sont **rejouables** (`CREATE TABLE IF NOT EXISTS`, gardes sur `in
 
 ## 3. Code
 
+> **Jamais en `root`.** Tout ce qui suit — `git clone`, `composer`, les scripts `bin/`, la création
+> des dossiers — se fait sous **l'utilisateur système de l'abonnement** (Plesk → *Accès hébergement
+> Web*). En root, les fichiers et dossiers créés appartiennent à `root:root` : le site les affiche,
+> mais PHP-FPM, qui tourne sous l'utilisateur de l'abonnement, ne peut plus écrire dedans. La panne
+> se déclare bien plus tard — au premier envoi de photo d'un partenaire, quand l'application essaie
+> de créer `public/uploads/{pays}/annonces/{id}/` — et n'a alors plus rien d'évident.
+
+```bash
+# Nom de l'utilisateur (propriétaire du dossier du site)
+stat -c '%U:%G' /var/www/vhosts/<domaine>/httpdocs
+
+# Basculer sous cet utilisateur depuis root
+su -s /bin/bash - <utilisateur>
+```
+
+L'invite devient `-bash-4.2$` : c'est l'invite par défaut de bash, l'utilisateur n'ayant pas de
+profil personnalisé. `whoami && pwd` confirme où l'on est.
+
 ```bash
 cd ~/httpdocs
 git clone git@github.com:ekassi-wgy/immobilier-abidjan-net.git .
-composer install --no-dev --optimize-autoloader
+composer install --no-dev --optimize-autoloader   # si composer tourne sur le PHP système :
+                                                 # /opt/plesk/php/8.2/bin/php $(command -v composer) install --no-dev
 cp .env.example .env    # puis éditer (voir § 4)
 mkdir -p storage/logs storage/cache storage/mail storage/private public/uploads
 chmod -R u+rwX storage public/uploads
+```
+
+Le déploiement Git de Plesk ne crée pas `storage/` : sans le `mkdir`, `check-deploy.php` signale
+`storage/logs` et `storage/private` non inscriptibles.
+
+Si des fichiers ont malgré tout été créés en root — `find ~/httpdocs -user root | head` les
+révèle — remettre les propriétaires en place :
+
+```bash
+chown -R <utilisateur>:psacln /var/www/vhosts/<domaine>/httpdocs
 ```
 
 `public/assets/css/app.css` est **commité** : il n'y a ni Node ni build à lancer sur le serveur.
@@ -199,6 +240,16 @@ MAIL_FROM_NAME="immobilier.abidjan.net"
 ```
 
 `chmod 600 .env`. Une variable définie au niveau de Plesk prime sur le fichier.
+
+> `nano` n'est pas installé sur le serveur ; `vi` l'est. Pour éviter l'éditeur, `sed -i` fait
+> l'affaire — et `read -s` garde le mot de passe SMTP hors de l'historique du shell :
+>
+> ```bash
+> read -s -p "Mot de passe d'application Gmail : " MDP_SMTP; echo
+> sed -i "s|^SMTP_PASSWORD=.*|SMTP_PASSWORD=${MDP_SMTP}|" .env
+> unset MDP_SMTP
+> chmod 600 .env          # sed -i recrée le fichier : les droits sont à reposer
+> ```
 
 > `MAIL_FROM_ADDRESS` doit être le compte Gmail authentifié ou un alias validé, sinon les envois
 > sont refusés. Le quota d'envoi journalier de Gmail est limité : à surveiller, et à revoir avant
@@ -246,8 +297,12 @@ Plesk → **Tâches planifiées**, une fois par jour, dans cet ordre :
 
 | Quand | Commande | Rôle |
 |---|---|---|
-| 03:00 | `cd ~/httpdocs && php bin/expire-listings.php` | expire les annonces arrivées à échéance et relance les agences avant la date |
-| 03:15 | `cd ~/httpdocs && php bin/cleanup-uploads.php` | supprime les photos envoyées mais jamais rattachées à une annonce |
+| 03:00 | `cd ~/httpdocs && /opt/plesk/php/8.2/bin/php bin/expire-listings.php` | expire les annonces arrivées à échéance et relance les agences avant la date |
+| 03:15 | `cd ~/httpdocs && /opt/plesk/php/8.2/bin/php bin/cleanup-uploads.php` | supprime les photos envoyées mais jamais rattachées à une annonce |
+
+Le **chemin complet est obligatoire** : Plesk propose `php`, qui est le PHP système (5.4), sur
+lequel les scripts ne démarrent pas. La tâche doit par ailleurs s'exécuter sous l'utilisateur de
+l'abonnement, jamais en root (§ 3).
 
 Les deux acceptent `--dry-run` pour un essai sans écriture. Faire un premier passage à blanc.
 
@@ -373,6 +428,10 @@ d'audience (après consentement) reprennent automatiquement.
 ## Rappel des pièges
 
 - **Racine des documents sur `public/`**, jamais sur la racine du dépôt.
+- **Jamais en `root`** : sous l'utilisateur système de l'abonnement, sinon PHP-FPM ne peut plus
+  écrire dans `public/uploads/` et le premier envoi de photo échoue, longtemps après (§ 3).
+- **Le `php` du PATH est le PHP système** (5.4 chez le client) : chemin complet
+  `/opt/plesk/php/8.2/bin/php` pour les scripts `bin/` comme pour les CRON (§ 1 et § 7).
 - **Import SQL par phpMyAdmin : l'onglet « Importer », jamais la fenêtre SQL** (celle-ci normalise
   les sauts de ligne en CRLF et truffe les textes de `\r`), et **un fichier = une exécution** —
   chaque soumission ouvre une nouvelle connexion et remet les variables de session à `NULL`, si

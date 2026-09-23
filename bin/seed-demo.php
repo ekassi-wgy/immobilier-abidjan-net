@@ -300,11 +300,28 @@ $listings = [
 ];
 
 $columnsAllowed = ['living_area', 'land_area', 'rooms', 'bedrooms', 'bathrooms'];
+
+/**
+ * Coordonnées imposées, pour les localités où le tirage aléatoire ci-dessous ne convient pas.
+ *
+ * Assinie-Mafia est un cordon littoral large de quelques centaines de mètres entre l'océan et la
+ * lagune : n'importe quel décalage aléatoire y tombe dans l'eau, et la carte de la fiche n'affiche
+ * alors qu'un aplat bleu. Ces deux points ont été relevés sur la carte (village et zone boisée
+ * côté lagune). Toute nouvelle annonce de démonstration en bord de mer doit figurer ici.
+ */
+$fixedCoordinates = [
+    'Villa pieds dans l’eau avec piscine' => [5.1334, -3.2781],
+    'Villa meublée avec piscine face à la lagune' => [5.1335, -3.2889],
+];
 foreach ($listings as $index => [$partner, $transaction, $category, $title, $location, $price, $period, $columns, $criteria, $equipment, $photos, $featured, $daysAgo, $description]) {
     $geo = $place(...$location);
     $publishedAt = $date($daysAgo);
     $exact = $index % 4 === 0;
     $communeName = $location[1];
+    $coordinates = $fixedCoordinates[$title] ?? [
+        $geo['lat'] + (mt_rand(-40, 40) / 10000),
+        $geo['lng'] + (mt_rand(-40, 40) / 10000),
+    ];
 
     $data = [
         'reference' => 'TMP-' . bin2hex(random_bytes(6)),
@@ -324,8 +341,10 @@ foreach ($listings as $index => [$partner, $transaction, $category, $title, $loc
         'city_id' => $geo['city_id'],
         'commune_id' => $geo['commune_id'],
         'district_id' => $geo['district_id'],
-        'latitude' => round($geo['lat'] + (mt_rand(-150, 150) / 10000), 7),
-        'longitude' => round($geo['lng'] + (mt_rand(-150, 150) / 10000), 7),
+        // ±0,004° ≈ 450 m : de quoi éviter que les annonces d'une même commune se superposent,
+        // sans les expédier dans la lagune ou en mer (le ±0,015° d'origine valait ±1,7 km).
+        'latitude' => round($coordinates[0], 7),
+        'longitude' => round($coordinates[1], 7),
         'show_exact_location' => (int) $exact,
         'availability' => 'available',
         'contact_name' => $partner === null ? null : 'Contact démonstration',

@@ -2,9 +2,12 @@
 
 Procédure de première mise en ligne sur **Plesk**, puis de chaque déploiement suivant.
 
-> **Ce document est une procédure, pas un compte rendu.** Le lot 3.1 ne peut pas être exécuté tant
-> que le client n'a pas fourni les accès (§ 0). Tout ce qui pouvait être préparé sans ces accès l'a
-> été : ce runbook et le script `bin/check-deploy.php`.
+> **Première mise en ligne faite le 23/09/2026** : le site tourne sur
+> https://immobilier.abidjan.net, `bin/check-deploy.php` passe à 0 échec et 0 alerte, et le contenu
+> de démonstration est en place pour la validation client. Ce document reste la procédure de
+> référence — pour les déploiements suivants (§ 10), la pré-production (§ 11) et l'ouverture au
+> public (§ 12). Les obstacles rencontrés lors de cette première exécution sont consignés là où ils
+> se produisent (§ 1 pour PHP, § 3 pour l'utilisateur système, § 2.2 pour phpMyAdmin).
 
 ---
 
@@ -12,10 +15,10 @@ Procédure de première mise en ligne sur **Plesk**, puis de chaque déploiement
 
 | Élément | Pourquoi | Statut |
 |---|---|---|
-| Accès Plesk (abonnement du domaine `abidjan.net`) | créer le sous-domaine, gérer PHP, SSL, CRON, sauvegardes | ⬜ |
-| Droit de créer l'enregistrement DNS `immobilier.abidjan.net` | pointer le sous-domaine | ⬜ |
-| Moteur de base de production : **MySQL 8 ou MariaDB (préciser la version)** | le schéma est écrit pour les deux mais n'a été testé que sur MySQL 8.0.40 | ⬜ |
-| Clé SSH de déploiement à ajouter au dépôt GitHub | `git pull` depuis le serveur, sans mot de passe | ⬜ |
+| Accès Plesk (abonnement du domaine `abidjan.net`) | créer le sous-domaine, gérer PHP, SSL, CRON, sauvegardes | ✅ 23/09/2026 |
+| Droit de créer l'enregistrement DNS `immobilier.abidjan.net` | pointer le sous-domaine | ✅ 23/09/2026, HTTPS actif |
+| Moteur de base de production : **MySQL 8 ou MariaDB (préciser la version)** | le schéma est écrit pour les deux mais n'a été testé que sur MySQL 8.0.40 | 🟡 base `databimabnet` en service ; **version à consigner** (`SELECT VERSION()`) |
+| Clé SSH de déploiement à ajouter au dépôt GitHub | `git pull` depuis le serveur, sans mot de passe | ✅ code déployé dans `httpdocs` |
 | Nouveau mot de passe d'application Gmail | celui du développement a circulé en clair, il doit être révoqué | ⬜ |
 
 Les **mentions obligatoires** encore manquantes des mentions légales (autorisation d'intermédiation immobilière — l'identité de Weblogy Tech S.A est
@@ -57,8 +60,10 @@ l'ouverture au public.
 Les fichiers SQL arrivent avec le dépôt (dossier `database/`) : déployer le code (§ 3) **avant**
 l'import, ou téléverser les fichiers à la main si l'import se fait depuis phpMyAdmin.
 
-1. Plesk → **Bases de données** → créer `immobilier_abidjan_net` en `utf8mb4` /
-   `utf8mb4_unicode_ci`, avec un utilisateur dédié (**jamais** l'utilisateur d'administration).
+1. Plesk → **Bases de données** → créer la base en `utf8mb4` / `utf8mb4_unicode_ci`, avec un
+   utilisateur dédié (**jamais** l'utilisateur d'administration). Le nom est libre — aucun fichier
+   SQL ne contient de `USE` ni de `CREATE DATABASE`, seul `DB_DATABASE` du `.env` compte ; en
+   production c'est **`databimabnet`**.
 2. Importer **dans cet ordre** : `schema.sql`, puis `seed.sql`, puis les migrations par numéro
    croissant (`0002` → `0014`). Deux voies, au choix — voir § 2.1 et § 2.2.
 3. **Vérifier** la table `site_domains` : `seed.sql` y déclare déjà `immobilier.abidjan.net` en

@@ -324,7 +324,11 @@ Les photos du diaporama restent des **photos provisoires** ; les bannières déf
 ### 6.6 Verdict
 
 **Le site est prêt pour la mise en production** sur le plan fonctionnel, sécurité, référencement et performance.
-Restent les prérequis déjà connus, qui ne relèvent pas du code : accès Plesk/DNS, `SESSION_SECURE=true`,
-compression vérifiée sur le serveur, nouveau mot de passe SMTP, autorisation d'intermédiation dans les mentions
+
+Mise à jour du **23/09/2026**, le site étant déployé : accès Plesk et DNS obtenus, `SESSION_SECURE=true`
+posé, et la **compression est vérifiée en ligne** — `curl -H "Accept-Encoding: gzip" -I` sur `app.css`
+renvoie `Content-Encoding: gzip` **et** `Cache-Control: public, max-age=31536000, immutable`. Ce point,
+non testable en local (MAMP ne charge pas `mod_deflate`), est donc clos : les 192 Ko de CSS partent bien
+en 30 Ko. Restent hors code : nouveau mot de passe SMTP, autorisation d'intermédiation dans les mentions
 légales, relecture juridique.
 

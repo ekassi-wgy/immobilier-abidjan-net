@@ -113,10 +113,13 @@ professionnels déposent un **dossier de partenariat** (pièces justificatives) 
 la console partenaire, et les particuliers **confient leur bien** depuis un espace propriétaire
 (`/mon-espace`, compte obligatoire) que l'équipe transforme en annonce. Le **journal d'activité** (`/cmsadmin/journal`) rend enfin consultable la table `activity_logs` alimentée depuis le lot 1.3 : qui a validé, modifié ou supprimé quoi, avec les différences avant/après. L'**audit de sécurité et de performance** ([`docs/audit-securite-performance.md`](docs/audit-securite-performance.md))
 n'a relevé aucune vulnérabilité exploitable ; sous 10 000 annonces, toutes les pages publiques répondent
-en moins de 125 ms et le back-office en moins de 85 ms. Pour le lot **3.1 (mise en production)**, la
-préparation est livrée — [`docs/deploiement.md`](docs/deploiement.md) et `bin/check-deploy.php` — mais
-**le déploiement lui-même attend les accès Plesk, le DNS du sous-domaine et le moteur de base de
-production**. Le détail lot par lot est dans [`docs/PLAN.md`](docs/PLAN.md).
+en moins de 125 ms et le back-office en moins de 85 ms. Le lot **3.1 (mise en production)** est
+**déployé depuis le 23/09/2026** : le site tourne sur **https://immobilier.abidjan.net** et
+`bin/check-deploy.php` passe à 0 échec et 0 alerte. Il est pour l'instant en **mode démonstration**
+(`bin/seed-demo.php`) le temps de la validation client — donc en `noindex`, `robots.txt` fermé et sans
+mesure d'audience ; l'ouverture au public se fera par `bin/reset-before-launch.php --confirm`, après les
+tâches planifiées et les sauvegardes Plesk. Le détail lot par lot est dans
+[`docs/PLAN.md`](docs/PLAN.md).
 
 > **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)
 > sont rédigés au nom de Weblogy Tech S.A (RCCM CI-BAS-01-2010-B12-01601) et publiés — une relecture

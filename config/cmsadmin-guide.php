@@ -45,6 +45,15 @@ return [
                 ],
             ],
             [
+                'type' => 'table',
+                'title' => 'Deux façons d’arriver sur le site',
+                'head' => ['Origine du bien', 'Qui saisit l’annonce', 'Mise en ligne'],
+                'rows' => [
+                    ['<strong>Partenaire professionnel</strong> (agence, promoteur, gestionnaire)', 'Le partenaire lui-même, depuis son accès au back-office', 'Après validation par Weblogy'],
+                    ['<strong>Particulier</strong> qui confie son bien', 'L’équipe Weblogy, à partir du dossier déposé', 'Après validation par Weblogy'],
+                ],
+            ],
+            [
                 'type' => 'list',
                 'title' => 'Chacun ne voit que son périmètre',
                 'items' => [
@@ -90,6 +99,29 @@ return [
         'roles' => $allRoles,
         'intro' => 'Le cœur du site. Une annonce se compose d’une catégorie, de critères qui dépendent de cette catégorie, de photos, d’un prix et d’une localisation.',
         'blocks' => [
+            [
+                'type' => 'table',
+                'title' => 'Ce que vous faites vous-même, ce qui revient à Weblogy',
+                'roles' => ['agency'],
+                'head' => ['Action', 'Vous', 'Weblogy'],
+                'rows' => [
+                    ['Créer et modifier vos annonces', 'Oui', '—'],
+                    ['Enregistrer un brouillon avant de finaliser', 'Oui', '—'],
+                    ['Désactiver, puis réactiver ce que vous avez désactivé', 'Oui', '—'],
+                    ['Prolonger, archiver (vendu ou loué)', 'Oui', '—'],
+                    ['<strong>Mettre en ligne</strong>', 'Non', 'Valide chaque annonce avant publication'],
+                    ['<strong>Réactiver une annonce dépubliée par Weblogy</strong>', 'Non', 'Elle repasse par la validation'],
+                    ['<strong>Mettre un bien à la une</strong>', 'Non', 'Choix éditorial de l’équipe'],
+                    ['<strong>Traiter les demandes des prospects</strong>', 'Non', 'Vous êtes contacté quand une demande concerne un de vos biens'],
+                ],
+            ],
+            [
+                'type' => 'note',
+                'tone' => 'primary',
+                'title' => 'Vous déposez vos annonces vous-même',
+                'roles' => ['agency'],
+                'html' => '<p class="mb-0">Votre compte donne accès au dépôt et à la gestion de vos biens : vous n’avez pas à les transmettre à Weblogy par email ou par téléphone. Weblogy intervient à la validation, puis comme intermédiaire auprès des prospects.</p>',
+            ],
             [
                 'type' => 'steps',
                 'title' => 'Déposer une annonce',
@@ -183,6 +215,18 @@ return [
         'blocks' => [
             [
                 'type' => 'steps',
+                'title' => 'Ce que le propriétaire fait avant que le dossier vous parvienne',
+                'items' => [
+                    'Il ouvre un compte depuis « <strong>Confiez-nous votre bien</strong> » sur le site public. C’est le seul compte accessible aux particuliers : il n’a <strong>aucun accès au back-office</strong> et ne peut rien publier.',
+                    'Il <strong>confirme son adresse email</strong> (lien valable 48 h). Tant que ce n’est pas fait, le formulaire du bien lui reste fermé.',
+                    'Il décrit son bien et joint ses <strong>photos (1 à 15)</strong> et ses <strong>documents (jusqu’à 5)</strong>, titre de propriété compris.',
+                    'Il reçoit un accusé de réception ; vous recevez une notification et le dossier apparaît ci-dessous.',
+                    'Depuis son espace <strong>/mon-espace</strong>, il suit l’avancement de son dossier — et, une fois le bien en ligne, y trouve le lien de l’annonce.',
+                ],
+            ],
+            [
+                'type' => 'steps',
+                'title' => 'Ce que vous faites ensuite',
                 'items' => [
                     'Ouvrez le dossier : description du bien, photos et documents (titre de propriété…), coordonnées du propriétaire.',
                     'Passez-le <strong>« en cours d’étude »</strong> — le propriétaire en est informé par email.',

@@ -104,16 +104,31 @@ du § 2.1 disparaît. Trois règles :
 
 - **Sélectionner la base dans le panneau de gauche avant tout.** Aucun fichier ne contient de `USE`
   ni de `CREATE DATABASE` : sans sélection, phpMyAdmin répond « No database selected ».
-- **Un fichier = une exécution. Ne jamais découper un fichier en plusieurs « Exécuter ».** Chaque
-  soumission ouvre une **nouvelle connexion MySQL**, donc remet les variables de session à `NULL`.
-  Or `seed.sql` définit `@ci`, `@site` et `@abidjan` en tête et les réutilise 43 fois ensuite, et les
-  migrations `0002`, `0006`, `0007`, `0008` et `0011` enchaînent `SET @has_… := (SELECT …)` puis
-  `PREPARE stmt FROM @sql; EXECUTE stmt;` pour rester rejouables. Un fichier coupé en deux insère
-  des lignes avec `site_id = NULL`, **silencieusement**. Chaque fichier est en revanche autonome
-  (aucun ne dépend d'une variable posée par un autre) : les passer un par un est toujours sûr.
-- Préférer l'onglet **Importer** pour `schema.sql` (53 Ko) et `seed.sql` (34 Ko) — même moteur que
-  la fenêtre SQL, sans risque de limite de POST ; laisser « Jeu de caractères du fichier » sur
-  `utf-8`. La fenêtre SQL convient pour les migrations, plus courtes.
+- **Passer par l'onglet « Importer », jamais par la fenêtre SQL.** La fenêtre SQL est un
+  `<textarea>` : la spécification HTML impose la normalisation des sauts de ligne en **CRLF** à
+  l'envoi du formulaire, si bien que tout littéral SQL multiligne collé là gagne un `\r` par ligne.
+  Constaté en production le 23/09/2026 : les sept pages de `pages.content` portaient 20 à 46
+  retours chariot, soit exactement leur nombre de lignes. L'affichage n'en souffre pas (espace
+  blanc HTML), mais une migration ultérieure qui réécrit un texte par `REPLACE` sur un motif
+  multiligne ne le retrouve plus. L'onglet Importer téléverse le fichier tel quel et n'a pas ce
+  défaut ; il évite aussi la limite de POST sur `schema.sql` (53 Ko) et `seed.sql` (34 Ko). Laisser
+  « Jeu de caractères du fichier » sur `utf-8`.
+
+  Réparation si le mal est fait — `pages.content` est la seule colonne de la base à contenir des
+  sauts de ligne :
+
+  ```sql
+  UPDATE pages SET content = REPLACE(content, CHAR(13), '') WHERE code IS NOT NULL;
+  ```
+
+- **Un fichier = une exécution**, et jamais un fichier découpé en plusieurs « Exécuter » — vrai
+  pour l'import comme pour la fenêtre SQL. Chaque soumission ouvre une **nouvelle connexion
+  MySQL**, donc remet les variables de session à `NULL`. Or `seed.sql` définit `@ci`, `@site` et
+  `@abidjan` en tête et les réutilise 43 fois ensuite, et les migrations `0002`, `0006`, `0007`,
+  `0008` et `0011` enchaînent `SET @has_… := (SELECT …)` puis `PREPARE stmt FROM @sql; EXECUTE
+  stmt;` pour rester rejouables. Un fichier coupé en deux insère des lignes avec `site_id = NULL`,
+  **silencieusement**. Chaque fichier est en revanche autonome (aucun ne dépend d'une variable
+  posée par un autre) : les passer un par un est toujours sûr.
 
 La migration `0008` crée puis supprime une procédure (`im_add_column`) : l'utilisateur de la base a
 besoin du droit `CREATE ROUTINE`, accordé par défaut par Plesk sur sa propre base. Une erreur
@@ -358,9 +373,11 @@ d'audience (après consentement) reprennent automatiquement.
 ## Rappel des pièges
 
 - **Racine des documents sur `public/`**, jamais sur la racine du dépôt.
-- **Import SQL par phpMyAdmin : un fichier = une exécution.** Chaque « Exécuter » ouvre une
-  nouvelle connexion et remet les variables de session à `NULL` : un fichier coupé en deux insère
-  des lignes avec `site_id = NULL`, sans erreur visible (§ 2.2).
+- **Import SQL par phpMyAdmin : l'onglet « Importer », jamais la fenêtre SQL** (celle-ci normalise
+  les sauts de ligne en CRLF et truffe les textes de `\r`), et **un fichier = une exécution** —
+  chaque soumission ouvre une nouvelle connexion et remet les variables de session à `NULL`, si
+  bien qu'un fichier coupé en deux insère des lignes avec `site_id = NULL`, sans erreur visible
+  (§ 2.2).
 - Les migrations `0002` à `0014` sont **obligatoires sur une installation neuve** : sans elles, les
   pages légales restent vides et répondent 404 (§ 2.3).
 - `.env`, `vendor/`, `storage/` et `public/uploads/` ne sont pas dans Git : ils vivent sur le

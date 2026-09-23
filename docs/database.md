@@ -144,12 +144,22 @@ erDiagram
 
 ## Installation locale (MAMP)
 
+Trois étapes, **dans cet ordre** : schéma, référentiels, puis les migrations par numéro croissant.
+
 ```bash
-MYSQL=/Applications/MAMP/Library/bin/mysql80/bin/mysql
-$MYSQL -uroot -proot -h127.0.0.1 -P8889 -e "CREATE DATABASE immobilier_abidjan_net CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-$MYSQL -uroot -proot -h127.0.0.1 -P8889 --default-character-set=utf8mb4 immobilier_abidjan_net < database/schema.sql
-$MYSQL -uroot -proot -h127.0.0.1 -P8889 --default-character-set=utf8mb4 immobilier_abidjan_net < database/seed.sql
+MYSQL="/Applications/MAMP/Library/bin/mysql80/bin/mysql -uroot -proot -h127.0.0.1 -P8889 --default-character-set=utf8mb4"
+$MYSQL -e "CREATE DATABASE immobilier_abidjan_net CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+$MYSQL immobilier_abidjan_net < database/schema.sql
+$MYSQL immobilier_abidjan_net < database/seed.sql
+for f in database/migrations/*.sql; do
+  echo "→ $f"
+  $MYSQL immobilier_abidjan_net < "$f" || { echo "ÉCHEC sur $f"; break; }
+done
 ```
+
+**Les migrations ne sont pas facultatives.** `schema.sql` porte tout le DDL à jour, mais `seed.sql` ne crée que six pages **vides et non publiées** : les textes d'À propos, Comment ça marche, FAQ, mentions légales, CGU, confidentialité et cookies, le mode de commission, les coordonnées de contact et le tag Google n'existent que dans les migrations `0004` à `0014`. Sans elles, les pages légales répondent 404 et leurs liens disparaissent du pied de page. Les migrations sont rejouables (`CREATE TABLE IF NOT EXISTS`, gardes sur `information_schema`, `DROP CONSTRAINT` avant `ADD`).
+
+Puis créer un compte : `php bin/create-user.php --role=super_admin --email=… --first-name=… --last-name=…`. L'import en production (SSH ou phpMyAdmin) est décrit dans `docs/deploiement.md` § 2.
 
 ## Points à valider par le client
 

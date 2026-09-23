@@ -42,19 +42,22 @@ l'ouverture au public.
 
 ## 2. Base de données
 
+Les fichiers SQL arrivent avec le dépôt (dossier `database/`) : déployer le code (§ 3) **avant**
+l'import, ou téléverser les fichiers à la main si l'import se fait depuis phpMyAdmin.
+
 1. Plesk → **Bases de données** → créer `immobilier_abidjan_net` en `utf8mb4` /
    `utf8mb4_unicode_ci`, avec un utilisateur dédié (**jamais** l'utilisateur d'administration).
-2. Importer, dans cet ordre :
+2. Importer **dans cet ordre** : `schema.sql`, puis `seed.sql`, puis les migrations par numéro
+   croissant (`0002` → `0014`). Deux voies, au choix — voir § 2.1 et § 2.2.
+3. **Vérifier** la table `site_domains` : `seed.sql` y déclare déjà `immobilier.abidjan.net` en
+   `environment = 'production'`, `is_primary = 1` — il n'y a normalement rien à modifier.
 
-```bash
-mysql -u <user> -p <base> < database/schema.sql
-mysql -u <user> -p <base> < database/seed.sql
-for f in database/migrations/*.sql; do mysql -u <user> -p <base> < "$f"; done
-```
+   ```sql
+   SELECT host, environment, is_primary FROM site_domains;
+   ```
 
-3. Adapter la table `site_domains` : `immobilier.abidjan.net` doit y figurer en `environment =
-   'production'` et `is_primary = 1`. **Tant qu'un hôte n'est pas déclaré, le site répond 404**, et
-   un hôte déclaré hors production met tout le site en `noindex`.
+   **Tant qu'un hôte n'est pas déclaré, le site répond 404**, et un hôte déclaré hors production
+   met tout le site en `noindex`.
 4. Créer le compte du client :
 
 ```bash
@@ -62,6 +65,77 @@ php bin/create-user.php --role=super_admin --email=… --first-name=… --last-n
 ```
 
 Le mot de passe provisoire n'est affiché qu'une fois et devra être changé à la première connexion.
+
+### 2.1 Import en SSH (voie recommandée)
+
+```bash
+cd ~/httpdocs
+
+# Évite de retaper le mot de passe à chaque fichier et fixe le jeu de caractères du client.
+cat > ~/.my.cnf <<'EOF'
+[client]
+user=<utilisateur>
+password=<mot_de_passe>
+host=127.0.0.1
+default-character-set=utf8mb4
+EOF
+chmod 600 ~/.my.cnf
+
+mysql immobilier_abidjan_net < database/schema.sql
+mysql immobilier_abidjan_net < database/seed.sql
+for f in database/migrations/*.sql; do
+  echo "→ $f"
+  mysql immobilier_abidjan_net < "$f" || { echo "ÉCHEC sur $f"; break; }
+done
+
+rm ~/.my.cnf
+```
+
+`--default-character-set=utf8mb4` (ici via `~/.my.cnf`) n'est pas facultatif : un client MariaDB
+dont le défaut est `latin1` transforme tous les textes légaux accentués en mojibake, et le rattrapage
+après coup est pénible. Le glob `database/migrations/*.sql` trie correctement `0002` → `0014`.
+
+### 2.2 Import par phpMyAdmin
+
+Possible et sans piège de syntaxe : le parseur de phpMyAdmin (`BufferedQuery`) traite correctement
+le `DELIMITER` et le `CREATE PROCEDURE` de la migration `0008` — vérifié sur phpMyAdmin **4.9.11 et
+5.2.1**, la procédure est extraite entière. La connexion étant en `utf8mb4`, le risque de mojibake
+du § 2.1 disparaît. Trois règles :
+
+- **Sélectionner la base dans le panneau de gauche avant tout.** Aucun fichier ne contient de `USE`
+  ni de `CREATE DATABASE` : sans sélection, phpMyAdmin répond « No database selected ».
+- **Un fichier = une exécution. Ne jamais découper un fichier en plusieurs « Exécuter ».** Chaque
+  soumission ouvre une **nouvelle connexion MySQL**, donc remet les variables de session à `NULL`.
+  Or `seed.sql` définit `@ci`, `@site` et `@abidjan` en tête et les réutilise 43 fois ensuite, et les
+  migrations `0002`, `0006`, `0007`, `0008` et `0011` enchaînent `SET @has_… := (SELECT …)` puis
+  `PREPARE stmt FROM @sql; EXECUTE stmt;` pour rester rejouables. Un fichier coupé en deux insère
+  des lignes avec `site_id = NULL`, **silencieusement**. Chaque fichier est en revanche autonome
+  (aucun ne dépend d'une variable posée par un autre) : les passer un par un est toujours sûr.
+- Préférer l'onglet **Importer** pour `schema.sql` (53 Ko) et `seed.sql` (34 Ko) — même moteur que
+  la fenêtre SQL, sans risque de limite de POST ; laisser « Jeu de caractères du fichier » sur
+  `utf-8`. La fenêtre SQL convient pour les migrations, plus courtes.
+
+La migration `0008` crée puis supprime une procédure (`im_add_column`) : l'utilisateur de la base a
+besoin du droit `CREATE ROUTINE`, accordé par défaut par Plesk sur sa propre base. Une erreur
+`#1044` ou `#1370` sur ce seul fichier vient de là.
+
+phpMyAdmin ne dispense pas du SSH pour la suite : `bin/create-user.php`, `bin/cache-clear.php`,
+`bin/check-deploy.php` et `bin/reset-before-launch.php` sont des scripts PHP. Sans accès SSH, ils
+peuvent être lancés en exécution ponctuelle depuis *Plesk → Tâches planifiées* — mais
+`create-user.php` affiche le mot de passe provisoire sur la sortie standard, à rediriger vers un
+fichier, à lire, puis à supprimer.
+
+### 2.3 Pourquoi les migrations sont obligatoires sur une installation neuve
+
+`schema.sql` porte bien tout le DDL à jour (42 tables ; `analytics_id`, `social_links`,
+`property_submissions`… y figurent déjà). Mais `seed.sql` ne crée que **six pages vides et non
+publiées** : les textes d'À propos, Comment ça marche, FAQ, mentions légales, CGU, confidentialité
+et cookies, le mode de commission, les coordonnées de contact et le tag Google n'existent que dans
+les migrations `0004` à `0014`. Sans elles, les pages légales répondent **404** et disparaissent du
+pied de page.
+
+Les migrations sont **rejouables** (`CREATE TABLE IF NOT EXISTS`, gardes sur `information_schema`,
+`DROP CONSTRAINT` avant `ADD`) : les relancer ne casse rien.
 
 ## 3. Code
 
@@ -271,6 +345,11 @@ d'audience (après consentement) reprennent automatiquement.
 ## Rappel des pièges
 
 - **Racine des documents sur `public/`**, jamais sur la racine du dépôt.
+- **Import SQL par phpMyAdmin : un fichier = une exécution.** Chaque « Exécuter » ouvre une
+  nouvelle connexion et remet les variables de session à `NULL` : un fichier coupé en deux insère
+  des lignes avec `site_id = NULL`, sans erreur visible (§ 2.2).
+- Les migrations `0002` à `0014` sont **obligatoires sur une installation neuve** : sans elles, les
+  pages légales restent vides et répondent 404 (§ 2.3).
 - `.env`, `vendor/`, `storage/` et `public/uploads/` ne sont pas dans Git : ils vivent sur le
   serveur et doivent être sauvegardés.
 - Le cache des sites (`CACHE_SITES_TTL=600`) rend les modifications faites en base invisibles

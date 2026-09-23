@@ -159,7 +159,10 @@
   }
 
   // Itinéraire : lien sortant vers Google Maps, présent seulement si l'adresse exacte est publiée.
-  &__directions { margin: 1rem 0 0; }
+  // Marge basse explicite : le bouton ferme la colonne, dont le conteneur n'a pas de retrait —
+  // sans elle, le bord du bouton colle à la section suivante. Elle fusionne avec la marge haute
+  // du bloc suivant quand il y en a un, donc pas de double espacement.
+  &__directions { margin: 1rem 0 im-fluid(2rem, 2.75rem); }
 
   &__aside { min-width: 0; }
 

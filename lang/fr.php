@@ -314,6 +314,7 @@ return [
             'legal_note' => 'Informations déclarées par le propriétaire ou son mandataire. Demandez les documents originaux avant tout engagement.',
             'features_title' => 'Équipements',
             'location_title' => 'Localisation',
+            'directions' => 'Itinéraire',
             'map_exact' => 'Adresse exacte communiquée par le propriétaire ou son mandataire.',
             'map_approximate' => 'Position approximative : l’adresse exacte n’est pas publiée.',
             'media_title' => 'Visite et documents',

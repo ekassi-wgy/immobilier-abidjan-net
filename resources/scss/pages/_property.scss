@@ -158,6 +158,9 @@
     .im-icon { width: 1rem; height: 1rem; flex: none; }
   }
 
+  // Itinéraire : lien sortant vers Google Maps, présent seulement si l'adresse exacte est publiée.
+  &__directions { margin: 1rem 0 0; }
+
   &__aside { min-width: 0; }
 
   &__sticky {

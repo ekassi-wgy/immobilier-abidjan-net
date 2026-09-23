@@ -133,6 +133,7 @@ final class ListingPresenter
             // L'adresse exacte n'est publiée que si l'annonce l'autorise.
             'address' => (int) ($row['show_exact_location'] ?? 0) === 1 && !empty($row['address']) ? (string) $row['address'] : null,
             'map' => $this->map($row),
+            'directions' => $this->directions($row),
             'gallery' => $this->gallery($images, (string) $row['title']),
             'badges' => $this->badges($row),
             'specs' => $this->specs($row),
@@ -199,6 +200,30 @@ final class ListingPresenter
             'lng' => $exact ? (float) $row['longitude'] : round((float) $row['longitude'], 2),
             'exact' => $exact,
         ];
+    }
+
+    /**
+     * Lien d'itinéraire vers Google Maps. C'est une simple URL : ni clé d'API, ni cookie déposé,
+     * ni quota consommé — le visiteur bascule dans l'application qu'il utilise déjà, avec la
+     * navigation. Rien à voir avec la carte affichée sur la page, qui reste Leaflet + OSM.
+     *
+     * **Uniquement quand l'adresse exacte est publique.** Sinon un itinéraire révélerait ce que
+     * l'arrondi des coordonnées masque volontairement (voir map()).
+     */
+    private function directions(array $row): ?string
+    {
+        if ((int) ($row['show_exact_location'] ?? 0) !== 1) {
+            return null;
+        }
+        if ($row['latitude'] !== null && $row['longitude'] !== null) {
+            $destination = $row['latitude'] . ',' . $row['longitude'];
+        } elseif (!empty($row['address'])) {
+            $destination = (string) $row['address'];
+        } else {
+            return null;
+        }
+
+        return 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($destination);
     }
 
     /**

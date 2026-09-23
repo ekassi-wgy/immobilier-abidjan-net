@@ -313,6 +313,7 @@ return [
             'legal_note' => 'Information declared by the owner or their agent. Ask for the original documents before committing.',
             'features_title' => 'Amenities',
             'location_title' => 'Location',
+            'directions' => 'Directions',
             'map_exact' => 'Exact address provided by the owner or their agent.',
             'map_approximate' => 'Approximate position: the exact address is not published.',
             'media_title' => 'Tour and documents',

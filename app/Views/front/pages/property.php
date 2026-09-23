@@ -153,15 +153,26 @@ $availability = $p['availability'];
       </section>
       <?php endif; ?>
 
-      <?php if ($p['map'] !== null): ?>
+      <?php if ($p['map'] !== null || $p['directions'] !== null): ?>
       <section class="im-property__block">
         <h2 class="im-h3"><?= e(__('front.property.location_title')) ?></h2>
+        <?php if ($p['map'] !== null): ?>
         <div class="im-map im-map--single" id="im-map" role="application" aria-label="<?= e(__('front.property.location_title')) ?>"
              data-point="<?= e(json_encode($p['map'], JSON_UNESCAPED_UNICODE)) ?>"
              data-map-images="<?= e(asset('vendors/leaflet/images/')) ?>"></div>
         <p class="im-small im-muted im-property__map-note">
           <?= icon('info') ?> <?= e(__($p['map']['exact'] ? 'front.property.map_exact' : 'front.property.map_approximate')) ?>
         </p>
+        <?php endif; ?>
+        <?php /* Itinéraire : simple lien sortant vers Google Maps, proposé seulement quand
+                l'adresse exacte est publiée. Aucune ressource Google n'est chargée par la page. */ ?>
+        <?php if ($p['directions'] !== null): ?>
+        <p class="im-property__directions">
+          <a class="im-btn im-btn--outline" href="<?= e($p['directions']) ?>" target="_blank" rel="noopener">
+            <?= icon('pin') ?> <?= e(__('front.property.directions')) ?>
+          </a>
+        </p>
+        <?php endif; ?>
       </section>
       <?php endif; ?>
     </div>

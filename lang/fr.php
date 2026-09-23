@@ -1240,6 +1240,11 @@ return [
             'user' => 'Utilisateurs',
         ],
     ],
+    'guide' => [
+        'title' => 'Guide d’utilisation',
+        'subtitle' => 'Comment gérer le site au quotidien. Vous ne voyez ici que les écrans auxquels votre compte donne accès.',
+        'summary' => 'Sommaire',
+    ],
     'exports' => [
         'title' => 'Exports',
         'subtitle' => 'Fichiers CSV du pays du site courant, ouverts directement par Excel. :max lignes au maximum par export.',

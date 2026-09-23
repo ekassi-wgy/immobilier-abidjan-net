@@ -1239,6 +1239,11 @@ return [
             'user' => 'Users',
         ],
     ],
+    'guide' => [
+        'title' => 'User guide',
+        'subtitle' => 'How to run the site day to day. Only the screens your account can reach are shown here.',
+        'summary' => 'Contents',
+    ],
     'exports' => [
         'title' => 'Exports',
         'subtitle' => 'CSV files for the current site country, opened directly by Excel. :max rows per export at most.',

@@ -32,6 +32,7 @@ use App\Controllers\Cmsadmin\Properties\PropertyActionController;
 use App\Controllers\Cmsadmin\Properties\PropertyController;
 use App\Controllers\Cmsadmin\Properties\PropertyMediaController;
 use App\Controllers\Cmsadmin\SeoController;
+use App\Controllers\Cmsadmin\GuideController;
 use App\Controllers\Cmsadmin\SettingsController;
 use App\Controllers\Cmsadmin\SiteController;
 use App\Controllers\Cmsadmin\SubmissionController;
@@ -238,6 +239,9 @@ return static function (Router $router, App $app): void {
                 $router->post('/sites/{id:\\d+}/domaines/{domain:\\d+}/principal', [SiteController::class, 'primaryDomain'], 'domains.primary');
                 $router->post('/sites/{id:\\d+}/domaines/{domain:\\d+}/supprimer', [SiteController::class, 'deleteDomain'], 'domains.destroy');
             });
+
+            // Guide d'utilisation : lecture seule, tous les rôles connectés (chacun voit son périmètre)
+            $router->get('/guide', [GuideController::class, 'index'], 'guide');
 
             // Tableau de bord : réel pour les comptes agence (lot 1.7), maquette locale pour l'équipe interne (lot 1.12)
             $router->get('/', [DashboardController::class, 'index'], 'dashboard');

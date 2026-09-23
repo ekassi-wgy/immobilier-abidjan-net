@@ -100,4 +100,7 @@ return [
     ['key' => 'logs', 'label' => 'Journal d\'activité', 'icon' => 'mdi-history', 'url' => 'journal', 'roles' => $staff],
     ['key' => 'exports', 'label' => 'Exports', 'icon' => 'mdi-tray-arrow-down', 'url' => 'exports', 'roles' => $staff],
     ['key' => 'settings', 'label' => 'Paramètres', 'icon' => 'mdi-tune-variant', 'url' => 'parametres', 'roles' => ['super_admin']],
+
+    ['category' => 'Aide', 'roles' => $allRoles],
+    ['key' => 'guide', 'label' => 'Guide d\'utilisation', 'icon' => 'mdi-book-open-page-variant-outline', 'url' => 'guide', 'roles' => $allRoles],
 ];

@@ -1048,3 +1048,28 @@ td.text-end .im-cell-sub { justify-content: flex-end; }
 
 /* <picture> des logos (helper logo_picture) : transparent pour la mise en page */
 .im-picture { display: contents; }
+
+/* Guide d'utilisation (/cmsadmin/guide) : page de lecture, densité plus aérée que les écrans de saisie */
+.im-guide-section .im-panel__title { display: flex; align-items: center; gap: .5rem; margin: 0; }
+.im-guide-section .im-panel__title .mdi { color: var(--im-navy); font-size: 1.15rem; }
+.im-guide__intro { margin: 0 0 1.25rem; color: var(--im-muted); font-size: 14px; line-height: 1.65; }
+.im-guide__heading { margin: 1.5rem 0 .6rem; font-size: 14px; font-weight: 600; color: var(--im-ink); }
+/* Marge annulée seulement quand le titre ouvre réellement la section : après un encadré ou une
+   liste, elle est nécessaire (sinon le titre se colle au bloc précédent). */
+.im-guide__heading:first-child { margin-top: 0; }
+.im-guide__list { display: grid; gap: .55rem; margin: 0; padding-left: 1.1rem; color: var(--im-muted); font-size: 13.5px; line-height: 1.6; }
+.im-guide__list li::marker { color: var(--im-blue); }
+.im-guide__steps { padding: 0 0 0 1.2rem; }
+.im-guide__table { margin: .25rem 0 0; }
+.im-cmsadmin .im-guide__table td { color: var(--im-muted); font-size: 13.5px; line-height: 1.55; vertical-align: top; }
+.im-guide__note { margin: 1.25rem 0 0; padding: .9rem 1rem; font-size: 13px; }
+.im-guide__note p { margin: 0 0 .5rem; }
+.im-guide__note p:last-child { margin-bottom: 0; }
+.im-guide__note-title { font-weight: 600; color: var(--im-ink); }
+
+/* Tons des encadrés : fond teinté, filet de couleur à gauche */
+.im-note--info { background: var(--im-snow); box-shadow: inset 3px 0 0 var(--im-line); }
+.im-note--primary { background: var(--im-blue-tint); box-shadow: inset 3px 0 0 var(--im-blue); }
+.im-note--primary .mdi { color: var(--im-blue); }
+.im-note--warning { background: var(--im-warning-tint); box-shadow: inset 3px 0 0 var(--im-warning); }
+.im-note--warning .mdi, .im-note--warning .im-guide__note-title { color: var(--im-warning); }

@@ -11,6 +11,50 @@ Procédure de première mise en ligne sur **Plesk**, puis de chaque déploiement
 
 ---
 
+## Mémo — ouvrir une session de travail sur le serveur
+
+À faire **à chaque connexion**, avant toute autre commande. Depuis `root@plesk6` :
+
+```bash
+su -s /bin/bash - immobilier.abidjan
+cd ~/httpdocs
+PHP=/opt/plesk/php/8.2/bin/php
+whoami && pwd && $PHP -v | head -1
+```
+
+Les trois contrôles doivent afficher `immobilier.abidjan`,
+`/var/www/vhosts/immobilier.abidjan.net/httpdocs` et `PHP 8.2.33`. Si l'un des trois est faux, ne
+rien lancer d'autre. L'invite devient `-bash-4.2$` : c'est l'invite par défaut du compte, qui n'a
+pas de profil personnalisé. `$PHP` ne vit que le temps de la session, à reposer après chaque `exit`.
+
+```bash
+# Contrôler l'environnement
+$PHP bin/check-deploy.php --host=immobilier.abidjan.net
+
+# Cycle de données de démonstration (purger AVANT de re-remplir, jamais l'inverse)
+$PHP bin/reset-before-launch.php               # simulation, ne modifie rien
+$PHP bin/reset-before-launch.php --confirm     # purge
+$PHP bin/seed-demo.php --yes                   # re-remplissage
+
+# Après une modification faite directement en base (phpMyAdmin)
+$PHP bin/cache-clear.php
+
+# Tester l'envoi d'email (part réellement)
+$PHP bin/mail-test.php --to=…
+
+# Déployer une mise à jour du code
+git pull origin main && $PHP bin/cache-clear.php && $PHP bin/check-deploy.php --host=immobilier.abidjan.net
+```
+
+`exit` ramène à `root@plesk6`.
+
+**Les deux règles dont découlent la plupart des échecs** : ne jamais lancer ces commandes en `root`
+(les fichiers créés appartiendraient à `root:root` et PHP-FPM ne pourrait plus écrire dans
+`public/uploads/`, § 3), et ne jamais taper `php` seul — c'est le PHP système 5.4, qui s'arrête sur
+la première ligne des scripts (§ 1).
+
+---
+
 ## 0. Ce qu'il faut obtenir du client avant de commencer
 
 | Élément | Pourquoi | Statut |

@@ -14,7 +14,9 @@
     display: grid;
     align-items: start;
     gap: im-fluid(2rem, 3.5rem);
-    padding-top: im-fluid(1.75rem, 2.5rem);
+    // Retrait bas indispensable : sans lui, le dernier élément de la colonne — note de carte,
+    // bouton d'itinéraire, dernier critère — vient toucher la section suivante.
+    padding: im-fluid(1.75rem, 2.5rem) 0 im-fluid(2.25rem, 3rem);
     grid-template-columns: minmax(0, 1fr);
 
     @include im-up(lg) { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
@@ -159,10 +161,8 @@
   }
 
   // Itinéraire : lien sortant vers Google Maps, présent seulement si l'adresse exacte est publiée.
-  // Marge basse explicite : le bouton ferme la colonne, dont le conteneur n'a pas de retrait —
-  // sans elle, le bord du bouton colle à la section suivante. Elle fusionne avec la marge haute
-  // du bloc suivant quand il y en a un, donc pas de double espacement.
-  &__directions { margin: 1rem 0 im-fluid(2rem, 2.75rem); }
+  // L'espace sous le bouton vient du retrait bas de __layout, commun à tous les derniers blocs.
+  &__directions { margin: 1rem 0 0; }
 
   &__aside { min-width: 0; }
 

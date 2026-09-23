@@ -167,11 +167,48 @@ try {
     $check('Connexion établie', true);
     $check("Schéma installé ({$tables} tables)", $tables >= 38, 'Importer database/schema.sql puis database/seed.sql, et appliquer les migrations.');
 
+    // Migrations appliquées. Le nombre de tables ne les distingue pas : leur DDL est répercuté dans
+    // schema.sql, et les migrations de données (textes des pages, commission) ne créent aucune table.
+    // On contrôle donc un marqueur que seule la migration concernée peut avoir posé.
     $migrations = glob($app->root . '/database/migrations/*.sql') ?: [];
-    printf("  \033[36mINFO\033[0m    %d migration(s) dans database/migrations/ — vérifier qu'elles sont toutes appliquées :\n", count($migrations));
-    foreach ($migrations as $migration) {
-        printf("            %s\n", basename($migration));
+    printf("  \033[36mINFO\033[0m    %d migration(s) dans database/migrations/.\n", count($migrations));
+
+    $hasTable = static fn (string $table): bool => (int) $app->db()->scalar(
+        'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
+        [$table]
+    ) > 0;
+    $hasColumn = static fn (string $table, string $column): bool => (int) $app->db()->scalar(
+        'SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?',
+        [$table, $column]
+    ) > 0;
+    $hasSetting = static fn (string $key): bool => (int) $app->db()->scalar(
+        'SELECT COUNT(*) FROM settings WHERE setting_key = ?',
+        [$key]
+    ) > 0;
+
+    $applyMigrations = 'Appliquer les migrations de database/migrations/ dans l\'ordre (docs/deploiement.md § 2).';
+
+    // Structure : ces objets viennent d'une migration, mais schema.sql les porte aussi. Sur une
+    // installation neuve ils sont donc toujours présents — ils ne prouvent pas que les migrations
+    // ont été jouées, ils détectent une base ancienne restée en arrière du schéma.
+    $schema = [
+        'révisions d\'annonces (0002)' => $hasTable('property_revisions'),
+        'coordonnées du site (0006)' => $hasColumn('sites', 'latitude'),
+        'réseaux sociaux (0007)' => $hasColumn('sites', 'social_links'),
+        'intermédiaire exclusif (0008)' => $hasTable('property_submissions') && $hasColumn('properties', 'deactivated_by_partner'),
+        'mesure d\'audience (0011)' => $hasColumn('sites', 'analytics_id'),
+    ];
+    foreach ($schema as $label => $present) {
+        $check(
+            "Schéma à jour : {$label}",
+            $present,
+            'Base en retard sur schema.sql : appliquer la migration correspondante. ' . $applyMigrations
+        );
     }
+
+    // Données : seules ces valeurs prouvent que les migrations ont réellement été appliquées,
+    // puisque seed.sql ne les pose pas. Les pages éditoriales sont contrôlées plus bas.
+    $check('Migration 0005 (commission) appliquée', $hasSetting('commission.base'), $applyMigrations);
 
     $admins = (int) $app->db()->scalar("SELECT COUNT(*) FROM users WHERE role = 'super_admin' AND is_active = 1");
     $check("Super Admin actif ({$admins})", $admins > 0, 'Créer un compte avec « php bin/create-user.php --role=super_admin … ».');
@@ -221,14 +258,37 @@ try {
     $published = (int) $app->db()->scalar("SELECT COUNT(*) FROM properties WHERE status = 'published' AND deleted_at IS NULL");
     printf("  \033[36mINFO\033[0m    %d annonce(s) en ligne.\n", $published);
 
-    $legal = $app->db()->select("SELECT slug, is_published FROM pages WHERE code IS NOT NULL");
-    foreach ($legal as $page) {
+    // Pages éditoriales et légales. seed.sql ne les crée que vides et non publiées : un contenu
+    // manquant signale des migrations non appliquées (0004 et 0009 à 0014) et bloque, alors qu'une
+    // page rédigée mais non publiée reste une décision éditoriale, donc un simple avertissement.
+    $expectedPages = ['about', 'how_it_works', 'faq', 'legal_notice', 'terms', 'privacy', 'cookies'];
+    $legal = $app->db()->select(
+        "SELECT code, slug, is_published, CHAR_LENGTH(COALESCE(content, '')) AS length FROM pages WHERE code IS NOT NULL"
+    );
+    $pagesByCode = array_column($legal, null, 'code');
+
+    foreach ($expectedPages as $code) {
+        $page = $pagesByCode[$code] ?? null;
+        if ($page === null) {
+            $check("Page « {$code} » présente", false, $applyMigrations);
+            continue;
+        }
+        if ((int) $page['length'] === 0) {
+            $check("Page « {$page['slug']} » rédigée", false, $applyMigrations);
+            continue;
+        }
         $check(
             "Page « {$page['slug']} » publiée",
             (int) $page['is_published'] === 1,
             'Une page légale non publiée répond 404 et son lien disparaît du pied de page.',
             false
         );
+    }
+
+    foreach ($pagesByCode as $code => $page) {
+        if (!in_array($code, $expectedPages, true)) {
+            printf("  \033[36mINFO\033[0m    Page système supplémentaire : %s.\n", $page['slug']);
+        }
     }
 } catch (Throwable $e) {
     $check('Connexion à la base', false, $e->getMessage());

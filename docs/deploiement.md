@@ -205,9 +205,22 @@ php bin/check-deploy.php --host=immobilier.abidjan.net
 ```
 
 Le script vérifie la version de PHP et les extensions, la configuration `.env`, les droits
-d'écriture, la base (schéma, migrations, Super Admin, sites et domaines, pages légales publiées) et
+d'écriture, la base (schéma, Super Admin, sites et domaines, pages éditoriales et légales) et
 rappelle les CRON à créer. Il ne modifie rien et sort en **code 1** dès qu'un contrôle bloquant
 échoue — il peut donc être enchaîné dans un script de déploiement.
+
+Sur les migrations, il distingue deux choses :
+
+- « **Schéma à jour : …** » contrôle que les tables et colonnes introduites par les migrations
+  `0002`, `0006`, `0007`, `0008` et `0011` existent. Leur DDL étant répercuté dans `schema.sql`,
+  ces contrôles passent toujours sur une installation neuve : ils détectent une base **ancienne**
+  restée en arrière du schéma, pas des migrations oubliées.
+- « **Migration 0005 (commission) appliquée** » et les contrôles « Page « … » **rédigée** »
+  détectent, eux, des migrations réellement non appliquées : `seed.sql` ne pose ni le paramètre
+  `commission.base`, ni le contenu des pages, ni la page `faq`. Ces contrôles sont **bloquants** ;
+  une page rédigée mais simplement non publiée reste un avertissement (décision éditoriale).
+
+Il n'existe pas de table de suivi des migrations : ce sont ces marqueurs qui en tiennent lieu.
 
 > Lancé sur un poste de développement, il échoue volontairement (`APP_ENV=local`, pas de HTTPS,
 > pas de cache) : c'est le comportement attendu, il ne sert qu'en production et en pré-production.

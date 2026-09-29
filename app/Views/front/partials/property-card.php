@@ -9,10 +9,15 @@
  *                        Téléphone et WhatsApp sont ceux de Weblogy : le partenaire n'apparaît jamais en public.
  * @var string $variant  'grid' | 'row'
  * @var bool   $eager    Image chargée immédiatement (au-dessus de la ligne de flottaison)
+ * @var bool   $embed    Carte du widget affiché sur Abidjan.net (WidgetController) : URL déjà absolues,
+ *                       icônes recopiées dans le HTML, pas de favori (il vit dans le navigateur, sur notre domaine)
  */
 $variant ??= 'grid';
 $eager ??= false;
+$embed ??= false;
 $p = $property;
+$href = $embed ? $p['url'] : url($p['url']);
+$icon = static fn (string $name, string $class = ''): string => $embed ? icon_inline($name, $class) : icon($name, $class);
 $image = $p['image'];
 $sizes = $variant === 'row' ? '(min-width: 768px) 380px, 100vw' : '(min-width: 1200px) 400px, (min-width: 576px) 50vw, 100vw';
 $whatsappUrl = !empty($p['whatsapp'])
@@ -22,7 +27,7 @@ $whatsappUrl = !empty($p['whatsapp'])
 ?>
 <article class="im-card<?= $variant === 'row' ? ' im-card--row' : '' ?>">
   <div class="im-card__media">
-    <a class="im-card__media-link" href="<?= e(url($p['url'])) ?>" tabindex="-1" aria-hidden="true">
+    <a class="im-card__media-link" href="<?= e($href) ?>" tabindex="-1" aria-hidden="true">
       <img class="im-card__image<?= !empty($image['placeholder']) ? ' im-card__image--placeholder' : '' ?>"
            src="<?= e($image['src']) ?>"
            <?= $image['srcset'] !== '' ? 'srcset="' . e($image['srcset']) . '" sizes="' . e($sizes) . '"' : '' ?>
@@ -37,12 +42,14 @@ $whatsappUrl = !empty($p['whatsapp'])
     </div>
     <?php endif; ?>
 
+    <?php if (!$embed): ?>
     <button class="im-card__fav" type="button" aria-pressed="false" aria-label="<?= e(__('front.card.add_favorite', ['title' => $p['title']])) ?>" data-favorite="<?= e($p['reference']) ?>">
       <?= icon('heart') ?>
     </button>
+    <?php endif; ?>
 
     <?php if (!empty($p['photos'])): ?>
-    <span class="im-card__count"><?= icon('camera') ?> <?= e($p['photos']) ?><span class="visually-hidden"> <?= e(__('front.card.photos')) ?></span></span>
+    <span class="im-card__count"><?= $icon('camera') ?> <?= e($p['photos']) ?><span class="visually-hidden"> <?= e(__('front.card.photos')) ?></span></span>
     <?php endif; ?>
   </div>
 
@@ -59,10 +66,10 @@ $whatsappUrl = !empty($p['whatsapp'])
     </p>
 
     <h3 class="im-card__title">
-      <a class="im-card__link" href="<?= e(url($p['url'])) ?>"><?= e($p['title']) ?></a>
+      <a class="im-card__link" href="<?= e($href) ?>"><?= e($p['title']) ?></a>
     </h3>
 
-    <p class="im-card__location"><?= icon('pin') ?> <?= e($p['location']) ?></p>
+    <p class="im-card__location"><?= $icon('pin') ?> <?= e($p['location']) ?></p>
 
     <?php if ($variant === 'row' && !empty($p['description'])): ?>
     <p class="im-card__description"><?= e($p['description']) ?></p>
@@ -71,7 +78,7 @@ $whatsappUrl = !empty($p['whatsapp'])
     <?php if (!empty($p['specs'])): ?>
     <ul class="im-card__specs">
       <?php foreach ($p['specs'] as $spec): ?>
-      <li><?= icon($spec['icon']) ?> <?= e($spec['label']) ?></li>
+      <li><?= $icon($spec['icon']) ?> <?= e($spec['label']) ?></li>
       <?php endforeach; ?>
     </ul>
     <?php endif; ?>
@@ -80,10 +87,10 @@ $whatsappUrl = !empty($p['whatsapp'])
       <span class="im-card__reference"><?= e(__('front.card.reference', ['reference' => $p['reference']])) ?></span>
       <div class="im-card__actions">
         <?php if ($whatsappUrl !== null): ?>
-        <a class="im-card__action im-card__action--whatsapp" href="<?= e($whatsappUrl) ?>" target="_blank" rel="noopener" aria-label="<?= e(__('front.card.whatsapp', ['reference' => $p['reference']])) ?>"><?= icon('whatsapp') ?></a>
+        <a class="im-card__action im-card__action--whatsapp" href="<?= e($whatsappUrl) ?>" target="_blank" rel="noopener" aria-label="<?= e(__('front.card.whatsapp', ['reference' => $p['reference']])) ?>"><?= $icon('whatsapp') ?></a>
         <?php endif; ?>
         <?php if (!empty($p['phone'])): ?>
-        <a class="im-card__action" href="tel:<?= e(preg_replace('/[^\d+]/', '', $p['phone'])) ?>" aria-label="<?= e(__('front.card.call', ['reference' => $p['reference']])) ?>"><?= icon('phone') ?></a>
+        <a class="im-card__action" href="tel:<?= e(preg_replace('/[^\d+]/', '', $p['phone'])) ?>" aria-label="<?= e(__('front.card.call', ['reference' => $p['reference']])) ?>"><?= $icon('phone') ?></a>
         <?php endif; ?>
       </div>
     </div>

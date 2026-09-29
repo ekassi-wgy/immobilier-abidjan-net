@@ -176,6 +176,13 @@ return [
             'rooms' => ':count pièces',
             'bathrooms' => ':count sdb',
         ],
+        // Section « Biens à la une » embarquée sur Abidjan.net (lot 2.6)
+        'widget' => [
+            'title' => 'Biens à la une',
+            'lead' => 'Des annonces complètes, photographiées et vérifiées par l’équipe :name.',
+            'all_listings' => 'Toutes les annonces',
+            'fallback' => ':name : toutes les annonces',
+        ],
         'home' => [
             'meta_title' => 'Annonces immobilières en :country',
             'meta_description' => 'Villas, appartements, terrains et bureaux à vendre ou à louer, vérifiés et présentés par une seule équipe, votre interlocuteur de la recherche à la visite.',

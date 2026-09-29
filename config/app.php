@@ -34,6 +34,15 @@ return [
         'sites_ttl' => env('CACHE_SITES_TTL', 600) === '' ? null : (int) env('CACHE_SITES_TTL', 600),
     ],
 
+    // Widget « Biens à la une » (lot 2.6) : sites autorisés à le charger en JavaScript (CORS).
+    // L'inclusion côté serveur (PHP) n'en a pas besoin : seul un navigateur applique CORS.
+    'widget' => [
+        'origins' => array_values(array_filter(array_map(
+            static fn (string $origin): string => rtrim(trim($origin), '/'),
+            explode(',', (string) env('WIDGET_ORIGINS', 'https://www.abidjan.net,https://abidjan.net'))
+        ))),
+    ],
+
     'log' => [
         'path' => APP_ROOT . '/storage/logs',
     ],

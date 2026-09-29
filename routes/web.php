@@ -18,6 +18,7 @@ use App\Controllers\Front\PostController;
 use App\Controllers\Front\PropertyController;
 use App\Controllers\Front\SearchController;
 use App\Controllers\Front\SitemapController;
+use App\Controllers\Front\WidgetController;
 use App\Controllers\Preview\FrontPreviewController;
 use App\Core\App;
 use App\Core\Router;
@@ -34,6 +35,10 @@ return static function (Router $router, App $app): void {
     // Référencement (lot 2.1)
     $router->get('/sitemap.xml', [SitemapController::class, 'sitemap'], 'sitemap');
     $router->get('/robots.txt', [SitemapController::class, 'robots'], 'robots');
+
+    // Section « Biens à la une » embarquée sur Abidjan.net (lot 2.6) : fragment HTML, inclus côté
+    // serveur ou chargé par public/widget/biens-a-la-une.js
+    $router->get('/widget/biens-a-la-une', [WidgetController::class, 'featured'], 'widget.featured');
 
     // Fiche annonce (lot 1.10). Déclarée avant le bloc de recherche ci-dessous.
     $listing = '/annonces/{slug:[a-z0-9-]+}-ref{id:[0-9]+}';

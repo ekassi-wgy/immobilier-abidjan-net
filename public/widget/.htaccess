@@ -1,0 +1,8 @@
+# Script du widget « Biens à la une » (lot 2.6), chargé depuis Abidjan.net.
+# Son adresse est fixe (collée dans les pages d'Abidjan.net, sans `?v=`) : une heure de cache au lieu
+# de l'année appliquée aux ressources versionnées par public/.htaccess, pour qu'une mise à jour arrive.
+<IfModule mod_headers.c>
+    <FilesMatch "\.js$">
+        Header set Cache-Control "public, max-age=3600"
+    </FilesMatch>
+</IfModule>

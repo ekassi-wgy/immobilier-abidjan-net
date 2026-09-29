@@ -118,7 +118,8 @@ en moins de 125 ms et le back-office en moins de 85 ms. Le lot **3.1 (mise en pr
 `bin/check-deploy.php` passe à 0 échec et 0 alerte. Il est pour l'instant en **mode démonstration**
 (`bin/seed-demo.php`) le temps de la validation client — donc en `noindex`, `robots.txt` fermé et sans
 mesure d'audience ; l'ouverture au public se fera par `bin/reset-before-launch.php --confirm`, après les
-tâches planifiées et les sauvegardes Plesk. Le détail lot par lot est dans
+tâches planifiées et les sauvegardes Plesk. Le lot **2.6** ajoute un **widget « Biens à la une »** à
+inclure sur Abidjan.net (inclusion PHP ou script, [`docs/widget.md`](docs/widget.md)). Le détail lot par lot est dans
 [`docs/PLAN.md`](docs/PLAN.md).
 
 > **À valider par le client** : les **textes légaux** (mentions légales, CGU, confidentialité, cookies)

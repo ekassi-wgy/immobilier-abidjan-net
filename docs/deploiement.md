@@ -286,6 +286,9 @@ SMTP_PASSWORD=…            # mot de passe d'application régénéré, JAMAIS c
 SMTP_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=abidjan.net@weblogy.com
 MAIL_FROM_NAME="immobilier.abidjan.net"
+
+# Widget « Biens à la une » : sites autorisés à le charger en JavaScript (docs/widget.md)
+WIDGET_ORIGINS=https://www.abidjan.net,https://abidjan.net
 ```
 
 `chmod 600 .env`. Une variable définie au niveau de Plesk prime sur le fichier.
@@ -392,6 +395,9 @@ curl -sI https://immobilier.abidjan.net/ | grep -i set-cookie   # aucune ligne a
 
 # Email
 php bin/mail-test.php --to=…
+
+# Widget « Biens à la une » pour Abidjan.net (vide tant que le mode démonstration est actif)
+curl -s https://immobilier.abidjan.net/widget/biens-a-la-une | grep -c '<article'   # 3 après l'ouverture
 ```
 
 Puis, dans un navigateur : connexion au back-office, création d'une annonce de bout en bout

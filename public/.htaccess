@@ -40,4 +40,9 @@ DirectoryIndex index.php
     <FilesMatch "\.(css|js|svg|woff2|webp|jpe?g|png|gif|ico)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
+    # Police chargée aussi par le widget « Biens à la une » sur Abidjan.net (lot 2.6) : un navigateur
+    # refuse une police d'une autre origine sans cet en-tête. Police libre (OFL), rien à protéger.
+    <FilesMatch "\.woff2$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
 </IfModule>

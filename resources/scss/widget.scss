@@ -1,0 +1,116 @@
+// =============================================================================
+// Widget « Biens à la une » affiché sur Abidjan.net (lot 2.6)
+// Compilation : php bin/build-css.php  →  public/assets/css/widget.css
+//
+// Feuille injectée dans la racine fantôme du fragment (WidgetController) : elle ne s'applique qu'à la
+// section, jamais à la page hôte. Elle reprend les MÊMES sources que le site (jetons, carte annonce,
+// badges, liens) : toute retouche de la carte se retrouve ici à la prochaine compilation.
+//
+// Deux différences avec app.css, imposées par l'hébergement sur une autre page :
+// - les `rem` sont convertis en `px` à la compilation (bin/build-css.php) : un `rem` dépend de la
+//   taille de police de la page hôte, que nous ne maîtrisons pas ;
+// - la grille suit la largeur disponible (requêtes de conteneur), pas celle de l'écran : la section
+//   peut être posée dans une colonne étroite d'Abidjan.net.
+// =============================================================================
+
+@import "abstracts/tokens";
+
+// Bootstrap : fonctions, variables et mixins seulement (aucune règle produite), pour les mixins du site
+@import "functions";
+@import "variables";
+@import "maps";
+@import "mixins";
+@import "abstracts/mixins";
+
+// Socle : la page hôte transmet par héritage sa police, sa taille et sa couleur jusque dans la racine
+// fantôme. Tout est donc refixé sur la section elle-même, que le CSS de la page hôte n'atteint pas.
+:host {
+  display: block;
+}
+
+.im-widget {
+  container-type: inline-size;
+  color: $im-ink;
+  font-family: "IAN Plus Jakarta Sans", $im-font;
+  font-size: 16px;
+  font-weight: $im-weight-regular;
+  font-style: normal;
+  line-height: 1.6;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  word-spacing: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+}
+
+// Remise à zéro en spécificité nulle (`:where`), comme le reboot du site : elle ne doit jamais
+// l'emporter sur un composant (marges des critères, couleur du titre de carte…).
+:where(.im-widget) {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  h2, h3, p, ul { margin: 0; }
+  h2, h3 { font-weight: $im-weight-bold; color: $im-ink; }
+  a { color: $im-blue; text-decoration: none; transition: color $im-duration-fast $im-ease; }
+  img, svg { display: block; max-width: 100%; }
+  img { height: auto; border: 0; }
+  :focus-visible { @include im-focus-ring; }
+}
+
+.visually-hidden { @include im-visually-hidden; }
+
+// Composants du site, tels quels ------------------------------------------------------------------
+.im-h2 { @include im-type("h2"); font-weight: $im-weight-bold; }
+.im-lead { @include im-type("lead"); color: $im-muted; }
+
+.im-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  margin-bottom: im-fluid(1.75rem, 2.75rem);
+
+  &__text { max-width: 44rem; }
+  &__lead { margin-top: .75rem; }
+}
+
+@import "components/ui";
+@import "components/property-card";
+
+// Grille : défilement horizontal tant que la place manque, trois colonnes au-delà ------------------
+// Trois cartes empilées feraient 1 500 px de haut sur le mobile d'Abidjan.net ; la carte suivante
+// dépasse du bord pour signaler qu'on peut faire défiler.
+.im-widget__cards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 82%;
+  gap: 1rem;
+  margin: 0 -2px;
+  padding: 2px 2px 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+
+  > .im-card { scroll-snap-align: start; }
+
+  @container (min-width: 600px) { grid-auto-columns: calc((100% - 1.5rem) / 2.15); gap: 1.5rem; }
+
+  @container (min-width: 900px) {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3rem 2rem;
+    overflow: visible;
+  }
+}
+
+@include im-reduced-motion {
+  .im-widget *, .im-widget *::before, .im-widget *::after {
+    transition-duration: .01ms !important;
+  }
+}

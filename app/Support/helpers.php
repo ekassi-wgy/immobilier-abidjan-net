@@ -245,6 +245,33 @@ function icon(string $name, string $class = '', ?string $label = null): string
     );
 }
 
+/**
+ * Même icône, tracé recopié dans le HTML : pour un fragment affiché sur un autre domaine (widget),
+ * où `<use href="…/icons.svg#…">` ne se charge pas (le navigateur refuse un sprite d'une autre origine).
+ */
+function icon_inline(string $name, string $class = ''): string
+{
+    static $symbols = null;
+    if ($symbols === null) {
+        $symbols = [];
+        $sprite = (string) @file_get_contents(APP_ROOT . '/public/assets/img/icons.svg');
+        preg_match_all('#<symbol id="i-([a-z0-9-]+)" viewBox="([^"]+)">(.*?)</symbol>#s', $sprite, $matches, PREG_SET_ORDER);
+        foreach ($matches as [, $id, $viewBox, $body]) {
+            $symbols[$id] = [$viewBox, $body];
+        }
+    }
+    if (!isset($symbols[$name])) {
+        return '';
+    }
+
+    return sprintf(
+        '<svg class="im-icon%s" viewBox="%s" aria-hidden="true" focusable="false">%s</svg>',
+        $class !== '' ? ' ' . e($class) : '',
+        $symbols[$name][0],
+        $symbols[$name][1]
+    );
+}
+
 // Formatage ---------------------------------------------------------------------------
 
 /**

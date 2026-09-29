@@ -175,6 +175,13 @@ return [
             'rooms' => ':count rooms',
             'bathrooms' => ':count bath',
         ],
+        // “Featured properties” section embedded on Abidjan.net (lot 2.6)
+        'widget' => [
+            'title' => 'Featured properties',
+            'lead' => 'Complete listings, photographed and checked by the :name team.',
+            'all_listings' => 'All listings',
+            'fallback' => ':name: all listings',
+        ],
         'home' => [
             'meta_title' => 'Property listings in :country',
             'meta_description' => 'Houses, flats, land and offices for sale or rent, checked and presented by one team, your contact from search to viewing.',

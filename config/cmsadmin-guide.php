@@ -166,7 +166,7 @@ return [
                 'items' => [
                     '<strong>Prolonger</strong> repousse la date d’expiration sans repasser par la validation.',
                     '<strong>Archiver</strong> sert quand le bien est vendu ou loué — préférez-le à la suppression, les statistiques sont conservées.',
-                    '<strong>Mettre en avant</strong> (« à la une » sur l’accueil) est réservé à l’équipe et aux annonces publiées.',
+                    '<strong>Mettre en avant</strong> (« à la une » sur l’accueil) est réservé à l’équipe et aux annonces publiées. Les biens à la une apparaissent aussi dans la section « Biens à la une » affichée sur Abidjan.net (dans un délai de 15 minutes au plus).',
                     'La <strong>suppression</strong> n’efface rien définitivement : l’annonce est retirée mais reste en base. Un partenaire ne peut supprimer qu’une annonce jamais publiée.',
                 ],
             ],

@@ -82,7 +82,9 @@ et `font-src`.
   d'`Access-Control-Allow-Origin`. Les polices sont servies avec `Access-Control-Allow-Origin: *`
   (`public/.htaccess`, police libre OFL).
 - **Mode démonstration** : le fragment est **vide** tant que `demo.active` est posé — Abidjan.net ne
-  montre jamais d'annonce fictive. Même chose s'il n'y a aucun bien à la une.
+  montre pas d'annonce fictive au public. Même chose s'il n'y a aucun bien à la une.
+  **Exception pour la validation** : `WIDGET_ALLOW_DEMO=true` dans `.env` sert les biens de démonstration
+  (voir § 4 bis). Le réglage devient sans effet dès la purge de la démo (`bin/reset-before-launch.php`).
 - Le fragment est servi en `X-Robots-Tag: noindex` : ce n'est pas une page.
 
 ## 4. Avant la mise en service sur Abidjan.net
@@ -102,10 +104,23 @@ curl -sI -H "Origin: https://www.abidjan.net" https://immobilier.abidjan.net/wid
 curl -sI https://immobilier.abidjan.net/widget/biens-a-la-une.js | grep -i cache-control        # max-age=3600
 ```
 
+## 4 bis. Validation du rendu avant l'ouverture
+
+Pour faire valider la section sur Abidjan.net alors que le site est encore en démonstration :
+
+1. Sur le serveur immobilier, ajouter `WIDGET_ALLOW_DEMO=true` au `.env`, puis
+   `/opt/plesk/php/8.2/bin/php bin/cache-clear.php`.
+2. Lever la protection par mot de passe (`401`) le temps de la validation.
+3. Afficher la section **sur une page de test d'Abidjan.net** (`index-test.php`), pas sur l'accueil
+   public : ce sont des annonces fictives. Ajouter `<meta name="robots" content="noindex">` à cette page.
+4. Après validation : retirer `WIDGET_ALLOW_DEMO` du `.env`, vider le cache, remettre le `401`.
+   Côté Abidjan.net, la copie gardée expire en 10 minutes ; pour l'effacer tout de suite :
+   `rm -f /tmp/ian-biens-a-la-une-*` sur leur serveur.
+
 ## 5. Tester en local
 
-Le fragment est vide tant que la base locale est en mode démonstration : passer temporairement
-`demo.active` à `false` dans `settings`, `php bin/cache-clear.php`, puis le remettre à `true`. Une page
+Le fragment est vide tant que la base locale est en mode démonstration : ajouter temporairement
+`WIDGET_ALLOW_DEMO=true` au `.env`, puis le retirer et lancer `php bin/cache-clear.php`. Une page
 servie sur une autre origine (`php -S 127.0.0.1:8767` dans le scratchpad, avec
 `WIDGET_ORIGINS=http://127.0.0.1:8767` dans `.env` le temps du test) reproduit Abidjan.net ; lui
 ajouter une feuille hostile (`html{font-size:62.5%}`, `a{color:green}`…) vérifie l'isolation.

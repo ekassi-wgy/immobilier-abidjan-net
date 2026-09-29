@@ -289,6 +289,7 @@ MAIL_FROM_NAME="immobilier.abidjan.net"
 
 # Widget « Biens à la une » : sites autorisés à le charger en JavaScript (docs/widget.md)
 WIDGET_ORIGINS=https://www.abidjan.net,https://abidjan.net
+# WIDGET_ALLOW_DEMO=true   # uniquement le temps de faire valider le widget avant l'ouverture (docs/widget.md § 4 bis)
 ```
 
 `chmod 600 .env`. Une variable définie au niveau de Plesk prime sur le fichier.

@@ -41,6 +41,9 @@ return [
             static fn (string $origin): string => rtrim(trim($origin), '/'),
             explode(',', (string) env('WIDGET_ORIGINS', 'https://www.abidjan.net,https://abidjan.net'))
         ))),
+        // Mode démonstration : le fragment est vide, sauf pour une validation du rendu sur Abidjan.net
+        // avant l'ouverture (WIDGET_ALLOW_DEMO=true, à retirer ensuite). Sans effet une fois la démo purgée.
+        'allow_demo' => filter_var(env('WIDGET_ALLOW_DEMO', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
     'log' => [

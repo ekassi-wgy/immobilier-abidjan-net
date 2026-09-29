@@ -23,7 +23,8 @@ use App\Core\Response;
  *
  * Mêmes données et même carte que l'accueil (`ListingRepository::featured()`, `ListingPresenter`,
  * `partials/property-card` en mode `embed`) : Weblogy reste l'unique interlocuteur affiché.
- * Rien n'est renvoyé en mode démonstration : Abidjan.net ne doit jamais montrer d'annonce fictive.
+ * Rien n'est renvoyé en mode démonstration — Abidjan.net ne doit pas montrer d'annonce fictive au
+ * public —, sauf si `WIDGET_ALLOW_DEMO=true` : validation du rendu sur Abidjan.net avant l'ouverture.
  */
 final class WidgetController extends Controller
 {
@@ -45,7 +46,8 @@ final class WidgetController extends Controller
         $limit = max(1, min(self::MAX_LIMIT, (int) $request->query('limit', self::DEFAULT_LIMIT) ?: self::DEFAULT_LIMIT));
         $origin = $this->origin();
 
-        $html = demo_mode() ? '' : $this->app->cache()->remember(
+        $blocked = demo_mode() && !config('app.widget.allow_demo', false);
+        $html = $blocked ? '' : $this->app->cache()->remember(
             sprintf('widget_featured_%d_%d_%s', $site->id, $limit, md5($origin . '|' . $site->defaultLocale)),
             self::SERVER_TTL,
             fn (): string => $this->render($site->country->id, $limit, $origin)

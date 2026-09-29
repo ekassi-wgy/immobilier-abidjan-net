@@ -16,7 +16,8 @@
     gap: im-fluid(2rem, 3.5rem);
     // Retrait bas indispensable : sans lui, le dernier élément de la colonne — note de carte,
     // bouton d'itinéraire, dernier critère — vient toucher la section suivante.
-    padding: im-fluid(1.75rem, 2.5rem) 0 im-fluid(2.25rem, 3rem);
+    // `padding-block` seulement : les retraits latéraux sont ceux de .im-container.
+    padding-block: im-fluid(1.75rem, 2.5rem) im-fluid(2.25rem, 3rem);
     grid-template-columns: minmax(0, 1fr);
 
     @include im-up(lg) { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
